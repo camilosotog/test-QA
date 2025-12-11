@@ -1,0 +1,110 @@
+<div class="container py-4">
+  <h3 class="mb-3">Bugs</h3>
+  <div class="card">
+    <div class="card-header">Reportar / Editar Bug</div>
+    <div class="card-body">
+      <div class="mb-2">
+        <input class="form-control" placeholder="Título" [(ngModel)]="form.title" />
+      </div>
+      <div class="mb-2">
+        <textarea class="form-control" placeholder="Descripción" [(ngModel)]="form.description"></textarea>
+      </div>
+      <div class="mb-2">
+        <label class="form-label">Reportado por</label>
+        <select class="form-control" [(ngModel)]="form.reporter_id">
+          <option [ngValue]="null">-- Seleccionar QA --</option>
+          <option *ngFor="let u of users" [ngValue]="u.id">{{u.name}} ({{u.email}})</option>
+        </select>
+      </div>
+      <div class="mb-2 row">
+        <div class="col">
+          <label class="form-label">Tipo</label>
+          <input class="form-control" placeholder="Escribe el tipo (ej. UX, Funcional)" [(ngModel)]="form.type" />
+        </div>
+        <div class="col">
+          <label class="form-label">Prioridad</label>
+          <select class="form-control" [(ngModel)]="form.priority">
+            <option value="" disabled selected>Selecciona prioridad</option>
+            <option value="BAJA">BAJA</option>
+            <option value="MEDIA">MEDIA</option>
+            <option value="ALTA">ALTA</option>
+          </select>
+        </div>
+        <div class="col">
+          <label class="form-label">Severidad</label>
+          <select class="form-control" [(ngModel)]="form.severity">
+            <option value="" disabled selected>Selecciona severidad</option>
+            <option value="NO CRITICO">NO CRÍTICO</option>
+            <option value="CRITICO">CRÍTICO</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="mb-2 row">
+        <div class="col">
+          <label class="form-label">Entorno</label>
+          <select class="form-control" [(ngModel)]="form.environment">
+            <option value="" disabled selected>Selecciona entorno</option>
+            <option value="PRE-PRODUCCION">PRE-PRODUCCION</option>
+            <option value="PRODUCCION">PRODUCCION</option>
+          </select>
+        </div>
+        <div class="col">
+          <label class="form-label">Sprint</label>
+          <select class="form-control" [(ngModel)]="form.sprint_id">
+            <option value="" disabled selected>Selecciona sprint</option>
+            <option *ngFor="let sp of sprints" [value]="sp.id">{{sp.name}}</option>
+          </select>
+        </div>
+        <div class="col d-flex gap-2 justify-content-end align-items-center">
+          <button class="btn btn-secondary btn-sm" (click)="cancel()">Cancelar</button>
+          <button class="btn btn-primary btn-sm" (click)="save()">Guardar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr />
+
+  <div class="card">
+    <div class="card-header">Listado de bugs</div>
+    <div class="card-body p-0">
+      <table class="table mb-0">
+        <thead>
+          <tr>
+            <th>Título</th>
+            <th>Tipo</th>
+            <th>Fecha</th>
+            <th>Entorno</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let b of bugs" [ngClass]="{'severity-critical': isCritical(b)}">
+            <td>
+              <ng-container *ngIf="isExternalUrl(b.title); else internalLink">
+                <a [href]="b.title" target="_blank" rel="noopener noreferrer">{{ b.title }}</a>
+              </ng-container>
+              <ng-template #internalLink>
+                <a [routerLink]="['/bugs', b.id]">{{ b.title }}</a>
+              </ng-template>
+            </td>
+            <td>{{ b.type }}</td>
+            <td>{{ (b.created_at || b.createdAt) | date:'yyyy-MM-dd' }}</td>
+            <td>{{ b.environment }}</td>
+            <td class="actions-cell">
+              <button class="icon-btn btn-edit" title="Editar" aria-label="Editar" (click)="edit(b)">
+                <!-- pencil icon -->
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25z" fill="currentColor"/><path d="M20.71 7.04a1.003 1.003 0 000-1.42l-2.34-2.34a1.003 1.003 0 00-1.42 0l-1.83 1.83 3.75 3.75 1.84-1.82z" fill="currentColor"/></svg>
+              </button>
+              <button class="icon-btn btn-delete" title="Eliminar" aria-label="Eliminar" (click)="remove(b.id)">
+                <!-- trash icon -->
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9 3h6l1 1h4v2H4V4h4l1-1z" fill="currentColor"/><path d="M6 7h12l-1 12a2 2 0 01-2 2H9a2 2 0 01-2-2L6 7z" fill="currentColor"/></svg>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

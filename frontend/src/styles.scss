@@ -1,0 +1,1985 @@
+// ==========================================
+// 🎨 TEMA LLAMATIVO Y MODERNO COMPLETO
+// ==========================================
+
+// Paleta de colores vibrante
+$color-primary: #6366F1;
+$color-primary-light: #818CF8;
+$color-primary-dark: #4F46E5;
+$color-accent: #EC4899;
+$color-accent-light: #F472B6;
+$color-accent-dark: #BE185D;
+$color-success: #10B981;
+$color-success-light: #6EE7B7;
+$color-warning: #F59E0B;
+$color-danger: #EF4444;
+$color-danger-light: #FCA5A5;
+$color-bg: #0F172A;
+$color-bg-light: #1E293B;
+$color-bg-lighter: #334155;
+$color-card: #1E293B;
+$color-card-border: #475569;
+$color-text: #F1F5F9;
+$color-text-secondary: #CBD5E1;
+$color-sidebar: #0F172A;
+
+// ==========================================
+// 🌈 FONDO ANIMADO CON EFECTO VIVO
+// ==========================================
+html {
+	scroll-behavior: smooth;
+}
+
+body {
+	margin: 0;
+	padding: 0;
+	min-height: 100vh;
+	position: relative;
+	font-family: 'Segoe UI', 'Inter', 'Roboto', -apple-system, sans-serif;
+	background: linear-gradient(135deg, #0F172A 0%, #1A1B4B 25%, #1E293B 50%, #1A2F4F 75%, #0F172A 100%);
+	color: $color-text;
+	overflow-x: hidden;
+	line-height: 1.6;
+	
+	// Animación de fondo
+	&::before {
+		content: '';
+		position: fixed;
+		top: -50%;
+		left: -50%;
+		width: 200%;
+		height: 200%;
+		background: 
+			radial-gradient(circle at 20% 50%, rgba(99, 102, 241, 0.25) 0%, transparent 50%),
+			radial-gradient(circle at 80% 80%, rgba(236, 72, 153, 0.25) 0%, transparent 50%),
+			radial-gradient(circle at 40% 20%, rgba(16, 185, 129, 0.15) 0%, transparent 50%);
+		animation: gradientShift 15s ease-in-out infinite;
+		z-index: -2;
+		pointer-events: none;
+	}
+	
+	&::after {
+		content: '';
+		position: fixed;
+		inset: 0;
+		background: 
+			radial-gradient(circle at 80% 20%, rgba(99, 102, 241, 0.08) 0%, transparent 60%),
+			radial-gradient(circle at 20% 80%, rgba(236, 72, 153, 0.08) 0%, transparent 60%);
+		animation: gradientShift2 18s ease-in-out infinite reverse;
+		z-index: -1;
+		pointer-events: none;
+	}
+}
+
+@keyframes gradientShift {
+	0%, 100% { transform: translate(0, 0) scale(1); }
+	50% { transform: translate(40px, -40px) scale(1.1); }
+}
+
+@keyframes gradientShift2 {
+	0%, 100% { transform: translate(0, 0); }
+	50% { transform: translate(-40px, 40px); }
+}
+
+// ==========================================
+// 💎 CARDS CON ESTILO PREMIUM
+// ==========================================
+.card {
+	background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(30, 41, 59, 0.85) 100%) !important;
+	backdrop-filter: blur(20px) saturate(1.8);
+	border: 2px solid rgba(99, 102, 241, 0.4) !important;
+	border-radius: 1.2rem;
+	box-shadow: 
+		0 20px 50px 0 rgba(0, 0, 0, 0.5),
+		0 0 1px 1px rgba(99, 102, 241, 0.2),
+		inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
+	transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+	position: relative;
+	overflow: hidden;
+	color: $color-text !important;
+	
+	&::before {
+		content: '';
+		position: absolute;
+		top: -50%;
+		right: -50%;
+		width: 100%;
+		height: 100%;
+		background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, transparent 70%);
+		pointer-events: none;
+		opacity: 0;
+		transition: opacity 0.4s ease;
+	}
+	
+	&:hover {
+		border-color: rgba(99, 102, 241, 0.8);
+		box-shadow: 
+			0 30px 80px 0 rgba(99, 102, 241, 0.3),
+			0 0 2px 1px rgba(99, 102, 241, 0.4),
+			inset 0 1px 0 0 rgba(255, 255, 255, 0.15);
+		transform: translateY(-8px) scale(1.02);
+		
+		&::before {
+			opacity: 1;
+		}
+	}
+	
+	.card-title, h3, h4, h5, h6 {
+		color: #FFF !important;
+		font-weight: 700;
+		letter-spacing: -0.3px;
+	}
+	
+	.card-text, p {
+		color: $color-text-secondary !important;
+	}
+}
+
+// ==========================================
+// 📋 PESTAÑAS DE NAVEGACIÓN (NAV-TABS)
+// ==========================================
+.nav-tabs {
+	border-bottom: 2px solid rgba(99, 102, 241, 0.3) !important;
+	margin-bottom: 1.5rem !important;
+	
+	.nav-item {
+		.nav-link {
+			background: transparent !important;
+			border: 1px solid transparent !important;
+			color: #94A3B8 !important;
+			font-weight: 600 !important;
+			font-size: 0.95rem !important;
+			padding: 0.75rem 1.5rem !important;
+			transition: all 0.3s ease !important;
+			border-radius: 0.5rem 0.5rem 0 0 !important;
+			position: relative !important;
+			
+			&:hover {
+				color: #F1F5F9 !important;
+				background: rgba(99, 102, 241, 0.1) !important;
+				border-color: rgba(99, 102, 241, 0.3) !important;
+			}
+			
+			&.active {
+				background: rgba(99, 102, 241, 0.2) !important;
+				border-color: rgba(99, 102, 241, 0.4) !important;
+				color: #FFFFFF !important;
+				font-weight: 700 !important;
+				box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2) !important;
+			}
+			
+			i {
+				margin-right: 0.5rem !important;
+				font-size: 1rem !important;
+			}
+		}
+	}
+}
+
+// ==========================================
+// 🎯 NAVBAR PREMIUM
+// ==========================================
+.navbar {
+	background: linear-gradient(90deg, rgba(15, 23, 42, 0.98) 0%, rgba(15, 23, 42, 0.95) 100%) !important;
+	border-bottom: 2px solid rgba(99, 102, 241, 0.3);
+	backdrop-filter: blur(20px);
+	padding: 1rem 1.5rem !important;
+	box-shadow: 
+		0 10px 40px 0 rgba(0, 0, 0, 0.4),
+		0 0 1px 0 rgba(99, 102, 241, 0.2);
+	position: sticky;
+	top: 0;
+	z-index: 1000;
+	
+	.navbar-brand {
+		color: #FFF !important;
+		font-weight: 900;
+		font-size: 1.4rem;
+		letter-spacing: -1px;
+		text-transform: uppercase;
+		background: linear-gradient(135deg, $color-primary 0%, $color-accent 100%);
+		-webkit-background-clip: text;
+		-webkit-text-fill-color: transparent;
+		background-clip: text;
+		text-shadow: 0 2px 10px rgba(99, 102, 241, 0.2);
+		
+		&:hover {
+			transform: scale(1.05);
+		}
+	}
+	
+	.nav-link {
+		color: $color-text-secondary !important;
+		font-weight: 600;
+		font-size: 0.85rem;
+		text-transform: uppercase;
+		letter-spacing: 0.8px;
+		transition: all 0.3s ease;
+		position: relative;
+		padding: 0.5rem 1rem !important;
+		
+		&::after {
+			content: '';
+			position: absolute;
+			bottom: -2px;
+			left: 0;
+			width: 0;
+			height: 3px;
+			background: linear-gradient(90deg, $color-primary, $color-accent);
+			transition: width 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+		}
+		
+		&:hover, &.active {
+			color: #FFF !important;
+			transform: translateY(-2px);
+			
+			&::after {
+				width: 100%;
+			}
+		}
+	}
+}
+
+// ==========================================
+// 🎪 SIDEBAR ATRACTIVO
+// ==========================================
+.sidebar, nav.bg-light.border-end, nav.bg-light.p-3, .sidebar-nav {
+	background: linear-gradient(180deg, rgba(15, 23, 42, 0.98) 0%, rgba(15, 23, 42, 0.90) 100%) !important;
+	border-right: 2px solid rgba(99, 102, 241, 0.2) !important;
+	backdrop-filter: blur(20px);
+	
+	// Forzar ancho fijo para evitar cambios de tamaño
+	width: 250px !important;
+	min-width: 250px !important;
+	max-width: 250px !important;
+	flex-shrink: 0 !important;
+	flex-grow: 0 !important;
+	
+	.nav-link {
+		color: $color-text-secondary !important;
+		font-weight: 600;
+		font-size: 0.9rem;
+		padding: 0.9rem 1.2rem !important;
+		margin: 0.5rem 0.5rem;
+		border-radius: 0.8rem;
+		transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+		position: relative;
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		overflow: hidden;
+		
+		&::before {
+			content: '';
+			position: absolute;
+			left: 0;
+			top: 0;
+			width: 0;
+			height: 100%;
+			background: linear-gradient(90deg, rgba(99, 102, 241, 0.2), transparent);
+			transition: width 0.3s ease;
+			z-index: 0;
+		}
+		
+		i {
+			font-size: 1.2rem;
+			transition: transform 0.3s ease, color 0.3s ease;
+			z-index: 1;
+		}
+		
+		span {
+			z-index: 1;
+		}
+		
+		&:hover {
+			background: rgba(99, 102, 241, 0.15);
+			color: $color-primary !important;
+			transform: translateX(6px);
+			border-left: 3px solid $color-primary;
+			padding-left: calc(1.2rem - 3px) !important;
+			
+			i {
+				transform: scale(1.3) rotate(5deg);
+				color: $color-primary;
+			}
+			
+			&::before {
+				width: 100%;
+			}
+		}
+		
+		&.active {
+			background: linear-gradient(135deg, rgba(99, 102, 241, 0.3) 0%, rgba(236, 72, 153, 0.15) 100%);
+			color: #FFF !important;
+			border-left: 4px solid $color-primary;
+			padding-left: calc(1.2rem - 4px) !important;
+			box-shadow: 0 4px 15px 0 rgba(99, 102, 241, 0.2);
+			
+			i {
+				color: $color-primary;
+				transform: scale(1.2);
+			}
+		}
+	}
+}
+
+// ==========================================
+// 🔘 BOTONES CON EFECTO WOW
+// ==========================================
+.btn {
+	border: none;
+	border-radius: 0.8rem;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 1px;
+	transition: all 0.3s ease;
+	position: relative;
+	overflow: hidden;
+	font-size: 0.9rem;
+	padding: 0.7rem 1.5rem;
+	
+	&::before {
+		content: '';
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		width: 0;
+		height: 0;
+		border-radius: 50%;
+		background: rgba(255, 255, 255, 0.4);
+		transform: translate(-50%, -50%);
+		transition: width 0.6s, height 0.6s;
+		z-index: 0;
+	}
+	
+	&:active::before {
+		width: 400px;
+		height: 400px;
+	}
+	
+	* {
+		position: relative;
+		z-index: 1;
+	}
+}
+
+.btn-primary {
+	background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%);
+	color: #fff;
+	box-shadow: 
+		0 8px 25px 0 rgba(99, 102, 241, 0.4),
+		inset 0 1px 0 0 rgba(255, 255, 255, 0.3),
+		0 0 20px rgba(99, 102, 241, 0.2);
+	
+	&:hover {
+		background: linear-gradient(135deg, $color-primary-dark 0%, $color-primary 100%);
+		transform: translateY(-4px);
+		box-shadow: 
+			0 15px 40px 0 rgba(99, 102, 241, 0.5),
+			inset 0 1px 0 0 rgba(255, 255, 255, 0.3),
+			0 0 30px rgba(99, 102, 241, 0.3);
+	}
+	
+	&:active {
+		transform: translateY(-2px);
+		box-shadow: inset 0 3px 10px 0 rgba(0, 0, 0, 0.2);
+	}
+	
+	&:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
+}
+
+.btn-outline-secondary {
+	border: 2px solid $color-warning;
+	color: $color-warning;
+	background: transparent;
+	transition: all 0.3s ease;
+	
+	&:hover {
+		background: rgba($color-warning, 0.15);
+		transform: translateY(-3px);
+		box-shadow: 0 8px 25px 0 rgba($color-warning, 0.3);
+		border-color: $color-accent;
+		color: $color-accent;
+	}
+}
+
+.btn-execute {
+	background: linear-gradient(135deg, $color-accent 0%, $color-accent-light 100%);
+	color: #fff;
+	box-shadow: 
+		0 8px 25px 0 rgba(236, 72, 153, 0.4),
+		inset 0 1px 0 0 rgba(255, 255, 255, 0.3),
+		0 0 20px rgba(236, 72, 153, 0.2);
+	
+	&:hover {
+		transform: translateY(-4px) scale(1.08);
+		box-shadow: 
+			0 15px 40px 0 rgba(236, 72, 153, 0.5),
+			inset 0 1px 0 0 rgba(255, 255, 255, 0.3),
+			0 0 30px rgba(236, 72, 153, 0.3);
+	}
+	
+	&:disabled {
+		opacity: 0.6;
+		cursor: not-allowed;
+		animation: pulse 2s ease-in-out infinite;
+	}
+}
+
+@keyframes pulse {
+	0%, 100% { 
+		box-shadow: 0 8px 25px 0 rgba(236, 72, 153, 0.4), 0 0 20px rgba(236, 72, 153, 0.2);
+	}
+	50% { 
+		box-shadow: 0 8px 35px 0 rgba(236, 72, 153, 0.6), 0 0 30px rgba(236, 72, 153, 0.4);
+	}
+}
+
+// ==========================================
+// 📝 FORMULARIOS HERMOSOS
+// ==========================================
+.form-control {
+	background: rgba(15, 23, 42, 0.8) !important;
+	border: 2px solid rgba(99, 102, 241, 0.3) !important;
+	color: $color-text !important;
+	border-radius: 0.8rem;
+	transition: all 0.3s ease;
+	font-size: 0.95rem;
+	padding: 0.75rem 1rem;
+	font-weight: 500;
+	
+	&::placeholder {
+		color: $color-text-secondary;
+	}
+	
+	&:focus {
+		background: rgba(30, 41, 59, 0.9) !important;
+		border-color: $color-primary !important;
+		box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25) !important, 0 0 20px rgba(99, 102, 241, 0.2) !important;
+		transform: translateY(-2px);
+	}
+	
+	&:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
+}
+
+.form-select {
+	background: rgba(15, 23, 42, 0.8) !important;
+	border: 2px solid rgba(99, 102, 241, 0.3) !important;
+	color: $color-text !important;
+	border-radius: 0.8rem;
+	transition: all 0.3s ease;
+	font-size: 0.95rem;
+	padding: 0.75rem 1rem;
+	font-weight: 500;
+	
+	&:focus {
+		background: rgba(30, 41, 59, 0.9) !important;
+		border-color: $color-primary !important;
+		box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25) !important, 0 0 20px rgba(99, 102, 241, 0.2) !important;
+	}
+}
+
+input, textarea, select {
+	background: rgba(15, 23, 42, 0.8) !important;
+	border: 2px solid rgba(99, 102, 241, 0.3) !important;
+	color: $color-text !important;
+	border-radius: 0.8rem;
+	transition: all 0.3s ease;
+	font-size: 0.95rem;
+	padding: 0.75rem 1rem;
+	font-weight: 500;
+	
+	&::placeholder {
+		color: $color-text-secondary;
+	}
+	
+	&:focus {
+		background: rgba(30, 41, 59, 0.9) !important;
+		border-color: $color-primary !important;
+		box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25) !important, 0 0 20px rgba(99, 102, 241, 0.2) !important;
+	}
+	
+	&:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
+}
+
+.form-label {
+	color: $color-text;
+	font-weight: 700;
+	text-transform: uppercase;
+	font-size: 0.75rem;
+	letter-spacing: 1px;
+	margin-bottom: 0.75rem;
+	display: block;
+	background: linear-gradient(90deg, $color-primary, $color-accent);
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+	background-clip: text;
+}
+
+// ==========================================
+// 📊 TABLAS ESPECTACULARES
+// ==========================================
+.table {
+	color: $color-text !important;
+	border-color: rgba(99, 102, 241, 0.2) !important;
+	background: rgba(30, 41, 59, 0.8) !important;
+	border-radius: 1rem !important;
+	overflow: hidden !important;
+	
+	thead {
+		background: linear-gradient(135deg, rgba(99, 102, 241, 0.25) 0%, rgba(236, 72, 153, 0.15) 100%) !important;
+		border-bottom: 2px solid rgba(99, 102, 241, 0.4) !important;
+		
+		th {
+			color: #FFF !important;
+			font-weight: 800 !important;
+			text-transform: uppercase !important;
+			font-size: 0.8rem !important;
+			letter-spacing: 1.5px !important;
+			padding: 1.2rem 1rem !important;
+			border-color: rgba(99, 102, 241, 0.3) !important;
+			background: linear-gradient(90deg, rgba(99, 102, 241, 0.2), rgba(236, 72, 153, 0.1)) !important;
+		}
+	}
+	
+	tbody {
+		tr {
+			border-bottom: 1px solid rgba(148, 163, 184, 0.15) !important;
+			transition: all 0.3s ease !important;
+			background: rgba(30, 41, 59, 0.6) !important;
+			
+			&:hover {
+				background: linear-gradient(90deg, rgba(99, 102, 241, 0.15) 0%, rgba(236, 72, 153, 0.08) 100%) !important;
+				transform: scale(1.01) !important;
+				box-shadow: 0 4px 15px 0 rgba(99, 102, 241, 0.1) !important;
+			}
+			
+			td {
+				padding: 1rem !important;
+				vertical-align: middle !important;
+				color: $color-text !important;
+				border-color: rgba(148, 163, 184, 0.15) !important;
+				font-weight: 500 !important;
+				background: transparent !important;
+				
+				a {
+					color: $color-primary !important;
+					font-weight: 600 !important;
+					transition: all 0.3s ease !important;
+					
+					&:hover {
+						color: $color-accent !important;
+						text-decoration: underline !important;
+					}
+				}
+			}
+		}
+		
+		tr:last-child {
+			border-bottom: none !important;
+		}
+	}
+}
+
+// Sobrescribir estilos específicos de Bootstrap
+.table-bordered {
+	border-color: rgba(99, 102, 241, 0.2) !important;
+	
+	th, td {
+		border-color: rgba(99, 102, 241, 0.2) !important;
+		background: transparent !important;
+		color: #F1F5F9 !important;
+	}
+	
+	thead th {
+		border-bottom-color: rgba(99, 102, 241, 0.4) !important;
+		background: linear-gradient(135deg, rgba(99, 102, 241, 0.25) 0%, rgba(236, 72, 153, 0.15) 100%) !important;
+		color: #FFF !important;
+	}
+}
+
+.table-hover tbody tr {
+	transition: all 0.3s ease !important;
+	background: rgba(30, 41, 59, 0.6) !important;
+	
+	&:hover {
+		background: linear-gradient(90deg, rgba(99, 102, 241, 0.15) 0%, rgba(236, 72, 153, 0.08) 100%) !important;
+		color: #FFF !important;
+	}
+	
+	td {
+		color: #F1F5F9 !important;
+		background: transparent !important;
+		
+		span {
+			color: #F1F5F9 !important;
+		}
+		
+		a {
+			color: #6366F1 !important;
+			font-weight: 600 !important;
+			text-decoration: underline !important;
+			
+			&:hover {
+				color: #EC4899 !important;
+			}
+		}
+	}
+}
+
+.custom-dark-header {
+	background: linear-gradient(135deg, rgba(99, 102, 241, 0.25) 0%, rgba(236, 72, 153, 0.15) 100%) !important;
+	
+	th {
+		color: #FFF !important;
+		font-weight: 800 !important;
+		text-transform: uppercase !important;
+		font-size: 0.8rem !important;
+		letter-spacing: 1.5px !important;
+		padding: 1.2rem 1rem !important;
+		border-color: rgba(99, 102, 241, 0.4) !important;
+		border-bottom: 2px solid rgba(99, 102, 241, 0.4) !important;
+		background: transparent !important;
+	}
+}
+
+// Estilos para tablas de detalles
+.details-table {
+	background: rgba(30, 41, 59, 0.8) !important;
+	color: #F1F5F9 !important;
+	border-color: rgba(99, 102, 241, 0.2) !important;
+	
+	thead {
+		background: linear-gradient(135deg, rgba(99, 102, 241, 0.25) 0%, rgba(236, 72, 153, 0.15) 100%) !important;
+		border-bottom: 2px solid rgba(99, 102, 241, 0.4) !important;
+		
+		th {
+			color: #FFF !important;
+			font-weight: 800 !important;
+			text-transform: uppercase !important;
+			font-size: 0.8rem !important;
+			letter-spacing: 1.5px !important;
+			padding: 1.2rem 1rem !important;
+			border-color: rgba(99, 102, 241, 0.3) !important;
+		}
+	}
+	
+	tbody {
+		tr {
+			background: rgba(30, 41, 59, 0.6) !important;
+			border-bottom: 1px solid rgba(148, 163, 184, 0.15) !important;
+			transition: all 0.3s ease !important;
+			
+			td {
+				color: #F1F5F9 !important;
+				background: transparent !important;
+				border-color: rgba(99, 102, 241, 0.2) !important;
+				padding: 1rem !important;
+				font-weight: 500 !important;
+				
+				span {
+					color: #F1F5F9 !important;
+				}
+				
+				a {
+					color: #6366F1 !important;
+					font-weight: 600 !important;
+					
+					&:hover {
+						color: #EC4899 !important;
+						text-decoration: underline !important;
+					}
+				}
+			}
+			
+			&:hover {
+				background: linear-gradient(90deg, rgba(99, 102, 241, 0.15) 0%, rgba(236, 72, 153, 0.08) 100%) !important;
+				box-shadow: 0 4px 15px 0 rgba(99, 102, 241, 0.1) !important;
+			}
+		}
+	}
+}
+
+// Tabla de errores
+.errors-table {
+	background: rgba(30, 41, 59, 0.8) !important;
+	color: #F1F5F9 !important;
+	border-color: rgba(99, 102, 241, 0.2) !important;
+	border-collapse: collapse !important;
+	width: 100% !important;
+	
+	tr {
+		border-bottom: 1px solid rgba(148, 163, 184, 0.15) !important;
+		background: rgba(30, 41, 59, 0.6) !important;
+		transition: all 0.3s ease !important;
+		
+		&:hover {
+			background: linear-gradient(90deg, rgba(99, 102, 241, 0.15) 0%, rgba(236, 72, 153, 0.08) 100%) !important;
+		}
+		
+		th {
+			color: #FFF !important;
+			font-weight: 800 !important;
+			text-transform: uppercase !important;
+			font-size: 0.8rem !important;
+			letter-spacing: 1.5px !important;
+			padding: 1.2rem 1rem !important;
+			border-color: rgba(99, 102, 241, 0.3) !important;
+			background: linear-gradient(135deg, rgba(99, 102, 241, 0.25) 0%, rgba(236, 72, 153, 0.15) 100%) !important;
+			border-bottom: 2px solid rgba(99, 102, 241, 0.4) !important;
+		}
+		
+		td {
+			color: #F1F5F9 !important;
+			padding: 1rem !important;
+			border-color: rgba(99, 102, 241, 0.2) !important;
+			font-weight: 500 !important;
+			background: transparent !important;
+		}
+	}
+}
+
+// SOBRESCRIBIR COMPLETAMENTE TODOS LOS ESTILOS DE BOOTSTRAP TABLES
+::ng-deep {
+	.table {
+		background: rgba(30, 41, 59, 0.8) !important;
+		color: #F1F5F9 !important;
+		border-color: rgba(99, 102, 241, 0.2) !important;
+		
+		thead {
+			background: linear-gradient(135deg, rgba(99, 102, 241, 0.25) 0%, rgba(236, 72, 153, 0.15) 100%) !important;
+			
+			th {
+				color: #FFF !important;
+				background: transparent !important;
+				border-color: rgba(99, 102, 241, 0.4) !important;
+			}
+		}
+		
+		tbody {
+			tr {
+				background: rgba(30, 41, 59, 0.6) !important;
+				
+				td {
+					color: #F1F5F9 !important;
+					border-color: rgba(99, 102, 241, 0.2) !important;
+					
+					span, p {
+						color: #F1F5F9 !important;
+					}
+					
+					a {
+						color: #6366F1 !important;
+					}
+				}
+				
+				&:hover {
+					background: linear-gradient(90deg, rgba(99, 102, 241, 0.15) 0%, rgba(236, 72, 153, 0.08) 100%) !important;
+				}
+			}
+		}
+	}
+	
+	.table-light {
+		background: linear-gradient(135deg, rgba(99, 102, 241, 0.25) 0%, rgba(236, 72, 153, 0.15) 100%) !important;
+		
+		th {
+			color: #FFF !important;
+			background: transparent !important;
+		}
+	}
+	
+	.table-dark {
+		background: rgba(30, 41, 59, 0.8) !important;
+		color: #F1F5F9 !important;
+	}
+}
+
+// ==========================================
+// 🎨 BADGES BRILLANTES
+// ==========================================
+.badge {
+	padding: 0.6rem 1.2rem;
+	border-radius: 0.6rem;
+	font-weight: 700;
+	text-transform: uppercase;
+	font-size: 0.7rem;
+	letter-spacing: 1px;
+	box-shadow: 
+		0 4px 15px 0 rgba(0, 0, 0, 0.3),
+		0 0 1px 0 rgba(255, 255, 255, 0.1);
+	transition: all 0.3s ease;
+	
+	&:hover {
+		transform: translateY(-3px);
+	}
+	
+	&.bg-success {
+		background: linear-gradient(135deg, $color-success 0%, $color-success-light 100%);
+		color: #000;
+	}
+	
+	&.bg-danger {
+		background: linear-gradient(135deg, $color-danger 0%, $color-danger-light 100%);
+	}
+	
+	&.bg-warning {
+		background: linear-gradient(135deg, $color-warning, #D97706);
+		color: #000;
+	}
+	
+	&.bg-primary {
+		background: linear-gradient(135deg, $color-primary, $color-primary-light);
+	}
+}
+
+// ==========================================
+// 🎯 ALERTAS VISTOSAS
+// ==========================================
+.alert {
+	border: 2px solid;
+	border-radius: 0.8rem;
+	backdrop-filter: blur(10px);
+	padding: 1rem 1.5rem;
+	font-weight: 600;
+	box-shadow: 0 8px 25px 0 rgba(0, 0, 0, 0.2);
+	
+	&.alert-success {
+		background: rgba(16, 185, 129, 0.15);
+		border-color: rgba(16, 185, 129, 0.5);
+		color: #A7F3D0;
+	}
+	
+	&.alert-danger {
+		background: rgba(239, 68, 68, 0.15);
+		border-color: rgba(239, 68, 68, 0.5);
+		color: #FCA5A5;
+	}
+	
+	&.alert-warning {
+		background: rgba(245, 158, 11, 0.15);
+		border-color: rgba(245, 158, 11, 0.5);
+		color: #FED7AA;
+	}
+	
+	&.alert-info {
+		background: rgba(99, 102, 241, 0.15);
+		border-color: rgba(99, 102, 241, 0.5);
+		color: #A5B4FC;
+	}
+}
+
+// ==========================================
+// 🌀 SPINNERS Y LOADERS
+// ==========================================
+.spinner-border {
+	border: 3px solid rgba(99, 102, 241, 0.2);
+	border-right-color: $color-primary;
+	animation: spin 1.5s linear infinite;
+}
+
+@keyframes spin {
+	to { transform: rotate(360deg); }
+}
+
+.fa-spin {
+	animation: spinIcon 1.5s linear infinite;
+}
+
+@keyframes spinIcon {
+	0% { transform: rotate(0deg); }
+	100% { transform: rotate(360deg); }
+}
+
+// ==========================================
+// 📜 SCROLLBAR PERSONALIZADA
+// ==========================================
+::-webkit-scrollbar {
+	width: 12px;
+	height: 12px;
+}
+
+::-webkit-scrollbar-track {
+	background: rgba(15, 23, 42, 0.6);
+}
+
+::-webkit-scrollbar-thumb {
+	background: linear-gradient(180deg, $color-primary, $color-accent);
+	border-radius: 6px;
+	box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+	border: 2px solid rgba(99, 102, 241, 0.1);
+	
+	&:hover {
+		background: linear-gradient(180deg, $color-primary-light, $color-accent-light);
+		border-color: rgba(99, 102, 241, 0.2);
+	}
+}
+
+// ==========================================
+// 🎬 ANIMACIONES GLOBALES
+// ==========================================
+@keyframes fadeInUp {
+	from {
+		opacity: 0;
+		transform: translateY(30px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+@keyframes slideInRight {
+	from {
+		opacity: 0;
+		transform: translateX(-30px);
+	}
+	to {
+		opacity: 1;
+		transform: translateX(0);
+	}
+}
+
+.fade-in-up {
+	animation: fadeInUp 0.6s ease-out;
+}
+
+.slide-in-right {
+	animation: slideInRight 0.6s ease-out;
+}
+
+// ==========================================
+// 🔗 LINKS Y TEXTOS
+// ==========================================
+a {
+	color: $color-primary;
+	text-decoration: none;
+	transition: all 0.3s ease;
+	font-weight: 600;
+	
+	&:hover {
+		color: $color-accent;
+		text-shadow: 0 0 15px rgba(236, 72, 153, 0.4);
+	}
+}
+
+p, span {
+	color: $color-text;
+}
+
+.text-secondary {
+	color: $color-text-secondary !important;
+}
+
+.text-muted {
+	color: $color-text-secondary !important;
+	opacity: 0.8;
+}
+
+.text-light {
+	color: $color-text !important;
+}
+
+.text-dark {
+	color: $color-text !important;
+}
+
+// Headings
+h1, h2, h3, h4, h5, h6 {
+	color: #FFF !important;
+	font-weight: 800;
+	letter-spacing: -0.5px;
+	margin-bottom: 1rem;
+}
+
+h1 {
+	font-size: 2.5rem;
+	background: linear-gradient(135deg, $color-primary, $color-accent);
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+	background-clip: text;
+}
+
+h2 {
+	font-size: 2rem;
+}
+
+h3 {
+	font-size: 1.5rem;
+}
+
+// ==========================================
+// 🎪 MODAL Y OTROS
+// ==========================================
+.modal-content {
+	background: linear-gradient(135deg, rgba(30, 41, 59, 0.98) 0%, rgba(30, 41, 59, 0.90) 100%) !important;
+	border: 2px solid rgba(99, 102, 241, 0.3) !important;
+	backdrop-filter: blur(20px);
+	border-radius: 1.2rem;
+	box-shadow: 0 20px 80px 0 rgba(0, 0, 0, 0.4);
+	
+	.modal-header {
+		border-bottom: 2px solid rgba(99, 102, 241, 0.2);
+		
+		.modal-title {
+			color: #FFF !important;
+			font-weight: 800;
+		}
+	}
+	
+	.modal-body {
+		color: $color-text;
+	}
+}
+
+.modal-header .btn-close {
+	filter: invert(1) brightness(1.1);
+}
+
+// ==========================================
+// 📱 RESPONSIVE
+// ==========================================
+@media (max-width: 768px) {
+	.btn {
+		font-size: 0.8rem;
+		padding: 0.6rem 1.2rem;
+	}
+	
+	.navbar .navbar-brand {
+		font-size: 1.1rem;
+	}
+	
+	.card {
+		border-radius: 1rem;
+	}
+	
+	h1 {
+		font-size: 1.8rem;
+	}
+	
+	h2 {
+		font-size: 1.4rem;
+	}
+	
+	h3 {
+		font-size: 1.1rem;
+	}
+}
+
+// ==========================================
+// ✨ UTILIDADES FINALES
+// ==========================================
+.bg-light {
+	background: rgba(30, 41, 59, 0.85) !important;
+	color: $color-text !important;
+}
+
+.border {
+	border-color: rgba(148, 163, 184, 0.2) !important;
+}
+
+.container, .container-fluid {
+	color: $color-text;
+}
+
+// Efecto glow en elementos interactivos
+.glow-on-hover {
+	transition: all 0.3s ease;
+	
+	&:hover {
+		filter: drop-shadow(0 0 20px rgba(99, 102, 241, 0.6));
+	}
+}
+
+// Highlight
+.highlight {
+	background: linear-gradient(135deg, rgba(99, 102, 241, 0.3), rgba(236, 72, 153, 0.3));
+	padding: 0.4rem 0.8rem;
+	border-radius: 0.4rem;
+	font-weight: 700;
+	color: $color-accent;
+	box-shadow: 0 0 15px rgba(99, 102, 241, 0.2);
+}
+
+// Progress bars
+.progress {
+	background: rgba(99, 102, 241, 0.1);
+	border-radius: 1rem;
+	height: 0.8rem;
+	box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.2);
+	
+	.progress-bar {
+		background: linear-gradient(90deg, $color-primary, $color-accent);
+		box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
+	}
+}
+
+// ==========================================
+// 📊 ESTILOS ADICIONALES PARA TABLAS
+// ==========================================
+.table-responsive {
+	background: rgba(30, 41, 59, 0.8);
+	border-radius: 1rem;
+	border: 1px solid rgba(99, 102, 241, 0.2);
+	max-height: 600px;
+	overflow-y: auto;
+	box-shadow: 0 8px 25px 0 rgba(0, 0, 0, 0.3);
+	
+	&::-webkit-scrollbar {
+		width: 10px;
+	}
+	
+	&::-webkit-scrollbar-track {
+		background: rgba(15, 23, 42, 0.5);
+		border-radius: 5px;
+	}
+	
+	&::-webkit-scrollbar-thumb {
+		background: linear-gradient(180deg, $color-primary, $color-accent);
+		border-radius: 5px;
+		box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+		border: 2px solid rgba(99, 102, 241, 0.1);
+		
+		&:hover {
+			background: linear-gradient(180deg, $color-primary-light, $color-accent-light);
+		}
+	}
+}
+
+.sprint-table-scroll {
+	max-height: 900px !important;
+	overflow-y: auto !important;
+	background: rgba(30, 41, 59, 0.8) !important;
+	border-radius: 1rem !important;
+	border: 1px solid rgba(99, 102, 241, 0.2) !important;
+	
+	table {
+		margin-bottom: 0 !important;
+		background: rgba(30, 41, 59, 0.8) !important;
+		
+		thead {
+			position: sticky;
+			top: 0;
+			z-index: 10;
+		}
+		
+		thead th {
+			background: linear-gradient(135deg, rgba(99, 102, 241, 0.3) 0%, rgba(236, 72, 153, 0.15) 100%) !important;
+			color: #FFF !important;
+			font-weight: 800 !important;
+			text-transform: uppercase !important;
+			font-size: 0.8rem !important;
+			letter-spacing: 1.5px !important;
+			padding: 1.2rem 1rem !important;
+			border-color: rgba(99, 102, 241, 0.4) !important;
+			border-bottom: 2px solid rgba(99, 102, 241, 0.4) !important;
+		}
+		
+		tbody tr {
+			border-bottom: 1px solid rgba(148, 163, 184, 0.15) !important;
+			background: rgba(30, 41, 59, 0.6) !important;
+			transition: all 0.3s ease;
+			
+			&:hover {
+				background: linear-gradient(90deg, rgba(99, 102, 241, 0.15) 0%, rgba(236, 72, 153, 0.08) 100%) !important;
+				transform: scale(1.01);
+				box-shadow: 0 4px 15px 0 rgba(99, 102, 241, 0.1);
+			}
+			
+			td {
+				color: $color-text !important;
+				padding: 1rem !important;
+				font-weight: 500 !important;
+				border-color: rgba(148, 163, 184, 0.15) !important;
+				vertical-align: middle !important;
+				
+				a {
+					color: $color-primary !important;
+					font-weight: 600 !important;
+					transition: all 0.3s ease !important;
+					
+					&:hover {
+						color: $color-accent !important;
+						text-decoration: underline !important;
+					}
+				}
+			}
+		}
+	}
+	
+	&::-webkit-scrollbar {
+		width: 10px;
+	}
+	
+	&::-webkit-scrollbar-track {
+		background: rgba(15, 23, 42, 0.5);
+		border-radius: 5px;
+	}
+	
+	&::-webkit-scrollbar-thumb {
+		background: linear-gradient(180deg, $color-primary, $color-accent);
+		border-radius: 5px;
+		border: 2px solid rgba(99, 102, 241, 0.1);
+		
+		&:hover {
+			background: linear-gradient(180deg, $color-primary-light, $color-accent-light);
+		}
+	}
+}
+
+.sprint-table-x-scroll {
+	overflow-x: auto !important;
+	width: 100% !important;
+	background: rgba(30, 41, 59, 0.8) !important;
+	border-radius: 1rem !important;
+	border: 1px solid rgba(99, 102, 241, 0.2) !important;
+	
+	table {
+		background: rgba(30, 41, 59, 0.8) !important;
+		
+		thead th {
+			background: linear-gradient(135deg, rgba(99, 102, 241, 0.3) 0%, rgba(236, 72, 153, 0.15) 100%) !important;
+			color: #FFF !important;
+			font-weight: 800 !important;
+			text-transform: uppercase !important;
+			font-size: 0.8rem !important;
+			letter-spacing: 1.5px !important;
+			padding: 1.2rem 1rem !important;
+			border-color: rgba(99, 102, 241, 0.4) !important;
+			border-bottom: 2px solid rgba(99, 102, 241, 0.4) !important;
+		}
+		
+		tbody tr {
+			border-bottom: 1px solid rgba(148, 163, 184, 0.15) !important;
+			background: rgba(30, 41, 59, 0.6) !important;
+			transition: all 0.3s ease;
+			
+			&:hover {
+				background: linear-gradient(90deg, rgba(99, 102, 241, 0.15) 0%, rgba(236, 72, 153, 0.08) 100%) !important;
+				box-shadow: 0 4px 15px 0 rgba(99, 102, 241, 0.1);
+			}
+			
+			td {
+				color: $color-text !important;
+				padding: 1rem !important;
+				font-weight: 500 !important;
+				border-color: rgba(148, 163, 184, 0.15) !important;
+				vertical-align: middle !important;
+				white-space: nowrap !important;
+				
+				a {
+					color: $color-primary !important;
+					font-weight: 600 !important;
+					transition: all 0.3s ease !important;
+					
+					&:hover {
+						color: $color-accent !important;
+						text-decoration: underline !important;
+					}
+				}
+			}
+		}
+	}
+	
+	&::-webkit-scrollbar {
+		height: 10px;
+	}
+	
+	&::-webkit-scrollbar-track {
+		background: rgba(15, 23, 42, 0.5);
+		border-radius: 5px;
+	}
+	
+	&::-webkit-scrollbar-thumb {
+		background: linear-gradient(90deg, $color-primary, $color-accent);
+		border-radius: 5px;
+		border: 2px solid rgba(99, 102, 241, 0.1);
+		
+		&:hover {
+			background: linear-gradient(90deg, $color-primary-light, $color-accent-light);
+		}
+	}
+}
+
+// ==========================================
+// ESTILOS DE FILAS POR EDAD
+// ==========================================
+tr.row-age-orange, tr.row-age-orange > td {
+	background-color: rgba(249, 115, 22, 0.15) !important;
+	color: $color-text !important;
+	border-color: rgba(249, 115, 22, 0.3) !important;
+	transition: all 0.3s ease;
+}
+
+tr.row-age-green, tr.row-age-green > td {
+	background-color: rgba(16, 185, 129, 0.15) !important;
+	color: $color-text !important;
+	border-color: rgba(16, 185, 129, 0.3) !important;
+	transition: all 0.3s ease;
+}
+
+tr.row-age-amber, tr.row-age-amber > td {
+	background-color: rgba(245, 158, 11, 0.15) !important;
+	color: $color-text !important;
+	border-color: rgba(245, 158, 11, 0.3) !important;
+	transition: all 0.3s ease;
+}
+
+tr.row-age-red, tr.row-age-red > td {
+	background-color: rgba(239, 68, 68, 0.15) !important;
+	color: $color-text !important;
+	border-color: rgba(239, 68, 68, 0.3) !important;
+	transition: all 0.3s ease;
+}
+
+// ==========================================
+// RESULTS HEADER - Pruebas de Contrato
+// ==========================================
+.results-header {
+	background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(30, 41, 59, 0.85) 100%) !important;
+	border: 2px solid rgba(99, 102, 241, 0.3) !important;
+	border-radius: 1.2rem !important;
+	padding: 2rem !important;
+	box-shadow: 0 8px 25px 0 rgba(0, 0, 0, 0.3) !important;
+	backdrop-filter: blur(20px) !important;
+	margin-bottom: 2rem !important;
+	
+	.test-type-info {
+		h2 {
+			color: #FFF !important;
+			font-weight: 800 !important;
+			font-size: 1.8rem !important;
+			margin-bottom: 0.5rem !important;
+			
+			i {
+				color: $color-primary !important;
+				margin-right: 1rem !important;
+				font-size: 2rem !important;
+			}
+		}
+		
+		p {
+			color: $color-text-secondary !important;
+			font-size: 1rem !important;
+			margin: 0 !important;
+		}
+	}
+	
+	.action-buttons {
+		display: flex !important;
+		gap: 1rem !important;
+		flex-wrap: wrap !important;
+		
+		.btn {
+			border-radius: 0.8rem !important;
+			font-weight: 600 !important;
+			transition: all 0.3s ease !important;
+			
+			&.btn-outline-secondary {
+				border-color: $color-warning !important;
+				color: $color-warning !important;
+				
+				&:hover {
+					background: rgba($color-warning, 0.15) !important;
+					border-color: $color-accent !important;
+					color: $color-accent !important;
+					transform: translateY(-2px) !important;
+				}
+			}
+			
+			&.btn-outline-primary {
+				border-color: $color-primary !important;
+				color: $color-primary !important;
+				
+				&:hover {
+					background: rgba($color-primary, 0.15) !important;
+					transform: translateY(-2px) !important;
+				}
+			}
+			
+			&.btn-execute {
+				background: linear-gradient(135deg, $color-accent, $color-accent-light) !important;
+				color: #fff !important;
+				border: none !important;
+				box-shadow: 0 8px 25px 0 rgba(236, 72, 153, 0.4) !important;
+				
+				&:hover {
+					transform: translateY(-3px) scale(1.05) !important;
+					box-shadow: 0 12px 35px 0 rgba(236, 72, 153, 0.5) !important;
+				}
+			}
+		}
+	}
+}
+
+// ==========================================
+// PROJECT CARDS - Cards de proyectos
+// ==========================================
+.project-card {
+	background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(30, 41, 59, 0.85) 100%) !important;
+	border: 2px solid rgba(99, 102, 241, 0.3) !important;
+	border-radius: 1.2rem !important;
+	box-shadow: 0 8px 25px 0 rgba(0, 0, 0, 0.3), 0 0 20px rgba(99, 102, 241, 0.15) !important;
+	backdrop-filter: blur(20px) !important;
+	transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+	overflow: hidden !important;
+	padding: 1.5rem !important;
+	
+	&:hover {
+		border-color: rgba(99, 102, 241, 0.6) !important;
+		box-shadow: 0 15px 40px 0 rgba(99, 102, 241, 0.3), 0 0 30px rgba(99, 102, 241, 0.2) !important;
+		transform: translateY(-8px) scale(1.02) !important;
+	}
+	
+	&.featured {
+		border-color: var(--card-color, rgba(99, 102, 241, 0.5)) !important;
+		box-shadow: 0 8px 25px 0 rgba(0, 0, 0, 0.3), 0 0 20px var(--card-color, rgba(99, 102, 241, 0.2)) !important;
+	}
+	
+	.project-header {
+		display: flex !important;
+		justify-content: space-between !important;
+		align-items: flex-start !important;
+		margin-bottom: 1rem !important;
+		
+		.project-icon {
+			i {
+				font-size: 2.5rem !important;
+				color: var(--card-color, $color-primary) !important;
+			}
+		}
+		
+		.project-status {
+			.status-badge {
+				background: rgba(16, 185, 129, 0.2) !important;
+				border: 1px solid rgba(16, 185, 129, 0.5) !important;
+				color: #6EE7B7 !important;
+				padding: 0.25rem 0.6rem !important;
+				border-radius: 999px !important;
+				font-size: 0.6rem !important;
+				font-weight: 700 !important;
+				text-transform: uppercase !important;
+				letter-spacing: 0.3px !important;
+				
+				&.active {
+					background: rgba(16, 185, 129, 0.2) !important;
+				}
+			}
+		}
+	}
+	
+	.project-info {
+		.project-title {
+			color: #FFF !important;
+			font-weight: 800 !important;
+			font-size: 0.8rem !important;
+			margin: 0.3rem 0 0.6rem 0 !important;
+			text-transform: uppercase !important;
+			letter-spacing: -0.5px !important;
+			background: linear-gradient(135deg, $color-primary, $color-accent) !important;
+			-webkit-background-clip: text !important;
+			-webkit-text-fill-color: transparent !important;
+			background-clip: text !important;
+		}
+		
+		.project-description {
+			color: $color-text-secondary !important;
+			font-size: 0.9rem !important;
+			margin: 0.5rem 0 1rem 0 !important;
+		}
+		
+		.project-stats {
+			display: flex !important;
+			justify-content: space-between !important;
+			gap: 0.6rem !important;
+			flex-wrap: nowrap !important;
+			
+			.stat-item {
+				display: flex !important;
+				align-items: center !important;
+				gap: 0.3rem !important;
+				font-size: 0.6rem !important;
+				color: $color-text-secondary !important;
+				
+				i {
+					color: $color-primary !important;
+					font-size: 0.6rem !important;
+				}
+				
+				span {
+					color: $color-text !important;
+					font-weight: 600 !important;
+				}
+			}
+		}
+	}
+	
+	.project-footer {
+		margin-top: 1.5rem !important;
+		padding-top: 1.5rem !important;
+		border-top: 1px solid rgba(99, 102, 241, 0.2) !important;
+		
+		.view-tests {
+			display: flex !important;
+			align-items: center !important;
+			gap: 0.5rem !important;
+			color: $color-primary !important;
+			font-weight: 700 !important;
+			cursor: pointer !important;
+			transition: all 0.3s ease !important;
+			
+			&:hover {
+				color: $color-accent !important;
+				gap: 1rem !important;
+				
+				i {
+					transform: translateX(4px) !important;
+				}
+			}
+			
+			i {
+				transition: transform 0.3s ease !important;
+			}
+		}
+	}
+}
+
+// ==========================================
+// QA COLLAPSIBLE - Headers collapsibles
+// ==========================================
+.qa-collapsible-header {
+	background: linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(236, 72, 153, 0.1) 100%) !important;
+	border: 2px solid rgba(99, 102, 241, 0.3) !important;
+	border-radius: 0.8rem !important;
+	padding: 1rem 1.5rem !important;
+	cursor: pointer !important;
+	transition: all 0.3s ease !important;
+	display: flex !important;
+	justify-content: space-between !important;
+	align-items: center !important;
+	margin-bottom: 0.5rem !important;
+	
+	&:hover {
+		background: linear-gradient(135deg, rgba(99, 102, 241, 0.3) 0%, rgba(236, 72, 153, 0.15) 100%) !important;
+		border-color: rgba(99, 102, 241, 0.5) !important;
+		box-shadow: 0 4px 15px 0 rgba(99, 102, 241, 0.15) !important;
+	}
+	
+	.qa-title {
+		color: #FFF !important;
+		font-weight: 700 !important;
+		font-size: 1.1rem !important;
+		margin: 0 !important;
+		text-transform: uppercase !important;
+		letter-spacing: 0.5px !important;
+		background: linear-gradient(135deg, $color-primary, $color-accent) !important;
+		-webkit-background-clip: text !important;
+		-webkit-text-fill-color: transparent !important;
+		background-clip: text !important;
+	}
+	
+	.qa-toggle-icon {
+		color: $color-primary !important;
+		font-size: 1.2rem !important;
+		font-weight: 800 !important;
+		transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+		display: flex !important;
+		align-items: center !important;
+		justify-content: center !important;
+	}
+	
+	&.collapsed {
+		.qa-toggle-icon {
+			transform: rotate(90deg) !important;
+		}
+	}
+}
+
+// ==========================================
+// STAT ITEM - Elementos de estadísticas
+// ==========================================
+.stat-item {
+	display: flex !important;
+	align-items: center !important;
+	gap: 0.3rem !important;
+	padding: 0.3rem 0.5rem !important;
+	background: rgba(99, 102, 241, 0.1) !important;
+	border: 1px solid rgba(99, 102, 241, 0.2) !important;
+	border-radius: 0.5rem !important;
+	transition: all 0.3s ease !important;
+	
+	&:hover {
+		background: rgba(99, 102, 241, 0.15) !important;
+		border-color: rgba(99, 102, 241, 0.4) !important;
+		box-shadow: 0 2px 6px 0 rgba(99, 102, 241, 0.15) !important;
+	}
+	
+	i {
+		color: $color-primary !important;
+		font-size: 0.6rem !important;
+		min-width: 0.7rem !important;
+	}
+	
+	span {
+		color: $color-text !important;
+		font-weight: 600 !important;
+		font-size: 0.6rem !important;
+	}
+}
+
+// ==========================================
+// TEST TYPE CARD - Cards de tipo de prueba
+// ==========================================
+.test-type-card {
+	background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(30, 41, 59, 0.85) 100%) !important;
+	border: 2px solid rgba(99, 102, 241, 0.3) !important;
+	border-radius: 1.2rem !important;
+	padding: 2rem !important;
+	box-shadow: 0 8px 25px 0 rgba(0, 0, 0, 0.3) !important;
+	backdrop-filter: blur(20px) !important;
+	transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+	cursor: pointer !important;
+	overflow: hidden !important;
+	position: relative !important;
+	
+	&::before {
+		content: '' !important;
+		position: absolute !important;
+		top: -50% !important;
+		right: -50% !important;
+		width: 100% !important;
+		height: 100% !important;
+		background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, transparent 70%) !important;
+		pointer-events: none !important;
+		opacity: 0 !important;
+		transition: opacity 0.4s ease !important;
+	}
+	
+	&:hover {
+		border-color: rgba(99, 102, 241, 0.8) !important;
+		box-shadow: 0 15px 40px 0 rgba(99, 102, 241, 0.3), 0 0 30px rgba(99, 102, 241, 0.2) !important;
+		transform: translateY(-8px) scale(1.03) !important;
+		
+		&::before {
+			opacity: 1 !important;
+		}
+		
+		.test-icon {
+			transform: scale(1.15) rotate(5deg) !important;
+		}
+		
+		h3 {
+			color: $color-accent !important;
+		}
+	}
+	
+	.test-icon {
+		width: 80px !important;
+		height: 80px !important;
+		display: flex !important;
+		align-items: center !important;
+		justify-content: center !important;
+		border-radius: 1.2rem !important;
+		margin-bottom: 1.5rem !important;
+		font-size: 2.5rem !important;
+		transition: all 0.3s ease !important;
+		background: rgba(99, 102, 241, 0.15) !important;
+		border: 2px solid rgba(99, 102, 241, 0.3) !important;
+		
+		i {
+			color: $color-primary !important;
+		}
+		
+		&.contract-tests {
+			background: rgba(99, 102, 241, 0.15) !important;
+			border-color: rgba(99, 102, 241, 0.3) !important;
+		}
+	}
+	
+	h3 {
+		color: #FFF !important;
+		font-weight: 800 !important;
+		font-size: 1.4rem !important;
+		margin: 0 0 0.75rem 0 !important;
+		text-transform: uppercase !important;
+		letter-spacing: 0.5px !important;
+		transition: all 0.3s ease !important;
+	}
+	
+	p {
+		color: $color-text-secondary !important;
+		font-size: 0.95rem !important;
+		margin: 0 0 1.5rem 0 !important;
+		line-height: 1.5 !important;
+	}
+	
+	.test-stats {
+		background: rgba(99, 102, 241, 0.1) !important;
+		border: 1px solid rgba(99, 102, 241, 0.2) !important;
+		border-radius: 0.8rem !important;
+		padding: 1rem !important;
+		
+		.stat-row {
+			display: flex !important;
+			justify-content: space-between !important;
+			align-items: center !important;
+			padding: 0.5rem 0 !important;
+			
+			&:not(:last-child) {
+				border-bottom: 1px solid rgba(99, 102, 241, 0.15) !important;
+				margin-bottom: 0.5rem !important;
+				padding-bottom: 0.75rem !important;
+			}
+			
+			.label {
+				color: $color-text-secondary !important;
+				font-weight: 600 !important;
+				font-size: 0.9rem !important;
+			}
+			
+			.value {
+				color: $color-primary !important;
+				font-weight: 800 !important;
+				font-size: 1.1rem !important;
+			}
+		}
+	}
+}
+
+// ==========================================
+// CHART CONTAINER - Contenedor de gráficas con estilos hermosos
+// ==========================================
+.chart-container {
+	background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(30, 41, 59, 0.85) 100%) !important;
+	border: 2px solid rgba(99, 102, 241, 0.3) !important;
+	border-radius: 1.2rem !important;
+	padding: 2rem !important;
+	box-shadow: 0 8px 25px 0 rgba(0, 0, 0, 0.3) !important;
+	backdrop-filter: blur(20px) !important;
+	transition: all 0.3s ease !important;
+	overflow: hidden !important;
+	margin-bottom: 2rem !important;
+	
+	&:hover {
+		border-color: rgba(99, 102, 241, 0.6) !important;
+		box-shadow: 0 12px 35px 0 rgba(99, 102, 241, 0.25), 0 0 25px rgba(99, 102, 241, 0.15) !important;
+	}
+	
+	.chart-header {
+		margin-bottom: 2rem !important;
+		
+		h4 {
+			color: #FFF !important;
+			font-weight: 800 !important;
+			font-size: 1.3rem !important;
+			margin: 0 !important;
+			display: flex !important;
+			align-items: center !important;
+			gap: 0.75rem !important;
+			
+			&::before {
+				content: '' !important;
+				display: inline-block !important;
+				width: 4px !important;
+				height: 24px !important;
+				background: linear-gradient(180deg, $color-primary, $color-accent) !important;
+				border-radius: 2px !important;
+			}
+		}
+	}
+	
+	.chart-body {
+		overflow-x: auto !important;
+	}
+	
+	.chart-footer {
+		background: linear-gradient(135deg, rgba(30, 41, 59, 0.85) 0%, rgba(30, 41, 59, 0.75) 100%) !important;
+		padding: 0.8rem 1.5rem !important;
+		border-top: 1px solid rgba(99, 102, 241, 0.2) !important;
+		
+		.results-info {
+			display: flex !important;
+			justify-content: space-between !important;
+			align-items: center !important;
+			
+			.text-muted {
+				font-size: 0.9rem !important;
+				font-weight: 500 !important;
+				color: #CBD5E1 !important;
+				
+				i {
+					margin-right: 0.5rem !important;
+					color: $color-primary !important;
+				}
+			}
+		}
+	}
+	
+	// Estilos para Chart.js
+	::ng-deep {
+		canvas {
+			filter: brightness(1.05) contrast(1.1) !important;
+		}
+	}
+}
+
+// ==========================================
+// CHART CONTAINER FULL - Gráficas a ancho completo
+// ==========================================
+.chart-container-full {
+	background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(30, 41, 59, 0.85) 100%) !important;
+	border: 2px solid rgba(99, 102, 241, 0.3) !important;
+	border-radius: 1.2rem !important;
+	padding: 2rem !important;
+	box-shadow: 0 8px 25px 0 rgba(0, 0, 0, 0.3) !important;
+	backdrop-filter: blur(20px) !important;
+	transition: all 0.3s ease !important;
+	overflow: hidden !important;
+	margin-bottom: 2rem !important;
+	width: 100% !important;
+	
+	&:hover {
+		border-color: rgba(99, 102, 241, 0.6) !important;
+		box-shadow: 0 12px 35px 0 rgba(99, 102, 241, 0.25), 0 0 25px rgba(99, 102, 241, 0.15) !important;
+	}
+	
+	.chart-header {
+		margin-bottom: 2rem !important;
+		
+		h4 {
+			color: #FFF !important;
+			font-weight: 800 !important;
+			font-size: 1.3rem !important;
+			margin: 0 !important;
+			display: flex !important;
+			align-items: center !important;
+			gap: 0.75rem !important;
+			
+			&::before {
+				content: '' !important;
+				display: inline-block !important;
+				width: 4px !important;
+				height: 24px !important;
+				background: linear-gradient(180deg, $color-primary, $color-accent) !important;
+				border-radius: 2px !important;
+			}
+		}
+	}
+	
+	.chart-body {
+		overflow-x: auto !important;
+	}
+	
+	.chart-footer {
+		background: linear-gradient(135deg, rgba(30, 41, 59, 0.85) 0%, rgba(30, 41, 59, 0.75) 100%) !important;
+		padding: 0.8rem 1.5rem !important;
+		border-top: 1px solid rgba(99, 102, 241, 0.2) !important;
+		
+		.results-info {
+			display: flex !important;
+			justify-content: space-between !important;
+			align-items: center !important;
+			
+			.text-muted {
+				font-size: 0.9rem !important;
+				font-weight: 500 !important;
+				color: #CBD5E1 !important;
+				
+				i {
+					margin-right: 0.5rem !important;
+					color: $color-primary !important;
+				}
+			}
+		}
+	}
+	
+	// Estilos para Chart.js
+	::ng-deep {
+		canvas {
+			filter: brightness(1.05) contrast(1.1) !important;
+			max-width: 100% !important;
+		}
+	}
+	
+	.chart-body {
+		overflow-x: auto !important;
+	}
+}
+
+// ==========================================
+// ERROR TABLE STYLES - Estilos para tabla de errores
+// ==========================================
+.error-message {
+	color: #F1F5F9 !important;
+	font-weight: 500 !important;
+	display: flex !important;
+	align-items: center !important;
+	gap: 0.5rem !important;
+}
+
+.error-rank {
+	display: inline-block !important;
+	min-width: 1.5rem !important;
+	color: #6366F1 !important;
+	font-weight: 800 !important;
+	font-size: 0.95rem !important;
+}
+
+.error-count {
+	background: linear-gradient(135deg, rgba(236, 72, 153, 0.2), rgba(236, 72, 153, 0.1)) !important;
+	color: #EC4899 !important;
+	padding: 0.35rem 0.75rem !important;
+	border-radius: 0.4rem !important;
+	font-weight: 700 !important;
+	font-size: 0.9rem !important;
+	border: 1px solid rgba(236, 72, 153, 0.3) !important;
+	display: inline-block !important;
+}
+
+.error-percentage {
+	background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(99, 102, 241, 0.1)) !important;
+	color: #6366F1 !important;
+	padding: 0.35rem 0.75rem !important;
+	border-radius: 0.4rem !important;
+	font-weight: 700 !important;
+	font-size: 0.9rem !important;
+	border: 1px solid rgba(99, 102, 241, 0.3) !important;
+	display: inline-block !important;
+}
+
+.table-container {
+	overflow-x: auto !important;
+	border-radius: 0.8rem !important;
+}
+
+// Dropdown
+.dropdown-menu {
+	background: rgba(30, 41, 59, 0.95) !important;
+	border: 1px solid rgba(99, 102, 241, 0.3) !important;
+	backdrop-filter: blur(20px);
+	border-radius: 0.8rem;
+	box-shadow: 0 10px 40px 0 rgba(0, 0, 0, 0.3);
+	
+	.dropdown-item {
+		color: $color-text-secondary !important;
+		transition: all 0.3s ease;
+		
+		&:hover {
+			background: rgba(99, 102, 241, 0.2);
+			color: #FFF !important;
+		}
+		
+		&.active {
+			background: linear-gradient(135deg, rgba(99, 102, 241, 0.3), rgba(236, 72, 153, 0.15)) !important;
+		}
+	}
+}

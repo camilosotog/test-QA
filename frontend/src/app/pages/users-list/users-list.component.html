@@ -1,0 +1,112 @@
+<ng-template #noAccess>
+  <div class="container py-4">
+    <div class="alert alert-warning text-center mt-5">
+      No tienes permisos para ver esta sección.
+    </div>
+  </div>
+</ng-template>
+<div *ngIf="canView; else noAccess" class="container py-4">
+<ng-template #noAccess>
+  <div class="container py-4">
+    <div class="alert alert-warning text-center mt-5">
+      No tienes permisos para ver esta sección.
+    </div>
+  </div>
+</ng-template>
+  <h2 class="mb-4">Usuarios</h2>
+  <div *ngIf="error" class="alert alert-danger text-center">{{ error }}</div>
+  <div class="card mb-4">
+    <div class="card-body">
+      <h5 class="card-title">Crear nuevo usuario</h5>
+      <form class="row g-3" (ngSubmit)="createUser()">
+        <div class="col-md-2">
+          <input type="email" [(ngModel)]="newUser.email" name="email" class="form-control" placeholder="Email" required>
+        </div>
+        <div class="col-md-2">
+          <input type="text" [(ngModel)]="newUser.name" name="name" class="form-control" placeholder="Nombre" required>
+        </div>
+        <div class="col-md-2">
+          <input type="password" [(ngModel)]="newUser.password" name="password" class="form-control" placeholder="Contraseña" required>
+        </div>
+        <div class="col-md-2">
+          <select [(ngModel)]="newUser.user_role" name="user_role" class="form-select">
+            <option value="ADMIN">ADMIN</option>
+            <option value="QA">QA</option>
+            <option value="DEV">DEV</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <input type="text" [(ngModel)]="newUser.avatarUrl" name="avatarUrl" class="form-control" placeholder="URL de foto de perfil (opcional)">
+        </div>
+        <div class="col-md-1 d-grid">
+          <button class="btn btn-primary" type="submit" [disabled]="creating">
+            <span *ngIf="creating" class="spinner-border spinner-border-sm"></span>
+            <i *ngIf="!creating" class="bi bi-person-plus"></i>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-body">
+      <div *ngIf="loading" class="text-center py-3">
+        <div class="spinner-border text-primary"></div>
+        <div>Cargando...</div>
+      </div>
+      <div *ngIf="!loading" class="table-responsive">
+        <table class="table table-bordered table-hover align-middle dark-table" style="background: rgba(30, 41, 59, 0.8) !important;">
+          <thead class="custom-dark-header" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.25) 0%, rgba(236, 72, 153, 0.15) 100%) !important;">
+            <tr>
+              <th style="color: #FFF !important; font-weight: 800 !important;">Email</th>
+              <th style="color: #FFF !important; font-weight: 800 !important;">Nombre</th>
+              <th style="color: #FFF !important; font-weight: 800 !important;">Rol</th>
+              <th style="color: #FFF !important; font-weight: 800 !important;">Avatar</th>
+              <th style="color: #FFF !important; font-weight: 800 !important;">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let user of users">
+              <td>{{ user.email }}</td>
+              <td>
+                <span *ngIf="editingUser?.id !== user.id">{{ user.name }}</span>
+                <input *ngIf="editingUser && editingUser.id === user.id" type="text" [(ngModel)]="editingUser.name" class="form-control form-control-sm">
+              </td>
+              <td>
+                <span *ngIf="editingUser?.id !== user.id">{{ user.user_role }}</span>
+                <select *ngIf="editingUser && editingUser.id === user.id" [(ngModel)]="editingUser.user_role" class="form-select form-select-sm">
+                  <option value="ADMIN">ADMIN</option>
+                  <option value="QA">QA</option>
+                  <option value="DEV">DEV</option>
+                </select>
+              </td>
+              <td>
+                <span *ngIf="editingUser?.id !== user.id">
+                  <img *ngIf="user.avatarUrl" [src]="user.avatarUrl" alt="avatar" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">
+                </span>
+                <input *ngIf="editingUser && editingUser.id === user.id" type="text" [(ngModel)]="editingUser.avatarUrl" class="form-control form-control-sm" placeholder="URL de foto de perfil">
+              </td>
+              <td>
+                <div *ngIf="editingUser?.id !== user.id">
+                  <button class="btn btn-outline-secondary btn-sm me-1" (click)="startEdit(user)" title="Editar">
+                    <i class="bi bi-pencil"></i>
+                  </button>
+                  <button class="btn btn-outline-danger btn-sm" (click)="deleteUser(user.id!)" title="Eliminar">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </div>
+                <div *ngIf="editingUser?.id === user.id">
+                  <button class="btn btn-success btn-sm me-1" (click)="updateUser()" title="Guardar">
+                    <i class="bi bi-check-lg"></i>
+                  </button>
+                  <button class="btn btn-secondary btn-sm" (click)="cancelEdit()" title="Cancelar">
+                    <i class="bi bi-x-lg"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,72 @@
+/* Estilos mínimos para BugsComponent */
+.container {
+  max-width: 980px;
+}
+
+/* botones más pequeños y consistentes dentro del componente */
+.card .btn {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.85rem;
+  border-radius: 6px;
+}
+
+.card .btn-outline-primary {
+  color: #0d6efd;
+  border-color: rgba(13,110,253,0.15);
+}
+
+.card .btn-outline-danger {
+  color: #dc3545;
+  border-color: rgba(220,53,69,0.12);
+}
+
+.card .text-end { display:flex; gap:0.5rem; justify-content:flex-end; }
+
+/* Asegurar que los botones no ocupen todo el ancho incluso si hay reglas globales */
+.card .text-end .btn {
+  width: auto !important;
+  display: inline-block !important;
+  flex: 0 0 auto !important;
+  min-width: 86px;
+}
+
+/* regla más específica para btn-sm dentro del componente */
+#app-root .container .card .d-flex .btn-sm {
+  width: auto !important;
+  display: inline-block !important;
+  padding: 0.25rem 0.6rem !important;
+}
+
+.table td, .table th { vertical-align: middle; }
+
+/* Severity based row coloring */
+tbody tr.severity-critical {
+  background-color: #ffecec; /* soft red */
+}
+
+.actions-cell {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: #333;
+}
+
+.icon-btn svg { display: block; }
+
+.icon-btn.btn-edit:hover { background: rgba(0,123,255,0.08); color: #0d6efd; }
+.icon-btn.btn-delete:hover { background: rgba(220,53,69,0.08); color: #dc3545; }
+
+.icon-btn:focus { outline: 2px solid rgba(0,0,0,0.08); }
+

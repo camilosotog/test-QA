@@ -1,0 +1,97 @@
+<div class="login-container">
+  <!-- Fondo con elementos de QA flotantes -->
+  <div class="qa-background">
+    <!-- Elemento: Bug -->
+    <div class="qa-element bug-element">
+      <i class="fas fa-bug"></i>
+    </div>
+
+    <!-- Elemento: Checkmark -->
+    <div class="qa-element check-element">
+      <i class="fas fa-check-circle"></i>
+    </div>
+
+    <!-- Elemento: Test Flask -->
+    <div class="qa-element flask-element">
+      <i class="fas fa-flask"></i>
+    </div>
+
+    <!-- Elemento: Code -->
+    <div class="qa-element code-element">
+      <i class="fas fa-code"></i>
+    </div>
+
+    <!-- Elemento: Wrench (Tools) -->
+    <div class="qa-element wrench-element">
+      <i class="fas fa-wrench"></i>
+    </div>
+
+    <!-- Elemento: Shield (Security testing) -->
+    <div class="qa-element shield-element">
+      <i class="fas fa-shield-alt"></i>
+    </div>
+
+    <!-- Elemento: Target (Testing) -->
+    <div class="qa-element target-element">
+      <i class="fas fa-bullseye"></i>
+    </div>
+
+    <!-- Elemento: Chart (Metrics) -->
+    <div class="qa-element chart-element">
+      <i class="fas fa-chart-line"></i>
+    </div>
+
+    <!-- Decoración: Líneas conectoras -->
+    <svg class="connector-lines" viewBox="0 0 1000 600" preserveAspectRatio="xMidYMid slice">
+      <g class="lines">
+        <line x1="200" y1="100" x2="800" y2="500" stroke="rgba(99, 102, 241, 0.2)" stroke-width="2"/>
+        <line x1="800" y1="100" x2="200" y2="500" stroke="rgba(236, 72, 153, 0.2)" stroke-width="2"/>
+        <line x1="100" y1="300" x2="900" y2="300" stroke="rgba(16, 185, 129, 0.2)" stroke-width="2"/>
+        <circle cx="500" cy="300" r="150" fill="none" stroke="rgba(99, 102, 241, 0.15)" stroke-width="2"/>
+        <circle cx="500" cy="300" r="250" fill="none" stroke="rgba(236, 72, 153, 0.1)" stroke-width="2"/>
+      </g>
+    </svg>
+
+    <!-- Badge de QA -->
+    <div class="qa-badge">
+      <div class="badge-content">
+        <span class="badge-text">QA Testing Suite</span>
+        <div class="badge-icons">
+          <i class="fas fa-flask-vial"></i>
+          <i class="fas fa-vial"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tarjeta de login -->
+  <div class="login-card-wrapper">
+    <!-- Imagen del usuario detectado -->
+    <div *ngIf="showUserImage" class="user-profile-image">
+      <div class="user-name">{{ userGreeting }}</div>
+      <img [src]="userImage" [alt]="detectedUser" class="profile-pic">
+    </div>
+
+    <div class="card shadow-lg p-5" style="min-width:350px; max-width:450px; width:100%; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); border: 1px solid rgba(99, 102, 241, 0.3);">
+      <h2 class="text-center mb-4">
+        <i class="fas fa-flask-vial me-2" style="color: #6366F1;"></i>
+        Iniciar Sesión
+      </h2>
+      <form (ngSubmit)="onSubmit()" #loginForm="ngForm">
+        <div class="mb-3">
+          <label for="email" class="form-label">Email</label>
+          <input type="email" id="email" name="email" [(ngModel)]="email" (input)="onEmailInput($any($event.target).value)" required placeholder="Ingresa tu email" class="form-control" autocomplete="username">
+        </div>
+        <div class="mb-3">
+          <label for="password" class="form-label">Contraseña</label>
+          <input type="password" id="password" name="password" [(ngModel)]="password" required placeholder="Ingresa tu contraseña" class="form-control" autocomplete="current-password">
+        </div>
+        <div *ngIf="error" class="alert alert-danger py-2 text-center">{{ error }}</div>
+        <button type="submit" [disabled]="loading || !loginForm.form.valid" class="btn btn-primary w-100">
+          <span *ngIf="loading" class="spinner-border spinner-border-sm me-2"></span>
+          {{ loading ? 'Iniciando...' : 'Iniciar Sesión' }}
+        </button>
+      </form>
+    </div>
+  </div>
+</div>

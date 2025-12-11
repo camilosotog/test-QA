@@ -1,0 +1,15 @@
+<div class="card">
+  <div class="card-header">Detalle del bug</div>
+  <div class="card-body">
+    <ng-container *ngIf="loading">Cargando...</ng-container>
+    <ng-container *ngIf="error">Error: {{ formatError() }}</ng-container>
+    <ng-container *ngIf="!loading && bug">
+      <h4>{{ bug.title }}</h4>
+      <p><strong>Tipo:</strong> {{ bug.type }}</p>
+      <p><strong>Entorno:</strong> {{ bug.environment }}</p>
+      <p><strong>Severidad:</strong> {{ bug.severity }}</p>
+      <p><strong>Descripción:</strong></p>
+      <p>{{ bug.description }}</p>
+    </ng-container>
+  </div>
+</div>

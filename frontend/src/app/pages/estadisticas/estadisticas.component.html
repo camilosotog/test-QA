@@ -1,0 +1,192 @@
+<!-- Acordeón de meses -->
+<div class="container py-4">
+  <!-- Tabs -->
+  <ul class="nav nav-tabs mb-4">
+    <li class="nav-item">
+      <button type="button" class="nav-link" [class.active]="activeTab === 'qa'" (click)="activeTab = 'qa'">Estadísticas QA</button>
+    </li>
+    <li class="nav-item">
+      <button type="button" class="nav-link" [class.active]="activeTab === 'dev'" (click)="activeTab = 'dev'">Estadísticas Desarrolladores</button>
+    </li>
+  </ul>
+
+  <!-- QA: acordeón por mes y tablas QA -->
+  <div *ngIf="activeTab === 'qa'">
+    <div class="accordion" id="estadisticasAccordion">
+      <div class="accordion-item" *ngFor="let tabla of tablasPorMes; let i = index">
+        <h2 class="accordion-header" [attr.id]="'heading' + i">
+          <button class="accordion-button w-100" type="button"
+            [class.collapsed]="openMes !== i"
+            (click)="openMes = openMes === i ? null : i">
+            {{ tabla.mes }}
+          </button>
+        </h2>
+        <div class="accordion-collapse" *ngIf="openMes === i">
+          <div class="accordion-body">
+            <div class="d-flex flex-row justify-content-center">
+              <div class="estadistica-table w-100">
+                <table class="table table-bordered table-hover mt-4 dark-table" style="background: rgba(30, 41, 59, 0.8) !important;">
+                  <thead class="custom-dark-header" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.25) 0%, rgba(236, 72, 153, 0.15) 100%) !important;">
+                    <tr>
+                      <th style="color: #FFF !important; font-weight: 800 !important;">QA</th>
+                      <th style="color: #FFF !important; font-weight: 800 !important;">Tareas Probadas</th>
+                      <th style="color: #FFF !important; font-weight: 800 !important;">Devoluciones</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let row of tabla.rows">
+                      <td>{{ row.qa }}</td>
+                      <td>{{ row.tareas | number:'1.0-0' }}</td>
+                      <td>{{ row.devoluciones | number:'1.0-0' }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="estadistica-table w-100">
+      <br>
+      <h2>Estadísticas por QA</h2>
+      <table class="table table-bordered table-hover mt-4 auto-width-table dark-table" style="background: rgba(30, 41, 59, 0.8) !important;">
+        <thead class="custom-dark-header" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.25) 0%, rgba(236, 72, 153, 0.15) 100%) !important;">
+          <tr>
+            <th (click)="sortQATable('name')" style="cursor:pointer; color: #FFF !important; font-weight: 800 !important;">QA</th>
+            <th (click)="sortQATable('tareas')" style="cursor:pointer; color: #FFF !important; font-weight: 800 !important;">
+              Tareas Probadas
+              <i class="bi" [ngClass]="{
+                'bi-arrow-down': qaSortField === 'tareas' && qaSortDir === 'desc',
+                'bi-arrow-up': qaSortField === 'tareas' && qaSortDir === 'asc',
+                'bi-arrow-down-up': qaSortField !== 'tareas'
+              }"></i>
+            </th>
+            <th (click)="sortQATable('promedioTareas')" style="cursor:pointer; color: #FFF !important; font-weight: 800 !important;">
+              % Tareas Probadas
+              <i class="bi" [ngClass]="{
+                'bi-arrow-down': qaSortField === 'promedioTareas' && qaSortDir === 'desc',
+                'bi-arrow-up': qaSortField === 'promedioTareas' && qaSortDir === 'asc',
+                'bi-arrow-down-up': qaSortField !== 'promedioTareas'
+              }"></i>
+            </th>
+            <th (click)="sortQATable('devoluciones')" style="cursor:pointer; color: #FFF !important; font-weight: 800 !important;">
+              Total Devoluciones
+              <i class="bi" [ngClass]="{
+                'bi-arrow-down': qaSortField === 'devoluciones' && qaSortDir === 'desc',
+                'bi-arrow-up': qaSortField === 'devoluciones' && qaSortDir === 'asc',
+                'bi-arrow-down-up': qaSortField !== 'devoluciones'
+              }"></i>
+            </th>
+            <th (click)="sortQATable('promedioDevoluciones')" style="cursor:pointer; color: #FFF !important; font-weight: 800 !important;">
+              Promedio Devoluciones/Tarea
+              <i class="bi" [ngClass]="{
+                'bi-arrow-down': qaSortField === 'promedioDevoluciones' && qaSortDir === 'desc',
+                'bi-arrow-up': qaSortField === 'promedioDevoluciones' && qaSortDir === 'asc',
+                'bi-arrow-down-up': qaSortField !== 'promedioDevoluciones'
+              }"></i>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let qa of qaStatsSorted">
+            <td>{{ qa.name }}</td>
+            <td>{{ qa.tareas | number:'1.0-0' }}</td>
+            <td>{{ qa.promedioTareas | percent:'1.2-2' }}</td>
+            <td>{{ qa.devoluciones | number:'1.0-0' }}</td>
+            <td>{{ qa.promedioDevoluciones | number:'1.2-2' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    
+    <!-- Nueva sección: Métricas detalladas de devoluciones -->
+    <div class="estadistica-table w-100 mt-5">
+      <h2>📊 Métricas Detalladas de Calidad</h2>
+      <div class="row">
+        <div class="col-md-6">
+          <h4>Tareas Exitosas vs Devueltas por QA</h4>
+          <table class="table table-bordered table-hover mt-2 dark-table" style="background: rgba(30, 41, 59, 0.8) !important;">
+            <thead class="custom-dark-header" style="background: linear-gradient(135deg, rgba(34, 197, 94, 0.25) 0%, rgba(239, 68, 68, 0.15) 100%) !important;">
+              <tr>
+                <th style="color: #FFF !important; font-weight: 800 !important;">QA</th>
+                <th style="color: #FFF !important; font-weight: 800 !important;">✅ Exitosas</th>
+                <th style="color: #FFF !important; font-weight: 800 !important;">🔄 Devueltas</th>
+                <th style="color: #FFF !important; font-weight: 800 !important;">% Éxito</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let qa of estadisticasGenerales">
+                <td>{{ qa.qa_name }}</td>
+                <td style="color: #22c55e;">{{ qa.tareas_exitosas | number:'1.0-0' }}</td>
+                <td style="color: #ef4444;">{{ qa.tareas_devueltas | number:'1.0-0' }}</td>
+                <td>
+                  <span [style.color]="(qa.tareas_exitosas / qa.total_tareas) > 0.8 ? '#22c55e' : (qa.tareas_exitosas / qa.total_tareas) > 0.6 ? '#f59e0b' : '#ef4444'">
+                    {{ (qa.tareas_exitosas / qa.total_tareas) | percent:'1.1-1' }}
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="col-md-6">
+          <h4>Resumen por Mes Actual</h4>
+          <div *ngIf="tablasPorMes.length > 0" class="card" style="background: rgba(30, 41, 59, 0.8);">
+            <div class="card-header" style="background: rgba(99, 102, 241, 0.25);">
+              <h6 class="text-white mb-0">{{ tablasPorMes[0].mes }}</h6>
+            </div>
+            <div class="card-body">
+              <div class="row">
+                <div class="col-6 text-center">
+                  <div class="h4 text-primary mb-1">{{ getTotalTareasDelMes() | number:'1.0-0' }}</div>
+                  <small class="text-muted">Tareas Probadas</small>
+                </div>
+                <div class="col-6 text-center">
+                  <div class="h4 text-warning mb-1">{{ getTotalDevolucionesDelMes() | number:'1.0-0' }}</div>
+                  <small class="text-muted">Devoluciones</small>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Desarrolladores: solo dos tablas -->
+  <div *ngIf="activeTab === 'dev'">
+    <div class="estadistica-table w-100">
+      <h2>Devoluciones por Desarrollador</h2>
+      <table class="table table-bordered table-hover mt-4 dark-table" style="background: rgba(30, 41, 59, 0.8) !important;">
+        <thead class="custom-dark-header" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.25) 0%, rgba(236, 72, 153, 0.15) 100%) !important;">
+          <tr>
+            <th style="color: #FFF !important; font-weight: 800 !important;">Desarrollador</th>
+            <th (click)="sortDevTable('total')" style="cursor:pointer; color: #FFF !important; font-weight: 800 !important;">
+              Total Devoluciones
+              <i class="bi" [ngClass]="{
+                'bi-arrow-down': devSortField === 'total' && devSortDir === 'desc',
+                'bi-arrow-up': devSortField === 'total' && devSortDir === 'asc',
+                'bi-arrow-down-up': devSortField !== 'total'
+              }"></i>
+            </th>
+            <th (click)="sortDevTable('promedio')" style="cursor:pointer; color: #FFF !important; font-weight: 800 !important;">
+              Promedio de Devoluciones
+              <i class="bi" [ngClass]="{
+                'bi-arrow-down': devSortField === 'promedio' && devSortDir === 'desc',
+                'bi-arrow-up': devSortField === 'promedio' && devSortDir === 'asc',
+                'bi-arrow-down-up': devSortField !== 'promedio'
+              }"></i>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let dev of devStatsSorted">
+            <td>{{ dev.name }}</td>
+            <td>{{ dev.total | number:'1.0-0' }}</td>
+            <td>{{ dev.promedio | number:'1.2-2' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

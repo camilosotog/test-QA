@@ -1,0 +1,453 @@
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #334155 100%);
+  padding: 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+// ==========================================
+// FONDO CON ELEMENTOS DE QA
+// ==========================================
+.qa-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  z-index: 1;
+
+  .connector-lines {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    opacity: 0.6;
+
+    .lines {
+      animation: linesGlow 4s ease-in-out infinite;
+    }
+  }
+}
+
+@keyframes linesGlow {
+  0%, 100% {
+    filter: drop-shadow(0 0 5px rgba(99, 102, 241, 0.3));
+  }
+  50% {
+    filter: drop-shadow(0 0 15px rgba(99, 102, 241, 0.6));
+  }
+}
+
+// ==========================================
+// ELEMENTOS DE QA FLOTANTES
+// ==========================================
+.qa-element {
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  z-index: 2;
+  animation: float 4s ease-in-out infinite;
+  opacity: 0.7;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.2));
+
+  i {
+    color: #6366F1;
+  }
+
+  &:hover {
+    opacity: 1;
+    filter: drop-shadow(0 6px 20px rgba(99, 102, 241, 0.5));
+  }
+
+  // Bug - Arriba a la izquierda
+  &.bug-element {
+    top: 10%;
+    left: 5%;
+    animation: floatBug 5s ease-in-out infinite;
+
+    i {
+      color: #EF4444;
+    }
+  }
+
+  // Check - Arriba a la derecha
+  &.check-element {
+    top: 15%;
+    right: 8%;
+    animation: floatCheck 6s ease-in-out infinite;
+
+    i {
+      color: #10B981;
+    }
+  }
+
+  // Flask - Izquierda medio
+  &.flask-element {
+    top: 35%;
+    left: 3%;
+    animation: floatFlask 5.5s ease-in-out infinite;
+
+    i {
+      color: #F59E0B;
+    }
+  }
+
+  // Code - Derecha medio
+  &.code-element {
+    top: 40%;
+    right: 4%;
+    animation: floatCode 5.5s ease-in-out infinite;
+
+    i {
+      color: #8B5CF6;
+    }
+  }
+
+  // Wrench - Abajo izquierda
+  &.wrench-element {
+    bottom: 15%;
+    left: 8%;
+    animation: floatWrench 6s ease-in-out infinite;
+
+    i {
+      color: #06B6D4;
+    }
+  }
+
+  // Shield - Abajo derecha
+  &.shield-element {
+    bottom: 20%;
+    right: 5%;
+    animation: floatShield 5s ease-in-out infinite;
+
+    i {
+      color: #EC4899;
+    }
+  }
+
+  // Target - Arriba centro derecha
+  &.target-element {
+    top: 25%;
+    right: 25%;
+    animation: floatTarget 5.5s ease-in-out infinite;
+
+    i {
+      color: #3B82F6;
+    }
+  }
+
+  // Chart - Abajo centro izquierda
+  &.chart-element {
+    bottom: 25%;
+    left: 25%;
+    animation: floatChart 6.5s ease-in-out infinite;
+
+    i {
+      color: #14B8A6;
+    }
+  }
+}
+
+@keyframes floatBug {
+  0%, 100% {
+    transform: translateY(0px) translateX(0px) rotate(0deg);
+  }
+  25% {
+    transform: translateY(-20px) translateX(10px) rotate(5deg);
+  }
+  50% {
+    transform: translateY(-40px) translateX(-5px) rotate(-5deg);
+  }
+  75% {
+    transform: translateY(-20px) translateX(15px) rotate(5deg);
+  }
+}
+
+@keyframes floatCheck {
+  0%, 100% {
+    transform: translateY(0px) translateX(0px) scale(1);
+  }
+  50% {
+    transform: translateY(-30px) translateX(-10px) scale(1.1);
+  }
+}
+
+@keyframes floatFlask {
+  0%, 100% {
+    transform: translateX(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateX(20px) rotate(10deg);
+  }
+}
+
+@keyframes floatCode {
+  0%, 100% {
+    transform: translateX(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateX(-20px) rotate(-10deg);
+  }
+}
+
+@keyframes floatWrench {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(20px) rotate(15deg);
+  }
+}
+
+@keyframes floatShield {
+  0%, 100% {
+    transform: translateY(0px) scale(1);
+  }
+  50% {
+    transform: translateY(25px) scale(1.05);
+  }
+}
+
+@keyframes floatTarget {
+  0%, 100% {
+    transform: rotate(0deg) scale(1);
+  }
+  50% {
+    transform: rotate(180deg) scale(1.1);
+  }
+}
+
+@keyframes floatChart {
+  0%, 100% {
+    transform: translateY(0px) translateX(0px);
+  }
+  50% {
+    transform: translateY(20px) translateX(15px);
+  }
+}
+
+// ==========================================
+// BADGE DE QA
+// ==========================================
+.qa-badge {
+  position: absolute;
+  bottom: 5%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 5;
+  animation: badgeFloat 3s ease-in-out infinite;
+
+  .badge-content {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(236, 72, 153, 0.15)) !important;
+    border: 2px solid rgba(99, 102, 241, 0.4);
+    border-radius: 50px;
+    padding: 12px 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 8px 24px rgba(99, 102, 241, 0.2);
+
+    .badge-text {
+      color: #6366F1;
+      font-weight: 700;
+      font-size: 0.9rem;
+      letter-spacing: 0.5px;
+    }
+
+    .badge-icons {
+      display: flex;
+      gap: 8px;
+
+      i {
+        color: #F59E0B;
+        font-size: 1rem;
+        animation: iconPulse 2s ease-in-out infinite;
+
+        &:nth-child(2) {
+          animation-delay: 0.3s;
+        }
+      }
+    }
+  }
+}
+
+@keyframes badgeFloat {
+  0%, 100% {
+    transform: translateX(-50%) translateY(0px);
+  }
+  50% {
+    transform: translateX(-50%) translateY(-10px);
+  }
+}
+
+@keyframes iconPulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.8;
+  }
+}
+
+// ==========================================
+// TARJETA DE LOGIN
+// ==========================================
+.login-card-wrapper {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  max-width: 450px;
+}
+
+// ==========================================
+// IMAGEN DEL USUARIO DETECTADO
+// ==========================================
+.user-profile-image {
+  position: absolute;
+  top: -120px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 15;
+  animation: slideInDown 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+
+  .profile-pic {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 4px solid #6366F1;
+    box-shadow: 0 8px 24px rgba(99, 102, 241, 0.4);
+    object-fit: cover;
+    animation: popIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .user-name {
+    background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
+    color: white;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    animation: slideInDown 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s both;
+  }
+}
+
+@keyframes slideInDown {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+@keyframes popIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  70% {
+    transform: scale(1.1);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.login-card {
+  background: white;
+  padding: 40px;
+  border-radius: 10px;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 400px;
+}
+
+h2 {
+  text-align: center;
+  color: #333;
+  margin-bottom: 30px;
+  font-size: 24px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+label {
+  display: block;
+  margin-bottom: 5px;
+  color: #555;
+  font-weight: 500;
+}
+
+.form-control {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 16px;
+  transition: border-color 0.3s ease;
+  box-sizing: border-box;
+
+  &:focus {
+    outline: none;
+    border-color: #6366F1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  }
+}
+
+.btn-login {
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+
+  &:hover:not(:disabled) {
+    background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
+    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+    transform: translateY(-2px);
+  }
+
+  &:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+  }
+}
+
+.error-message {
+  color: #e74c3c;
+  background: #fdf2f2;
+  padding: 10px;
+  border-radius: 5px;
+  margin-bottom: 15px;
+  text-align: center;
+  border: 1px solid #f5c6cb;
+}

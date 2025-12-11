@@ -1,0 +1,448 @@
+/* ============================================
+   📦 COMPONENTE LISTA DE PROYECTOS TESTOMAT
+   ============================================ */
+
+:host {
+  display: block;
+  height: 100%;
+}
+
+// Removemos estilos específicos de .projects-page para usar container-fluid estándar
+.projects-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  gap: 2rem;
+  overflow-y: auto;
+}
+
+.page-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+
+  i {
+    color: #198754;
+    font-size: 2.2rem;
+  }
+}
+
+/* Encabezado */
+/* Estilos ya definidos arriba en .page-title */
+
+/* Contenedor de proyectos */
+.projects-container {
+  background: rgba(30, 35, 45, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.75rem;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 400px;
+
+  &:hover {
+    box-shadow: 0 6px 20px rgba(13, 110, 253, 0.15);
+  }
+}
+
+/* Tabla */
+.table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.projects-table.table {
+  margin-bottom: 0;
+  border-color: rgba(255, 255, 255, 0.1);
+  width: 100%;
+  min-width: 1000px;
+
+  thead {
+    background: linear-gradient(135deg, rgba(13, 110, 253, 0.2), rgba(6, 182, 212, 0.1));
+    border-bottom: 2px solid rgba(255, 255, 255, 0.15);
+    position: sticky;
+    top: 0;
+
+    th {
+      padding: 1.5rem 1.5rem;
+      font-weight: 600;
+      color: #adb5bd;
+      font-size: 0.95rem;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+      border: none;
+      white-space: nowrap;
+      background: inherit;
+    }
+
+    .col-name {
+      width: 180px;
+      min-width: 180px;
+    }
+
+    .col-description {
+      width: 350px;
+      min-width: 350px;
+    }
+
+    .col-status {
+      width: 120px;
+      min-width: 120px;
+    }
+
+    .col-date {
+      width: 150px;
+      min-width: 150px;
+    }
+
+    .col-actions {
+      width: 250px;
+      min-width: 250px;
+    }
+  }
+
+  tbody tr {
+    border-color: rgba(255, 255, 255, 0.08);
+    transition: all 0.3s ease;
+
+    &:hover {
+      background: rgba(13, 110, 253, 0.1);
+      border-left: 3px solid #0d6efd;
+    }
+
+    td {
+      padding: 1.5rem 1.5rem;
+      vertical-align: middle;
+      color: #e9ecef;
+      font-size: 0.95rem;
+      white-space: nowrap;
+
+      .text-muted {
+        color: #adb5bd;
+      }
+
+      &.col-name {
+        width: 180px;
+        min-width: 180px;
+      }
+
+      &.col-description {
+        width: 350px;
+        min-width: 350px;
+      }
+
+      &.col-status {
+        width: 120px;
+        min-width: 120px;
+      }
+
+      &.col-date {
+        width: 150px;
+        min-width: 150px;
+      }
+
+      &.col-actions {
+        width: 250px;
+        min-width: 250px;
+        white-space: normal;
+      }
+    }
+  }
+}
+
+/* Botones en tabla */
+.btn-sm {
+  padding: 0.4rem 0.7rem;
+  font-size: 0.85rem;
+  border-radius: 0.4rem;
+  transition: all 0.2s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+  }
+
+  i {
+    margin-right: 0.3rem;
+  }
+}
+
+/* Badge */
+.badge {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border-radius: 0.3rem;
+
+  &.badge-warning {
+    background: rgba(255, 193, 7, 0.2);
+    color: #ffc107;
+    border: 1px solid rgba(255, 193, 7, 0.3);
+  }
+
+  &.badge-success {
+    background: rgba(40, 167, 69, 0.2);
+    color: #28a745;
+    border: 1px solid rgba(40, 167, 69, 0.3);
+  }
+
+  &.badge-danger {
+    background: rgba(220, 53, 69, 0.2);
+    color: #dc3545;
+    border: 1px solid rgba(220, 53, 69, 0.3);
+  }
+}
+
+/* Botón Nuevo Proyecto */
+.btn-primary {
+  background: linear-gradient(135deg, #0d6efd, #0dcaf0);
+  border: none;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  border-radius: 0.5rem;
+  transition: all 0.3s ease;
+
+  &:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(13, 110, 253, 0.3);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  i {
+    margin-right: 0.5rem;
+  }
+}
+
+/* Modal overlay */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1050;
+  animation: fadeIn 0.2s ease;
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+}
+
+.modal-dialog {
+  width: 100%;
+  max-width: 500px;
+  margin: 0;
+  animation: slideUp 0.3s ease;
+
+  @keyframes slideUp {
+    from {
+      transform: translateY(20px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+}
+
+.modal-content {
+  background: linear-gradient(135deg, #1e232d, #2a2f39);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.75rem;
+  color: #e9ecef;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
+
+.modal-header {
+  border-color: rgba(255, 255, 255, 0.1);
+  padding: 1.5rem;
+
+  .modal-title {
+    font-weight: 600;
+    font-size: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+
+    i {
+      color: #0d6efd;
+    }
+  }
+
+  .btn-close {
+    background: none;
+    border: none;
+    color: #adb5bd;
+    opacity: 0.7;
+    transition: all 0.2s ease;
+
+    &:hover {
+      opacity: 1;
+      color: #fff;
+    }
+  }
+}
+
+.modal-body {
+  padding: 1.5rem;
+
+  .form-label {
+    font-weight: 600;
+    color: #adb5bd;
+    margin-bottom: 0.75rem;
+    font-size: 0.95rem;
+  }
+
+  .form-control,
+  .form-select {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #e9ecef;
+    padding: 0.75rem 1rem;
+    border-radius: 0.4rem;
+    transition: all 0.2s ease;
+
+    &:focus {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: #0d6efd;
+      box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+      color: #fff;
+    }
+
+    &::placeholder {
+      color: rgba(255, 255, 255, 0.3);
+    }
+  }
+
+  .invalid-feedback {
+    color: #dc3545;
+    font-size: 0.85rem;
+    margin-top: 0.25rem;
+  }
+}
+
+.modal-footer {
+  border-color: rgba(255, 255, 255, 0.1);
+  padding: 1.5rem;
+  display: flex;
+  gap: 0.75rem;
+
+  .btn {
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    border-radius: 0.4rem;
+    transition: all 0.2s ease;
+
+    &.btn-secondary {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #e9ecef;
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.15);
+        border-color: rgba(255, 255, 255, 0.3);
+      }
+    }
+
+    &.btn-primary {
+      background: linear-gradient(135deg, #0d6efd, #0dcaf0);
+      border: none;
+
+      &:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(13, 110, 253, 0.3);
+      }
+
+      &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+
+      i {
+        margin-right: 0.5rem;
+      }
+    }
+  }
+}
+
+/* Alert */
+.alert {
+  background: rgba(220, 53, 69, 0.1);
+  border: 1px solid rgba(220, 53, 69, 0.3);
+  color: #ff6b6b;
+  border-radius: 0.5rem;
+  margin-bottom: 1.5rem;
+
+  i {
+    margin-right: 0.5rem;
+  }
+
+  .btn-close {
+    background: none;
+    border: none;
+    color: #ff6b6b;
+    opacity: 0.7;
+
+    &:hover {
+      opacity: 1;
+    }
+  }
+}
+
+/* Spinner */
+.spinner-border {
+  border-color: rgba(13, 110, 253, 0.2);
+  border-right-color: #0d6efd;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .page-title {
+    font-size: 1.5rem;
+
+    i {
+      font-size: 1.8rem;
+    }
+  }
+
+  .modal-dialog {
+    max-width: 95%;
+  }
+
+  .table {
+    font-size: 0.85rem;
+
+    th, td {
+      padding: 0.75rem 0.5rem;
+    }
+  }
+
+  .btn-sm {
+    padding: 0.3rem 0.5rem;
+    font-size: 0.75rem;
+  }
+}

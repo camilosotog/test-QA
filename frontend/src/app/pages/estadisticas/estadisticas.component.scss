@@ -1,0 +1,361 @@
+.container {
+	max-width: 1200px;
+	color: #F1F5F9;
+	background: transparent !important;
+}
+
+h2, h4, h6 {
+	font-weight: 800;
+	font-size: 1.5rem;
+	color: #FFF !important;
+	margin-bottom: 1.5rem;
+}
+
+h4 {
+	font-size: 1.2rem;
+	margin-bottom: 1rem;
+}
+
+h6 {
+	font-size: 1rem;
+	margin-bottom: 0.5rem;
+}
+
+.estadistica-table {
+	min-width: 520px;
+	max-width: 100%;
+	flex: 1 1 520px;
+	background: rgba(15, 23, 42, 0.95) !important;
+	border-radius: 1rem;
+	border: 1px solid rgba(99, 102, 241, 0.3);
+	overflow: hidden;
+	box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+	
+	table {
+		background: transparent !important;
+		
+		thead {
+			background: linear-gradient(135deg, rgba(99, 102, 241, 0.8) 0%, rgba(236, 72, 153, 0.6) 100%) !important;
+			border-bottom: 2px solid rgba(99, 102, 241, 0.6);
+		}
+		
+		thead th {
+			color: #FFFFFF !important;
+			background: transparent !important;
+			font-weight: 900 !important;
+			text-transform: uppercase !important;
+			font-size: 0.85rem !important;
+			letter-spacing: 1.2px !important;
+			padding: 1.5rem 1.2rem !important;
+			border-color: rgba(255, 255, 255, 0.2) !important;
+			text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+		}
+		
+		tbody {
+			tr {
+				border-bottom: 1px solid rgba(148, 163, 184, 0.2) !important;
+				background: rgba(15, 23, 42, 0.7) !important;
+				transition: all 0.3s ease;
+				
+				&:nth-child(even) {
+					background: rgba(30, 41, 59, 0.8) !important;
+				}
+				
+				&:hover {
+					background: linear-gradient(90deg, rgba(99, 102, 241, 0.2) 0%, rgba(236, 72, 153, 0.15) 100%) !important;
+					box-shadow: 0 4px 20px 0 rgba(99, 102, 241, 0.2);
+					transform: translateY(-1px);
+				}
+				
+				td {
+					color: #F8FAFC !important;
+					background: transparent !important;
+					padding: 1.2rem 1rem !important;
+					font-weight: 600 !important;
+					border-color: rgba(148, 163, 184, 0.15) !important;
+					vertical-align: middle !important;
+					font-size: 0.95rem !important;
+				}
+			}
+		}
+	}
+}
+
+.auto-width-table {
+	width: 100%;
+	background: rgba(30, 41, 59, 0.8);
+	border-radius: 1rem;
+	border: 1px solid rgba(99, 102, 241, 0.2);
+	overflow: hidden;
+	
+	th, td {
+		white-space: nowrap;
+		min-width: 180px;
+		width: auto;
+		max-width: none;
+		text-align: center;
+		color: #F1F5F9 !important;
+		padding: 1rem !important;
+		font-weight: 500 !important;
+	}
+	
+	th {
+		background: linear-gradient(135deg, rgba(99, 102, 241, 0.3) 0%, rgba(236, 72, 153, 0.15) 100%) !important;
+		color: #FFF !important;
+		font-weight: 800 !important;
+		text-transform: uppercase !important;
+		font-size: 0.8rem !important;
+		letter-spacing: 1.5px !important;
+		border-bottom: 2px solid rgba(99, 102, 241, 0.4) !important;
+	}
+	
+	tbody tr {
+		border-bottom: 1px solid rgba(148, 163, 184, 0.15) !important;
+		background: rgba(30, 41, 59, 0.6) !important;
+		transition: all 0.3s ease;
+		
+		&:hover {
+			background: linear-gradient(90deg, rgba(99, 102, 241, 0.15) 0%, rgba(236, 72, 153, 0.08) 100%) !important;
+			box-shadow: 0 4px 15px 0 rgba(99, 102, 241, 0.1);
+		}
+	}
+}
+
+.d-flex {
+	align-items: flex-start;
+	color: #F1F5F9;
+}
+
+.dark-table {
+	background: rgba(15, 23, 42, 0.95) !important;
+	border-radius: 0.75rem;
+	border: 1px solid rgba(99, 102, 241, 0.3);
+	overflow: hidden;
+	box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+	
+	th {
+		background: linear-gradient(135deg, rgba(99, 102, 241, 0.8) 0%, rgba(236, 72, 153, 0.6) 100%) !important;
+		color: #FFFFFF !important;
+		font-weight: 900 !important;
+		text-transform: uppercase !important;
+		font-size: 0.85rem !important;
+		letter-spacing: 1.2px !important;
+		border-bottom: 2px solid rgba(99, 102, 241, 0.6) !important;
+		border-right: 1px solid rgba(255, 255, 255, 0.2) !important;
+		padding: 1.5rem 1.2rem !important;
+		text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+	}
+	
+	td {
+		background: rgba(15, 23, 42, 0.7) !important;
+		color: #F8FAFC !important;
+		padding: 1.2rem 1rem !important;
+		font-weight: 600 !important;
+		border-bottom: 1px solid rgba(148, 163, 184, 0.2) !important;
+		border-right: 1px solid rgba(148, 163, 184, 0.15) !important;
+		vertical-align: middle !important;
+		font-size: 0.95rem !important;
+	}
+	
+	tbody tr {
+		background: rgba(15, 23, 42, 0.7) !important;
+		transition: all 0.3s ease;
+		
+		&:nth-child(even) {
+			background: rgba(30, 41, 59, 0.8) !important;
+		}
+		
+		&:nth-child(even) td {
+			background: rgba(30, 41, 59, 0.8) !important;
+		}
+		
+		&:hover {
+			background: linear-gradient(90deg, rgba(99, 102, 241, 0.2) 0%, rgba(236, 72, 153, 0.15) 100%) !important;
+			box-shadow: 0 4px 20px 0 rgba(99, 102, 241, 0.2);
+			transform: translateY(-1px);
+		}
+		
+		&:hover td {
+			background: transparent !important;
+			color: #FFFFFF !important;
+		}
+	}
+}
+
+.card {
+	border: 1px solid rgba(99, 102, 241, 0.4) !important;
+	border-radius: 0.75rem !important;
+	box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+	background: rgba(15, 23, 42, 0.95) !important;
+	
+	.card-header {
+		background: linear-gradient(135deg, rgba(99, 102, 241, 0.8) 0%, rgba(236, 72, 153, 0.6) 100%) !important;
+		border-bottom: 1px solid rgba(99, 102, 241, 0.4) !important;
+		border-radius: 0.75rem 0.75rem 0 0 !important;
+		padding: 1.2rem 1.5rem !important;
+		
+		h6 {
+			color: #FFFFFF !important;
+			font-weight: 900 !important;
+			text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+			margin-bottom: 0 !important;
+		}
+	}
+	
+	.card-body {
+		background: rgba(15, 23, 42, 0.95) !important;
+		color: #F8FAFC !important;
+		border-radius: 0 0 0.75rem 0.75rem !important;
+		padding: 1.5rem !important;
+		
+		.h4 {
+			font-weight: 900 !important;
+			font-size: 2rem !important;
+		}
+		
+		small {
+			color: #CBD5E1 !important;
+			font-weight: 600 !important;
+		}
+		
+		.text-primary {
+			color: #60A5FA !important;
+		}
+		
+		.text-warning {
+			color: #FBBF24 !important;
+		}
+	}
+}
+
+// Mejorar textos de colores específicos
+.text-muted {
+	color: #CBD5E1 !important;
+}
+
+.text-white {
+	color: #FFFFFF !important;
+}
+
+// Estilos para filas alternas más visibles
+.estadistica-table tbody tr:nth-child(odd) {
+	background: rgba(15, 23, 42, 0.8) !important;
+}
+
+.estadistica-table tbody tr:nth-child(even) {
+	background: rgba(30, 41, 59, 0.9) !important;
+}
+
+// Estilos específicos para números y datos
+td {
+	&[style*="color: #22c55e"] {
+		color: #10B981 !important;
+		font-weight: 700 !important;
+		text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+	}
+	
+	&[style*="color: #ef4444"] {
+		color: #EF4444 !important;
+		font-weight: 700 !important;
+		text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+	}
+}
+
+// Resaltar números importantes
+.h4 {
+	text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+}
+
+// Asegurar máxima legibilidad en todos los casos
+.table td,
+.table th,
+.dark-table td,
+.dark-table th {
+	text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2) !important;
+}
+
+// Sobrescribir estilos de Bootstrap para tema oscuro
+.table-bordered {
+	border: 1px solid rgba(99, 102, 241, 0.3) !important;
+	
+	th, td {
+		border: 1px solid rgba(148, 163, 184, 0.2) !important;
+	}
+}
+
+.table-hover tbody tr:hover {
+	color: #FFFFFF !important;
+	background: linear-gradient(90deg, rgba(99, 102, 241, 0.2) 0%, rgba(236, 72, 153, 0.15) 100%) !important;
+}
+
+.table {
+	background: rgba(15, 23, 42, 0.95) !important;
+	color: #F8FAFC !important;
+	
+	th, td {
+		background: transparent !important;
+		color: #F8FAFC !important;
+		border-color: rgba(148, 163, 184, 0.2) !important;
+		font-weight: 600 !important;
+	}
+	
+	thead th {
+		background: linear-gradient(135deg, rgba(99, 102, 241, 0.8) 0%, rgba(236, 72, 153, 0.6) 100%) !important;
+		color: #FFFFFF !important;
+		border-color: rgba(99, 102, 241, 0.6) !important;
+		font-weight: 900 !important;
+		text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+	}
+	
+	tbody tr {
+		background: rgba(15, 23, 42, 0.7) !important;
+		
+		&:nth-child(even) {
+			background: rgba(30, 41, 59, 0.8) !important;
+		}
+		
+		td {
+			background: transparent !important;
+			color: #F8FAFC !important;
+		}
+	}
+}
+
+// Forzar tema oscuro con máximo contraste
+* {
+	&.table, &.card, &.card-body, &.card-header {
+		background: rgba(15, 23, 42, 0.95) !important;
+		color: #F8FAFC !important;
+	}
+}
+
+// Acordeón mejorado
+.accordion-button {
+	background: rgba(15, 23, 42, 0.95) !important;
+	color: #F8FAFC !important;
+	font-weight: 700 !important;
+	border: 1px solid rgba(99, 102, 241, 0.3) !important;
+	
+	&:not(.collapsed) {
+		background: linear-gradient(135deg, rgba(99, 102, 241, 0.8) 0%, rgba(236, 72, 153, 0.6) 100%) !important;
+		color: #FFFFFF !important;
+		text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+	}
+	
+	&:focus {
+		box-shadow: 0 0 0 0.25rem rgba(99, 102, 241, 0.25) !important;
+	}
+}
+
+// Específico para la nueva sección de métricas
+.mt-5 {
+	margin-top: 3rem !important;
+}
+
+.row {
+	background: transparent !important;
+}
+
+.col-md-6 {
+	background: transparent !important;
+}
