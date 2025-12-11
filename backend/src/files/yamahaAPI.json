@@ -1,0 +1,5349 @@
+{
+	"info": {
+		"_postman_id": "4e3a587e-f666-43f4-9d80-9978039fb581",
+		"name": "Oncredit Yamaha Preproducción - Colección 1er paso",
+		"description": "Colección generada a partir de trazas Playwright. Incluye auth, validaciones y config de orquestador.\n- Usa variables de entorno: baseUrl, tenant, oncredit_api_token, access_token, email, password.\n- Ejecuta primero `Auth / Gateway Token (ms-authentication)` y luego `Auth / Login`.\n- Los tests guardan automáticamente los tokens en el entorno actual.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "4349603",
+		"_collection_link": "https://camilo-1184.postman.co/workspace/Personal~722b56ca-26eb-48ba-9066-278984e8ea25/collection/4349603-4e3a587e-f666-43f4-9d80-9978039fb581?action=share&source=collection_link&creator=4349603"
+	},
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Gateway Token (ms-authentication)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const Ajv = require('ajv');",
+									"const ajv = new Ajv({ allErrors: true, strict: true })",
+									"",
+									"const response = pm.response.json()",
+									"",
+									"const schemaOk = {",
+									"    type: 'object',",
+									"    required: ['payload'],",
+									"    additionalProperties: false,",
+									"    properties: {",
+									"        payload: {",
+									"            type: 'object',",
+									"            required: ['message'],",
+									"            additionalProperties: false,",
+									"            properties: { message: { type: 'string' } }",
+									"        }",
+									"    }",
+									"}",
+									"",
+									"const validateOk = ajv.compile(schemaOk)",
+									"const validOk = validateOk(response)",
+									"",
+									"pm.test('Cumple contrato', () => {",
+									"    pm.expect(validOk, 'Contrato no cumple').to.be.true",
+									"})",
+									"",
+									"const gateway = response?.payload?.message;",
+									"if (gateway) {",
+									"    pm.collectionVariables.set('oncredit_api_token', gateway);",
+									"    pm.environment.set('oncredit_api_token', gateway);",
+									"    pm.test('Guardó oncredit_api_token', function () { pm.expect(gateway).to.be.a('string'); });",
+									"} else {",
+									"    console.warn('No se encontró payload.message en respuesta de ms-authentication');",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "accept",
+								"value": "application/json"
+							},
+							{
+								"key": "tenant",
+								"value": "{{tenant}}"
+							},
+							{
+								"key": "x-oncredit-secure",
+								"value": "true"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/ms-authentication",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ms-authentication"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login (ms-authentication/v1/user/login)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const Ajv = require('ajv');",
+									"const ajv = new Ajv({ allErrors: true, strict: true })",
+									"",
+									"const response = pm.response.json()",
+									"",
+									"const schemaOk = {",
+									"    type: 'object',",
+									"    required: ['message', 'success'],",
+									"    additionalProperties: false,",
+									"    properties: {",
+									"        message: {",
+									"            type: 'object',",
+									"            required: ['token'],",
+									"            additionalProperties: false,",
+									"            properties: {",
+									"                token: {",
+									"                    type: 'string'",
+									"                }",
+									"            }",
+									"        },",
+									"        success: {",
+									"            type: 'boolean'",
+									"        }",
+									"    }",
+									"}",
+									"",
+									"const validateOk = ajv.compile(schemaOk)",
+									"const validOk = validateOk(response)",
+									"",
+									"pm.test('Cumple contrato', () => {",
+									"    if (!validOk) {",
+									"        console.log('❌ Errores de contrato:');",
+									"        validateOk.errors.forEach(err => {",
+									"            console.log(",
+									"                `➡️ En propiedad: ${err.instancePath || '(Login)'}\\n` +",
+									"                `   ❗ Tipo de error: ${err.keyword}\\n` +",
+									"                `   📋 Mensaje: ${err.message}\\n` +",
+									"                (err.params ? `   ⚙️ Detalle: ${JSON.stringify(err.params)}\\n` : '')",
+									"            );",
+									"        });",
+									"    }",
+									"    pm.expect(validOk, 'Contrato no cumple').to.be.true",
+									"})",
+									"",
+									"const token = response?.message?.token;",
+									"if (token) {",
+									"    pm.collectionVariables.set('access_token', token);",
+									"    pm.environment.set('access_token', token)",
+									"    pm.test('Guardó access_token', function () {",
+									"        pm.expect(token).to.be.a('string');",
+									"    });",
+									"} else {",
+									"    console.warn('No se encontró message.token en respuesta de login');",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "accept",
+								"value": "application/json"
+							},
+							{
+								"key": "content-type",
+								"value": "application/json"
+							},
+							{
+								"key": "tenant",
+								"value": "{{tenant}}"
+							},
+							{
+								"key": "x-oncredit-secure",
+								"value": "true"
+							},
+							{
+								"key": "authorization-method",
+								"value": "DEFAULT"
+							},
+							{
+								"key": "oncredit-api-token",
+								"value": "{{oncredit_api_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\": \"{{email}}\",\r\n    \"password\": \"{{password}}\"\r\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/ms-authentication/v1/user/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ms-authentication",
+								"v1",
+								"user",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Validate API (ms-authentication/v1/auth/api/validate)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const Ajv = require('ajv');\r",
+									"const ajv = new Ajv({ allErrors: true, strict: true })\r",
+									"\r",
+									"const response = pm.response.json()\r",
+									"\r",
+									"const schemaOk = {\r",
+									"    type: 'object',\r",
+									"    required: ['payload'],\r",
+									"    additionalProperties: false,\r",
+									"    properties: {\r",
+									"        payload: {\r",
+									"            type: 'object',\r",
+									"            required: ['message'],\r",
+									"            additionalProperties: false,\r",
+									"            properties: { message: { type: 'string' } }\r",
+									"        }\r",
+									"    }\r",
+									"}\r",
+									"\r",
+									"const validateOk = ajv.compile(schemaOk)\r",
+									"const validOk = validateOk(response)\r",
+									"\r",
+									"pm.test('Cumple contrato', () => {\r",
+									"    pm.expect(validOk, 'Contrato no cumple').to.be.true\r",
+									"})\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "accept",
+								"value": "application/json"
+							},
+							{
+								"key": "tenant",
+								"value": "{{tenant}}"
+							},
+							{
+								"key": "x-oncredit-secure",
+								"value": "true"
+							},
+							{
+								"key": "oncredit-api-token",
+								"value": "{{oncredit_api_token}}"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/ms-authentication/v1/auth/api/validate",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ms-authentication",
+								"v1",
+								"auth",
+								"api",
+								"validate"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Role (ms-authentication/v1/role/superadmin)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const Ajv = require('ajv');\r",
+									"const ajv = new Ajv({ allErrors: true, strict: true });\r",
+									"\r",
+									"const response = pm.response.json();\r",
+									"\r",
+									"const schemaOk = {\r",
+									"    type: 'object',\r",
+									"    required: ['payload'],\r",
+									"    additionalProperties: false,\r",
+									"    properties: {\r",
+									"        payload: {\r",
+									"            type: 'object',\r",
+									"            required: ['active', '_id', 'identifier', 'name', 'permissions', '__v'],\r",
+									"            additionalProperties: false,\r",
+									"            properties: {\r",
+									"                active: { type: 'boolean' },\r",
+									"                _id: { type: 'string' },\r",
+									"                identifier: { type: 'string' },\r",
+									"                name: { type: 'string' },\r",
+									"                permissions: {\r",
+									"                    type: 'array',\r",
+									"                    items: {\r",
+									"                        type: 'object',\r",
+									"                        required: ['services', 'name'],\r",
+									"                        additionalProperties: false,\r",
+									"                        properties: {\r",
+									"                            services: {\r",
+									"                                oneOf: [\r",
+									"                                    { type: 'string' },\r",
+									"                                    {\r",
+									"                                        type: 'array',\r",
+									"                                        items: { type: 'string' }\r",
+									"                                    }\r",
+									"                                ]\r",
+									"                            },\r",
+									"                            name: { type: 'string' }\r",
+									"                        }\r",
+									"                    }\r",
+									"                },\r",
+									"                __v: { type: 'number' }\r",
+									"            }\r",
+									"        }\r",
+									"    }\r",
+									"};\r",
+									"\r",
+									"// 🧩 Validación del contrato\r",
+									"const validateOk = ajv.compile(schemaOk);\r",
+									"const validOk = validateOk(response);\r",
+									"\r",
+									"pm.test('Cumple contrato', () => {\r",
+									"    if (!validOk) {\r",
+									"        console.log('❌ Errores de contrato:');\r",
+									"        validateOk.errors.forEach(err => {\r",
+									"            console.log(\r",
+									"                `➡️ En propiedad: ${err.instancePath || '(Role)'}\\n` +\r",
+									"                `   ❗ Tipo de error: ${err.keyword}\\n` +\r",
+									"                `   📋 Mensaje: ${err.message}\\n` +\r",
+									"                (err.params ? `   ⚙️ Detalle: ${JSON.stringify(err.params)}\\n` : '')\r",
+									"            );\r",
+									"        });\r",
+									"    }\r",
+									"    pm.expect(validOk, 'Contrato no cumple').to.be.true;\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "accept",
+								"value": "application/json"
+							},
+							{
+								"key": "tenant",
+								"value": "{{tenant}}"
+							},
+							{
+								"key": "x-oncredit-secure",
+								"value": "true"
+							},
+							{
+								"key": "oncredit-api-token",
+								"value": "{{oncredit_api_token}}"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/ms-authentication/v1/role/superadmin",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ms-authentication",
+								"v1",
+								"role",
+								"superadmin"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Permission (ms-authentication/v1/permission/)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const Ajv = require('ajv');\r",
+									"const ajv = new Ajv({ allErrors: true, strict: true });\r",
+									"\r",
+									"const response = pm.response.json();\r",
+									"\r",
+									"const schemaOk = {\r",
+									"    type: 'object',\r",
+									"    required: ['payload'],\r",
+									"    additionalProperties: false,\r",
+									"    properties: {\r",
+									"        payload: {\r",
+									"            type: 'array',\r",
+									"            items: {\r",
+									"                type: 'object',\r",
+									"                required: ['_id', 'name', 'identifier', 'sid', 'services'],\r",
+									"                additionalProperties: true,\r",
+									"                properties: {\r",
+									"                    _id: { type: 'string' },\r",
+									"                    name: { type: 'string' },\r",
+									"                    identifier: { type: 'string' },\r",
+									"                    sid: { type: 'string' },\r",
+									"                    services: {\r",
+									"                        type: 'array',\r",
+									"                        items: {\r",
+									"                            type: 'object',\r",
+									"                            required: ['internal', 'name', 'sid', 'services'],\r",
+									"                            additionalProperties: true,\r",
+									"                            properties: {\r",
+									"                                internal: { type: 'boolean' },\r",
+									"                                identifier: { type: 'string' },\r",
+									"                                name: { type: 'string' },\r",
+									"                                sid: { type: 'string' },\r",
+									"                                description: { type: 'string' },\r",
+									"                                data: {\r",
+									"                                    type: 'object',\r",
+									"                                    additionalProperties: true,\r",
+									"                                    properties: {\r",
+									"                                        icon: { type: 'string' },\r",
+									"                                        clickEvent: { type: 'string' },\r",
+									"                                        routerLink: { type: 'string' },\r",
+									"                                        handle: { type: 'string' },\r",
+									"                                        url: { type: 'string' }\r",
+									"                                    }\r",
+									"                                },\r",
+									"                                path: {\r",
+									"                                    type: 'object',\r",
+									"                                    additionalProperties: true,\r",
+									"                                    properties: {\r",
+									"                                        key: { type: 'string' }\r",
+									"                                    }\r",
+									"                                },\r",
+									"                                services: {\r",
+									"                                    type: 'array',\r",
+									"                                    items: {\r",
+									"                                        type: 'object',\r",
+									"                                        additionalProperties: true,\r",
+									"                                        properties: {\r",
+									"                                            identifier: { type: 'string' },\r",
+									"                                            name: { type: 'string' },\r",
+									"                                            sid: { type: 'string' },\r",
+									"                                            data: {\r",
+									"                                                type: 'object',\r",
+									"                                                additionalProperties: true\r",
+									"                                            }\r",
+									"                                        }\r",
+									"                                    }\r",
+									"                                }\r",
+									"                            }\r",
+									"                        }\r",
+									"                    }\r",
+									"                }\r",
+									"            }\r",
+									"        }\r",
+									"    }\r",
+									"};\r",
+									"\r",
+									"const validateOk = ajv.compile(schemaOk);\r",
+									"const validOk = validateOk(response);\r",
+									"\r",
+									"pm.test('Cumple contrato', () => {\r",
+									"    if (!validOk) {\r",
+									"        validateOk.errors.forEach(err => {\r",
+									"            console.log(\r",
+									"                `➡️ En propiedad: ${err.instancePath || '(Permission)'}\\n` +\r",
+									"                `   ❗ Tipo de error: ${err.keyword}\\n` +\r",
+									"                `   📋 Mensaje: ${err.message}\\n` +\r",
+									"                (err.params ? `   ⚙️ Detalle: ${JSON.stringify(err.params)}\\n` : '')\r",
+									"            );\r",
+									"        });\r",
+									"    }\r",
+									"    pm.expect(validOk, 'Contrato no cumple').to.be.true;\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "accept",
+								"value": "application/json"
+							},
+							{
+								"key": "tenant",
+								"value": "{{tenant}}"
+							},
+							{
+								"key": "x-oncredit-secure",
+								"value": "true"
+							},
+							{
+								"key": "oncredit-api-token",
+								"value": "{{oncredit_api_token}}"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/ms-authentication/v1/permission/",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ms-authentication",
+								"v1",
+								"permission",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Superadmin (ms-authentication/v1/role/superadmin)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const Ajv = require('ajv');\r",
+									"const ajv = new Ajv({ allErrors: true, strict: true });\r",
+									"\r",
+									"const response = pm.response.json();\r",
+									"\r",
+									"const schemaOk = {\r",
+									"    type: 'object',\r",
+									"    required: ['payload'],\r",
+									"    additionalProperties: false,\r",
+									"    properties: {\r",
+									"        payload: {\r",
+									"            type: 'object',\r",
+									"            required: ['active', '_id', 'identifier', 'name', 'permissions', '__v'],\r",
+									"            additionalProperties: false,\r",
+									"            properties: {\r",
+									"                active: { type: 'boolean' },\r",
+									"                _id: { type: 'string' },\r",
+									"                identifier: { type: 'string' },\r",
+									"                name: { type: 'string' },\r",
+									"                permissions: {\r",
+									"                    type: 'array',\r",
+									"                    items: {\r",
+									"                        type: 'object',\r",
+									"                        required: ['services', 'name'],\r",
+									"                        additionalProperties: false,\r",
+									"                        properties: {\r",
+									"                            services: {\r",
+									"                                oneOf: [\r",
+									"                                    { type: 'string' },\r",
+									"                                    { type: 'array', items: { type: 'string' } }\r",
+									"                                ]\r",
+									"                            },\r",
+									"                            name: { type: 'string' }\r",
+									"                        }\r",
+									"                    }\r",
+									"                },\r",
+									"                __v: { type: 'number' }\r",
+									"            }\r",
+									"        }\r",
+									"    }\r",
+									"};\r",
+									"\r",
+									"const validateOk = ajv.compile(schemaOk);\r",
+									"const validOk = validateOk(response);\r",
+									"\r",
+									"pm.test('Cumple contrato', () => {\r",
+									"    if (!validOk) {\r",
+									"        validateOk.errors.forEach(err => {\r",
+									"            console.log(\r",
+									"                `➡️ En propiedad: ${err.instancePath || '(Superadmin)'}\\n` +\r",
+									"                `   ❗ Tipo de error: ${err.keyword}\\n` +\r",
+									"                `   📋 Mensaje: ${err.message}\\n` +\r",
+									"                (err.params ? `   ⚙️ Detalle: ${JSON.stringify(err.params)}\\n` : '')\r",
+									"            );\r",
+									"        });\r",
+									"    }\r",
+									"    pm.expect(validOk, 'Contrato no cumple').to.be.true;\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							},
+							{
+								"key": "tenant",
+								"value": "yam-pre",
+								"type": "text"
+							},
+							{
+								"key": "oncredit-api-token",
+								"value": "{{oncredit_api_token}}",
+								"type": "text"
+							},
+							{
+								"key": "x-oncredit-secure",
+								"value": "true",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/ms-authentication/v1/role/superadmin\t",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ms-authentication",
+								"v1",
+								"role",
+								"superadmin\t"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "User (ms-authentication/v1/user/admin1@coxti.com)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const Ajv = require('ajv');\r",
+									"const ajv = new Ajv({ allErrors: true, strict: true });\r",
+									"\r",
+									"const response = pm.response.json();\r",
+									"\r",
+									"const schemaOk = {\r",
+									"    type: 'object',\r",
+									"    required: ['payload'],\r",
+									"    additionalProperties: false,\r",
+									"    properties: {\r",
+									"        payload: {}\r",
+									"    }\r",
+									"};\r",
+									"\r",
+									"const validateOk = ajv.compile(schemaOk);\r",
+									"const validOk = validateOk(response);\r",
+									"\r",
+									"pm.test('Cumple contrato', () => {\r",
+									"    if (!validOk) {\r",
+									"        validateOk.errors.forEach(err => {\r",
+									"            console.log(\r",
+									"                `➡️ En propiedad: ${err.instancePath || '(User)'}\\n` +\r",
+									"                `   ❗ Tipo de error: ${err.keyword}\\n` +\r",
+									"                `   📋 Mensaje: ${err.message}\\n` +\r",
+									"                (err.params ? `   ⚙️ Detalle: ${JSON.stringify(err.params)}\\n` : '')\r",
+									"            );\r",
+									"        });\r",
+									"    }\r",
+									"    pm.expect(validOk, 'Contrato no cumple').to.be.true;\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "tenant",
+								"value": "{{tenant}}",
+								"type": "text"
+							},
+							{
+								"key": "oncredit-api-token",
+								"value": "{{oncredit_api_token}}",
+								"type": "text"
+							},
+							{
+								"key": "authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/ms-authentication/v1/user/admin1@coxti.com",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ms-authentication",
+								"v1",
+								"user",
+								"admin1@coxti.com"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "Flujo de autenticación y validación"
+		},
+		{
+			"name": "Orchestrator",
+			"item": [
+				{
+					"name": "Config (ms-orchestator/v1/config/)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const Ajv = require('ajv');\r",
+									"const ajv = new Ajv({ allErrors: true, strict: true });\r",
+									"\r",
+									"const response = pm.response.json();\r",
+									"\r",
+									"const schemaOk = {\r",
+									"    type: 'object',\r",
+									"    required: ['$em'],\r",
+									"    additionalProperties: false,\r",
+									"    properties: {\r",
+									"        $em: { type: 'string' }\r",
+									"    }\r",
+									"};\r",
+									"\r",
+									"const validateOk = ajv.compile(schemaOk);\r",
+									"const validOk = validateOk(response);\r",
+									"\r",
+									"pm.test('Cumple contrato', () => {\r",
+									"    if (!validOk) {\r",
+									"        validateOk.errors.forEach(err => {\r",
+									"            console.log(\r",
+									"                `➡️ En propiedad: ${err.instancePath || '(Config)'}\\n` +\r",
+									"                `   ❗ Tipo de error: ${err.keyword}\\n` +\r",
+									"                `   📋 Mensaje: ${err.message}\\n` +\r",
+									"                (err.params ? `   ⚙️ Detalle: ${JSON.stringify(err.params)}\\n` : '')\r",
+									"            );\r",
+									"        });\r",
+									"    }\r",
+									"    pm.expect(validOk, 'Contrato no cumple').to.be.true;\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "accept",
+								"value": "application/json"
+							},
+							{
+								"key": "tenant",
+								"value": "{{tenant}}"
+							},
+							{
+								"key": "x-oncredit-secure",
+								"value": "true"
+							},
+							{
+								"key": "oncredit-api-token",
+								"value": "{{oncredit_api_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/ms-orchestator/v1/config/",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ms-orchestator",
+								"v1",
+								"config",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Notification / GetNotification",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const Ajv = require('ajv');",
+									"const ajv = new Ajv({ allErrors: true, strict: true });",
+									"",
+									"const response = pm.response.json();",
+									"",
+									"const schemaOk = {",
+									"    type: 'object',",
+									"    required: ['$em'],",
+									"    additionalProperties: false,",
+									"    properties: {",
+									"        $em: { type: 'string' }",
+									"    }",
+									"};",
+									"",
+									"const validateOk = ajv.compile(schemaOk);",
+									"const validOk = validateOk(response);",
+									"",
+									"pm.test('Cumple contrato', () => {",
+									"    if (!validOk) {",
+									"        validateOk.errors.forEach(err => {",
+									"            console.log(",
+									"                `➡️ En propiedad: ${err.instancePath || '(Notification)'}\\n` +",
+									"                `   ❗ Tipo de error: ${err.keyword}\\n` +",
+									"                `   📋 Mensaje: ${err.message}\\n` +",
+									"                (err.params ? `   ⚙️ Detalle: ${JSON.stringify(err.params)}\\n` : '')",
+									"            );",
+									"        });",
+									"    }",
+									"    pm.expect(validOk, 'Contrato no cumple').to.be.true;",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "content-type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "tenant",
+								"value": "{{tenant}}",
+								"type": "text"
+							},
+							{
+								"key": "x-oncredit-secure",
+								"value": "true",
+								"type": "text"
+							},
+							{
+								"key": "oncredit-api-token",
+								"value": "{{oncredit_api_token}}",
+								"type": "text"
+							},
+							{
+								"key": "authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"user\":\"{{email}}\"}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/ms-orchestator/v1/notification/getNotification",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ms-orchestator",
+								"v1",
+								"notification",
+								"getNotification"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Generate ticket (ms-orchestator/v1/request/generate-ticket)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const Ajv = require('ajv');\r",
+									"const ajv = new Ajv({ allErrors: true, strict: true });\r",
+									"\r",
+									"const response = pm.response.json();\r",
+									"\r",
+									"const schemaOk = {\r",
+									"    type: 'object',\r",
+									"    required: ['payload'],\r",
+									"    additionalProperties: false,\r",
+									"    properties: {\r",
+									"        payload: { type: 'string' }\r",
+									"    }\r",
+									"};\r",
+									"\r",
+									"const validateOk = ajv.compile(schemaOk);\r",
+									"const validOk = validateOk(response);\r",
+									"\r",
+									"pm.test('Cumple contrato', () => {\r",
+									"    if (!validOk) {\r",
+									"        validateOk.errors.forEach(err => {\r",
+									"            console.log(\r",
+									"                `➡️ En propiedad: ${err.instancePath || '(Generate)'}\\n` +\r",
+									"                `   ❗ Tipo de error: ${err.keyword}\\n` +\r",
+									"                `   📋 Mensaje: ${err.message}\\n` +\r",
+									"                (err.params ? `   ⚙️ Detalle: ${JSON.stringify(err.params)}\\n` : '')\r",
+									"            );\r",
+									"        });\r",
+									"    }\r",
+									"    pm.expect(validOk, 'Contrato no cumple').to.be.true;\r",
+									"});\r",
+									"pm.collectionVariables.set('ticket1', response?.payload)\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "tenant",
+								"value": "{{tenant}}",
+								"type": "text"
+							},
+							{
+								"key": "oncredit-api-token",
+								"value": "{{oncredit_api_token}}",
+								"type": "text"
+							},
+							{
+								"key": "authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/ms-orchestator/v1/request/generate-ticket",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ms-orchestator",
+								"v1",
+								"request",
+								"generate-ticket"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Payroll (ms-orchestator/v1/payroll)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const Ajv = require('ajv');\r",
+									"const ajv = new Ajv({ allErrors: true, strict: true });\r",
+									"\r",
+									"const response = pm.response.json();\r",
+									"\r",
+									"const schemaOk = {\r",
+									"    type: 'object',\r",
+									"    required: ['payload'],\r",
+									"    additionalProperties: false,\r",
+									"    properties: {\r",
+									"        payload: {\r",
+									"            type: 'array',\r",
+									"            items: {\r",
+									"                type: 'object',\r",
+									"                required: ['_id', 'name', 'state', 'createdAt', 'updatedAt', '__v'],\r",
+									"                additionalProperties: true,\r",
+									"                properties: {\r",
+									"                    _id: { type: 'string' },\r",
+									"                    name: { type: 'string' },\r",
+									"                    type: { type: 'string' },\r",
+									"                    nit: { type: 'string' },\r",
+									"                    paymentFrequency: { type: 'string' },\r",
+									"                    maxTerm: { type: ['number', 'null'] },\r",
+									"                    minTerm: { type: ['number', 'null'] },\r",
+									"                    rate: { type: ['string', 'number'] },\r",
+									"                    salary: { type: ['string', 'null'] },\r",
+									"                    period: { type: ['string', 'null'] },\r",
+									"                    ocupation: { type: ['string', 'null'] },\r",
+									"                    percentage: { type: ['number', 'null'] },\r",
+									"                    visacion: {\r",
+									"                        type: 'object',\r",
+									"                        additionalProperties: true,\r",
+									"                        properties: {\r",
+									"                            compraCyML: { type: 'string' },\r",
+									"                            compraCyMOPyLNO: { type: 'string' },\r",
+									"                            libreIyR: { type: 'string' }\r",
+									"                        }\r",
+									"                    },\r",
+									"                    address: { type: 'string' },\r",
+									"                    city: { type: 'string' },\r",
+									"                    phone: { type: 'string' },\r",
+									"                    state: { type: 'string' },\r",
+									"                    createdAt: { type: 'string' },\r",
+									"                    updatedAt: { type: 'string' },\r",
+									"                    __v: { type: 'number' }\r",
+									"                }\r",
+									"            }\r",
+									"        }\r",
+									"    }\r",
+									"};\r",
+									"\r",
+									"const validateOk = ajv.compile(schemaOk);\r",
+									"const validOk = validateOk(response);\r",
+									"\r",
+									"pm.test('Cumple contrato', () => {\r",
+									"    if (!validOk) {\r",
+									"        validateOk.errors.forEach(err => {\r",
+									"            console.log(\r",
+									"                `➡️ En propiedad: ${err.instancePath || '(Payroll)'}\\n` +\r",
+									"                `   ❗ Tipo de error: ${err.keyword}\\n` +\r",
+									"                `   📋 Mensaje: ${err.message}\\n` +\r",
+									"                (err.params ? `   ⚙️ Detalle: ${JSON.stringify(err.params)}\\n` : '')\r",
+									"            );\r",
+									"        });\r",
+									"    }\r",
+									"    pm.expect(validOk, 'Contrato no cumple').to.be.true;\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "tenant",
+								"value": "{{tenant}}",
+								"type": "text"
+							},
+							{
+								"key": "oncredit-api-token",
+								"value": "{{oncredit_api_token}}",
+								"type": "text"
+							},
+							{
+								"key": "authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/ms-orchestator/v1/payroll",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ms-orchestator",
+								"v1",
+								"payroll"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "With Consecutive (ms-orchestator/v2/request/with-consecutive)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const Ajv = require('ajv');\r",
+									"const ajv = new Ajv({ allErrors: true, strict: true });\r",
+									"\r",
+									"const response = pm.response.json();\r",
+									"\r",
+									"const schemaOk = {\r",
+									"    type: 'object',\r",
+									"    required: ['payload'],\r",
+									"    additionalProperties: false,\r",
+									"    properties: {\r",
+									"        payload: {\r",
+									"            type: 'object',\r",
+									"            required: ['success', 'message', 'ticket', 'id'],\r",
+									"            additionalProperties: false,\r",
+									"            properties: {\r",
+									"                success: { type: 'boolean' },\r",
+									"                message: { type: 'string' },\r",
+									"                ticket: { type: 'string' },\r",
+									"                id: { type: ['string', 'null'] }\r",
+									"            }\r",
+									"        }\r",
+									"    }\r",
+									"};\r",
+									"\r",
+									"const validateOk = ajv.compile(schemaOk);\r",
+									"const validOk = validateOk(response);\r",
+									"\r",
+									"pm.test('Cumple contrato', () => {\r",
+									"    if (!validOk) {\r",
+									"        validateOk.errors.forEach(err => {\r",
+									"            console.log(\r",
+									"                `➡️ En propiedad: ${err.instancePath || '(With Consecutive)'}\\n` +\r",
+									"                `   ❗ Tipo de error: ${err.keyword}\\n` +\r",
+									"                `   📋 Mensaje: ${err.message}\\n` +\r",
+									"                (err.params ? `   ⚙️ Detalle: ${JSON.stringify(err.params)}\\n` : '')\r",
+									"            );\r",
+									"        });\r",
+									"    }\r",
+									"    pm.expect(validOk, 'Contrato no cumple').to.be.true;\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "tenant",
+								"value": "{{tenant}}",
+								"type": "text"
+							},
+							{
+								"key": "oncredit-api-token",
+								"value": "{{oncredit_api_token}}",
+								"type": "text"
+							},
+							{
+								"key": "authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"ticket\": \"{{ticket1}}\",\r\n    \"origin\": \"web\",\r\n    \"wasAssisted\": true,\r\n    \"user\": {\r\n        \"userName\": \"admin1@coxti.com\",\r\n        \"role\": \"superadmin\",\r\n        \"email\": \"admin1@coxti.com\",\r\n        \"fullName\": \"admin admin admin\",\r\n        \"offices\": [],\r\n        \"phones\": [\r\n            \"3137655038\"\r\n        ]\r\n    },\r\n    \"userID\": \"admin1@coxti.com\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/ms-orchestator/v2/request/with-consecutive",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ms-orchestator",
+								"v2",
+								"request",
+								"with-consecutive"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Ticket (ms-orchestator/v1/request/483469498)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const Ajv = require('ajv');\r",
+									"const ajv = new Ajv({ allErrors: true, strict: true });\r",
+									"\r",
+									"const response = pm.response.json();\r",
+									"\r",
+									"const schemaOk = {\r",
+									"    type: 'object',\r",
+									"    required: ['payload'],\r",
+									"    additionalProperties: false,\r",
+									"    properties: {\r",
+									"        payload: {\r",
+									"            type: 'object',\r",
+									"            required: [\r",
+									"                '_id',\r",
+									"                'ticket',\r",
+									"                'origin',\r",
+									"                'released',\r",
+									"                'user',\r",
+									"                'applicants',\r",
+									"                'states',\r",
+									"                'stages',\r",
+									"                'viabilities',\r",
+									"                'createdAt',\r",
+									"                'updatedAt'\r",
+									"            ],\r",
+									"            additionalProperties: true,\r",
+									"            properties: {\r",
+									"                _id: { type: 'string' },\r",
+									"                ticket: { type: 'string' },\r",
+									"                released: { type: 'boolean' },\r",
+									"                wasAssisted: { type: 'boolean' },\r",
+									"                origin: { type: 'string' },\r",
+									"                userID: { type: 'string' },\r",
+									"                consecutive: { type: ['number', 'null'] },\r",
+									"                schemaVersion: { type: 'number' },\r",
+									"                lastStep: { type: ['number', 'null'] },\r",
+									"                createdAt: { type: 'string' },\r",
+									"                updatedAt: { type: 'string' },\r",
+									"                __v: { type: 'number' },\r",
+									"\r",
+									"                user: {\r",
+									"                    type: 'object',\r",
+									"                    required: ['userName', 'role', 'email', 'fullName'],\r",
+									"                    additionalProperties: true,\r",
+									"                    properties: {\r",
+									"                        userName: { type: 'string' },\r",
+									"                        role: { type: 'string' },\r",
+									"                        email: { type: 'string' },\r",
+									"                        fullName: { type: 'string' },\r",
+									"                        offices: { type: 'array' },\r",
+									"                        phones: { type: 'array', items: { type: 'string' } }\r",
+									"                    }\r",
+									"                },\r",
+									"\r",
+									"                applicants: {\r",
+									"                    type: 'array',\r",
+									"                    items: {\r",
+									"                        type: 'object',\r",
+									"                        required: ['type', 'states', 'data', 'createdAt'],\r",
+									"                        additionalProperties: true,\r",
+									"                        properties: {\r",
+									"                            type: { type: 'string' },\r",
+									"                            providerId: { type: ['string', 'null'] },\r",
+									"                            engineId: { type: 'array', items: { type: 'string' } },\r",
+									"                            states: {\r",
+									"                                type: 'array',\r",
+									"                                items: {\r",
+									"                                    type: 'object',\r",
+									"                                    required: ['identifier', 'name', 'date'],\r",
+									"                                    properties: {\r",
+									"                                        identifier: { type: 'string' },\r",
+									"                                        name: { type: 'string' },\r",
+									"                                        date: { type: 'string' }\r",
+									"                                    }\r",
+									"                                }\r",
+									"                            },\r",
+									"                            viabilities: {\r",
+									"                                type: 'array',\r",
+									"                                items: {\r",
+									"                                    type: 'object',\r",
+									"                                    required: ['identifier', 'name', 'date'],\r",
+									"                                    properties: {\r",
+									"                                        identifier: { type: 'string' },\r",
+									"                                        name: { type: 'string' },\r",
+									"                                        date: { type: 'string' }\r",
+									"                                    }\r",
+									"                                }\r",
+									"                            },\r",
+									"                            data: {\r",
+									"                                type: 'array',\r",
+									"                                items: {\r",
+									"                                    type: 'object',\r",
+									"                                    required: ['sectionIdentifier', 'value'],\r",
+									"                                    properties: {\r",
+									"                                        sectionIdentifier: { type: 'string' },\r",
+									"                                        value: { type: 'object' }\r",
+									"                                    }\r",
+									"                                }\r",
+									"                            }\r",
+									"                        }\r",
+									"                    }\r",
+									"                },\r",
+									"\r",
+									"                states: {\r",
+									"                    type: 'array',\r",
+									"                    items: {\r",
+									"                        type: 'object',\r",
+									"                        required: ['identifier', 'name', 'date'],\r",
+									"                        properties: {\r",
+									"                            identifier: { type: 'string' },\r",
+									"                            name: { type: 'string' },\r",
+									"                            date: { type: 'string' }\r",
+									"                        }\r",
+									"                    }\r",
+									"                },\r",
+									"\r",
+									"                stages: {\r",
+									"                    type: 'array',\r",
+									"                    items: {\r",
+									"                        type: 'object',\r",
+									"                        required: ['type', 'description', 'date'],\r",
+									"                        properties: {\r",
+									"                            type: { type: 'string' },\r",
+									"                            description: { type: 'string' },\r",
+									"                            date: { type: 'string' }\r",
+									"                        }\r",
+									"                    }\r",
+									"                },\r",
+									"\r",
+									"                viabilities: {\r",
+									"                    type: 'array',\r",
+									"                    items: {\r",
+									"                        type: 'object',\r",
+									"                        required: ['identifier', 'name', 'date'],\r",
+									"                        properties: {\r",
+									"                            identifier: { type: 'string' },\r",
+									"                            name: { type: 'string' },\r",
+									"                            date: { type: 'string' }\r",
+									"                        }\r",
+									"                    }\r",
+									"                }\r",
+									"            }\r",
+									"        }\r",
+									"    }\r",
+									"};\r",
+									"\r",
+									"const validateOk = ajv.compile(schemaOk);\r",
+									"const validOk = validateOk(response);\r",
+									"\r",
+									"pm.test('Cumple contrato', () => {\r",
+									"    if (!validOk) {\r",
+									"        validateOk.errors.forEach(err => {\r",
+									"            console.log(\r",
+									"                `➡️ En propiedad: ${err.instancePath || '(Ticket)'}\\n` +\r",
+									"                `   ❗ Tipo de error: ${err.keyword}\\n` +\r",
+									"                `   📋 Mensaje: ${err.message}\\n` +\r",
+									"                (err.params ? `   ⚙️ Detalle: ${JSON.stringify(err.params)}\\n` : '')\r",
+									"            );\r",
+									"        });\r",
+									"    }\r",
+									"    pm.expect(validOk, 'Contrato no cumple').to.be.true;\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "tenant",
+								"value": "{{tenant}}",
+								"type": "text"
+							},
+							{
+								"key": "oncredit-api-token",
+								"value": "{{oncredit_api_token}}",
+								"type": "text"
+							},
+							{
+								"key": "authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/ms-orchestator/v1/request/{{ticket1}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ms-orchestator",
+								"v1",
+								"request",
+								"{{ticket1}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Consecutive Ticket (ms-orchestator/v1/request/483469498/consecutive)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const Ajv = require('ajv');\r",
+									"const ajv = new Ajv({ allErrors: true, strict: true });\r",
+									"\r",
+									"const response = pm.response.json();\r",
+									"\r",
+									"const schemaOk = {\r",
+									"    type: 'object'\r",
+									"};\r",
+									"\r",
+									"const validateOk = ajv.compile(schemaOk);\r",
+									"const validOk = validateOk(response);\r",
+									"\r",
+									"pm.test('Cumple contrato', () => {\r",
+									"    if (!validOk) {\r",
+									"        validateOk.errors.forEach(err => {\r",
+									"            console.log(\r",
+									"                `➡️ En propiedad: ${err.instancePath || '(Consecutive)'}\\n` +\r",
+									"                `   ❗ Tipo de error: ${err.keyword}\\n` +\r",
+									"                `   📋 Mensaje: ${err.message}\\n` +\r",
+									"                (err.params ? `   ⚙️ Detalle: ${JSON.stringify(err.params)}\\n` : '')\r",
+									"            );\r",
+									"        });\r",
+									"    }\r",
+									"    pm.expect(validOk, 'Contrato no cumple').to.be.true;\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "tenant",
+								"value": "{{tenant}}",
+								"type": "text"
+							},
+							{
+								"key": "oncredit-api-token",
+								"value": "{{oncredit_api_token}}",
+								"type": "text"
+							},
+							{
+								"key": "authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"consecutive\": \"{{consecutive}}\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/ms-orchestator/v1/request/{{ticket1}}/consecutive",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ms-orchestator",
+								"v1",
+								"request",
+								"{{ticket1}}",
+								"consecutive"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Product (ms-orchestator/v1/request/483469498/product)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const Ajv = require('ajv');\r",
+									"const ajv = new Ajv({ allErrors: true, strict: true });\r",
+									"\r",
+									"const response = pm.response.json();\r",
+									"\r",
+									"const schemaOk = {\r",
+									"    type: 'object',\r",
+									"    required: ['payload'],\r",
+									"    additionalProperties: false,\r",
+									"    properties: {\r",
+									"        payload: { type: 'string' }\r",
+									"    }\r",
+									"};\r",
+									"\r",
+									"const validateOk = ajv.compile(schemaOk);\r",
+									"const validOk = validateOk(response);\r",
+									"\r",
+									"pm.test('Cumple contrato', () => {\r",
+									"    if (!validOk) {\r",
+									"        validateOk.errors.forEach(err => {\r",
+									"            console.log(\r",
+									"                `➡️ En propiedad: ${err.instancePath || '(Product)'}\\n` +\r",
+									"                `   ❗ Tipo de error: ${err.keyword}\\n` +\r",
+									"                `   📋 Mensaje: ${err.message}\\n` +\r",
+									"                (err.params ? `   ⚙️ Detalle: ${JSON.stringify(err.params)}\\n` : '')\r",
+									"            );\r",
+									"        });\r",
+									"    }\r",
+									"    pm.expect(validOk, 'Contrato no cumple').to.be.true;\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "tenant",
+								"value": "{{tenant}}",
+								"type": "text"
+							},
+							{
+								"key": "oncredit-api-token",
+								"value": "{{oncredit_api_token}}",
+								"type": "text"
+							},
+							{
+								"key": "authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"modalityId\": \"047fd41d-4633-48be-978e-95a0bf726067\",\r\n    \"productId\": \"def2a9ef-cf2d-4868-b1e7-8fd68522cd9f\",\r\n    \"productTypeId\": \"7ce7c875-f38e-4025-b6ab-007b512414de\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/ms-orchestator/v1/request/{{ticket1}}/product",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ms-orchestator",
+								"v1",
+								"request",
+								"{{ticket1}}",
+								"product"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "TyC (ms-orchestator/v1/request/483469498/tyc)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const Ajv = require('ajv');\r",
+									"const ajv = new Ajv({ allErrors: true, strict: true });\r",
+									"\r",
+									"const response = pm.response.json();\r",
+									"\r",
+									"const schemaOk = {\r",
+									"    type: 'object'\r",
+									"};\r",
+									"\r",
+									"const validateOk = ajv.compile(schemaOk);\r",
+									"const validOk = validateOk(response);\r",
+									"\r",
+									"pm.test('Cumple contrato', () => {\r",
+									"    if (!validOk) {\r",
+									"        validateOk.errors.forEach(err => {\r",
+									"            console.log(\r",
+									"                `➡️ En propiedad: ${err.instancePath || '(TyC)'}\\n` +\r",
+									"                `   ❗ Tipo de error: ${err.keyword}\\n` +\r",
+									"                `   📋 Mensaje: ${err.message}\\n` +\r",
+									"                (err.params ? `   ⚙️ Detalle: ${JSON.stringify(err.params)}\\n` : '')\r",
+									"            );\r",
+									"        });\r",
+									"    }\r",
+									"    pm.expect(validOk, 'Contrato no cumple').to.be.true;\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "tenant",
+								"value": "{{tenant}}",
+								"type": "text"
+							},
+							{
+								"key": "oncredit-api-token",
+								"value": "{{oncredit_api_token}}",
+								"type": "text"
+							},
+							{
+								"key": "authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"ticket\": {{ticket1}},\r\n    \"flowId\": \"49f6c437-5b40-4360-86bd-93e48d4f015f\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/ms-orchestator/v1/request/{{ticket1}}/tyc",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ms-orchestator",
+								"v1",
+								"request",
+								"{{ticket1}}",
+								"tyc"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Release (ms-orchestator/v1/request/483469498/release)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const Ajv = require('ajv');\r",
+									"const ajv = new Ajv({ allErrors: true, strict: true });\r",
+									"\r",
+									"const response = pm.response.json();\r",
+									"\r",
+									"const schemaOk = {\r",
+									"    type: 'object',\r",
+									"    required: ['payload'],\r",
+									"    additionalProperties: false,\r",
+									"    properties: {\r",
+									"        payload: { type: 'string' }\r",
+									"    }\r",
+									"};\r",
+									"\r",
+									"const validateOk = ajv.compile(schemaOk);\r",
+									"const validOk = validateOk(response);\r",
+									"\r",
+									"pm.test('Cumple contrato', () => {\r",
+									"    if (!validOk) {\r",
+									"        validateOk.errors.forEach(err => {\r",
+									"            console.log(\r",
+									"                `➡️ En propiedad: ${err.instancePath || '(Release)'}\\n` +\r",
+									"                `   ❗ Tipo de error: ${err.keyword}\\n` +\r",
+									"                `   📋 Mensaje: ${err.message}\\n` +\r",
+									"                (err.params ? `   ⚙️ Detalle: ${JSON.stringify(err.params)}\\n` : '')\r",
+									"            );\r",
+									"        });\r",
+									"    }\r",
+									"    pm.expect(validOk, 'Contrato no cumple').to.be.true;\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "tenant",
+								"value": "{{tenant}}",
+								"type": "text"
+							},
+							{
+								"key": "oncredit-api-token",
+								"value": "{{oncredit_api_token}}",
+								"type": "text"
+							},
+							{
+								"key": "authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/ms-orchestator/v1/request/{{ticket1}}/release",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ms-orchestator",
+								"v1",
+								"request",
+								"{{ticket1}}",
+								"release"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Custom Stage (ms-orchestator/v1/request/483469498/custom-stage)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const Ajv = require('ajv');\r",
+									"const ajv = new Ajv({ allErrors: true, strict: true });\r",
+									"\r",
+									"const response = pm.response.json();\r",
+									"\r",
+									"const schemaOk = {\r",
+									"    type: 'object'\r",
+									"};\r",
+									"\r",
+									"const validateOk = ajv.compile(schemaOk);\r",
+									"const validOk = validateOk(response);\r",
+									"\r",
+									"pm.test('Cumple contrato', () => {\r",
+									"    if (!validOk) {\r",
+									"        validateOk.errors.forEach(err => {\r",
+									"            console.log(\r",
+									"                `➡️ En propiedad: ${err.instancePath || '(Custom Stage)'}\\n` +\r",
+									"                `   ❗ Tipo de error: ${err.keyword}\\n` +\r",
+									"                `   📋 Mensaje: ${err.message}\\n` +\r",
+									"                (err.params ? `   ⚙️ Detalle: ${JSON.stringify(err.params)}\\n` : '')\r",
+									"            );\r",
+									"        });\r",
+									"    }\r",
+									"    pm.expect(validOk, 'Contrato no cumple').to.be.true;\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "tenant",
+								"value": "{{tenant}}",
+								"type": "text"
+							},
+							{
+								"key": "oncredit-api-token",
+								"value": "{{oncredit_api_token}}",
+								"type": "text"
+							},
+							{
+								"key": "authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"description\": \"hola\",\r\n    \"type\": \"cc\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/ms-orchestator/v1/request/{{ticket1}}/custom-stage",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ms-orchestator",
+								"v1",
+								"request",
+								"{{ticket1}}",
+								"custom-stage"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Applicant Control List (ms-orchestator/v1/request/updateApplicantControlList)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const Ajv = require('ajv');\r",
+									"const ajv = new Ajv({ allErrors: true, strict: true });\r",
+									"\r",
+									"const response = pm.response.json();\r",
+									"\r",
+									"const schemaOk = {\r",
+									"    type: 'object',\r",
+									"    required: ['result'],\r",
+									"    additionalProperties: false,\r",
+									"    properties: {\r",
+									"        result: { type: 'object' }\r",
+									"    }\r",
+									"};\r",
+									"\r",
+									"const validateOk = ajv.compile(schemaOk);\r",
+									"const validOk = validateOk(response);\r",
+									"\r",
+									"pm.test('Cumple contrato', () => {\r",
+									"    if (!validOk) {\r",
+									"        validateOk.errors.forEach(err => {\r",
+									"            console.log(\r",
+									"                `➡️ En propiedad: ${err.instancePath || '(Update Applicant)'}\\n` +\r",
+									"                `   ❗ Tipo de error: ${err.keyword}\\n` +\r",
+									"                `   📋 Mensaje: ${err.message}\\n` +\r",
+									"                (err.params ? `   ⚙️ Detalle: ${JSON.stringify(err.params)}\\n` : '')\r",
+									"            );\r",
+									"        });\r",
+									"    }\r",
+									"    pm.expect(validOk, 'Contrato no cumple').to.be.true;\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "tenant",
+								"value": "{{tenant}}",
+								"type": "text"
+							},
+							{
+								"key": "oncredit-api-token",
+								"value": "{{oncredit_api_token}}",
+								"type": "text"
+							},
+							{
+								"key": "authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"ticket\": \"{{ticket1}}\",\r\n    \"identificationNumber\": \"51840792\",\r\n    \"lists\": {\r\n        \"list\": [],\r\n        \"peps\": [\r\n            {\r\n                \"idLista\": 209423,\r\n                \"orden\": 2,\r\n                \"fecha\": \"2013-03-04T11:41:49.087\",\r\n                \"prioridad\": \"1\",\r\n                \"nombreTipoLista\": \"Colombia - Peps en dejación del cargo (Decreto 1674 de 2016)\",\r\n                \"nombreGrupoLista\": \"LISTAS PEPS\",\r\n                \"idGrupoLista\": 6,\r\n                \"tipoDocumento\": \"CC\",\r\n                \"documentoIdentidad\": \"51840792\",\r\n                \"nombreCompleto\": \"LUZ ADRIANA CAMARGO GARZON\",\r\n                \"idTipoLista\": 31,\r\n                \"fuenteConsulta\": \"EL ESPECTADOR COLOMBIA\",\r\n                \"tipoPersona\": \"NATURAL\",\r\n                \"alias\": \"\",\r\n                \"delito\": \"EXMAGISTRADA AUXILIAR DE LA SALA PENAL Y EXFISCAL DELEGADA ANTE EL TRIBUNAL SUPERIOR DE BOGOTA\",\r\n                \"peps\": \"\",\r\n                \"zona\": \"COLOMBIA\",\r\n                \"link\": \"https://www.elespectador.com/noticias/judicial/estos-son-algunos-de-los-739-juristas-que-aspiran-ser-magistrados-de-la-corte-suprema-articulo-741724\",\r\n                \"entidadEmpresa\": null,\r\n                \"otraInformacion\": \"ACT DEJACION DE CARGOACT02032018 EXMAGISTRADA AUXILIAR DE LA SALA PENAL Y EXFISCAL DELEGADA ANTE EL TRIBUNAL SUPERIOR DE BOGOTA\",\r\n                \"fechaActualizacion\": \"2018-04-16T06:21:38.81\",\r\n                \"justificacionCambio\": null\r\n            }\r\n        ]\r\n    }\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/ms-orchestator/v1/request/updateApplicantControlList",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ms-orchestator",
+								"v1",
+								"request",
+								"updateApplicantControlList"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "State (ms-orchestator/v1/request/483469498/state)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const Ajv = require('ajv');\r",
+									"const ajv = new Ajv({ allErrors: true, strict: true });\r",
+									"\r",
+									"const response = pm.response.json();\r",
+									"\r",
+									"const schemaOk = {\r",
+									"    type: 'object',\r",
+									"    required: ['payload'],\r",
+									"    additionalProperties: false,\r",
+									"    properties: {\r",
+									"        payload: {\r",
+									"            type: 'object',\r",
+									"            required: ['_id', 'ticket', 'origin', 'released', 'user', 'applicants', 'states', 'stages', 'viabilities', 'createdAt', 'updatedAt'],\r",
+									"            additionalProperties: true,\r",
+									"            properties: {\r",
+									"                _id: { type: 'string' },\r",
+									"                ticket: { type: 'string' },\r",
+									"                released: { type: 'boolean' },\r",
+									"                wasAssisted: { type: 'boolean' },\r",
+									"                origin: { type: 'string' },\r",
+									"                userID: { type: 'string' },\r",
+									"                consecutive: { type: ['number', 'null'] },\r",
+									"                schemaVersion: { type: 'number' },\r",
+									"                lastStep: { type: ['number', 'null'] },\r",
+									"                createdAt: { type: 'string' },\r",
+									"                updatedAt: { type: 'string' },\r",
+									"                __v: { type: 'number' },\r",
+									"\r",
+									"                user: {\r",
+									"                    type: 'object',\r",
+									"                    required: ['userName', 'role', 'email', 'fullName'],\r",
+									"                    additionalProperties: true,\r",
+									"                    properties: {\r",
+									"                        userName: { type: 'string' },\r",
+									"                        role: { type: 'string' },\r",
+									"                        email: { type: 'string' },\r",
+									"                        fullName: { type: 'string' },\r",
+									"                        offices: { type: 'array' },\r",
+									"                        phones: { type: 'array', items: { type: 'string' } }\r",
+									"                    }\r",
+									"                },\r",
+									"\r",
+									"                applicants: {\r",
+									"                    type: 'array',\r",
+									"                    items: {\r",
+									"                        type: 'object',\r",
+									"                        required: ['type', 'states', 'data', 'createdAt'],\r",
+									"                        additionalProperties: true,\r",
+									"                        properties: {\r",
+									"                            type: { type: 'string' },\r",
+									"                            providerId: { type: ['string', 'null'] },\r",
+									"                            engineId: { type: 'array', items: { type: 'string' } },\r",
+									"                            states: {\r",
+									"                                type: 'array',\r",
+									"                                items: {\r",
+									"                                    type: 'object',\r",
+									"                                    required: ['identifier', 'name', 'date'],\r",
+									"                                    properties: {\r",
+									"                                        identifier: { type: 'string' },\r",
+									"                                        name: { type: 'string' },\r",
+									"                                        date: { type: 'string' }\r",
+									"                                    }\r",
+									"                                }\r",
+									"                            },\r",
+									"                            viabilities: {\r",
+									"                                type: 'array',\r",
+									"                                items: {\r",
+									"                                    type: 'object',\r",
+									"                                    required: ['identifier', 'name', 'date'],\r",
+									"                                    properties: {\r",
+									"                                        identifier: { type: 'string' },\r",
+									"                                        name: { type: 'string' },\r",
+									"                                        date: { type: 'string' }\r",
+									"                                    }\r",
+									"                                }\r",
+									"                            },\r",
+									"                            data: {\r",
+									"                                type: 'array',\r",
+									"                                items: {\r",
+									"                                    type: 'object',\r",
+									"                                    required: ['sectionIdentifier', 'value'],\r",
+									"                                    properties: {\r",
+									"                                        sectionIdentifier: { type: 'string' },\r",
+									"                                        value: { type: 'object' }\r",
+									"                                    }\r",
+									"                                }\r",
+									"                            }\r",
+									"                        }\r",
+									"                    }\r",
+									"                },\r",
+									"\r",
+									"                states: {\r",
+									"                    type: 'array',\r",
+									"                    items: {\r",
+									"                        type: 'object',\r",
+									"                        required: ['identifier', 'name', 'date'],\r",
+									"                        properties: {\r",
+									"                            identifier: { type: 'string' },\r",
+									"                            name: { type: 'string' },\r",
+									"                            date: { type: 'string' }\r",
+									"                        }\r",
+									"                    }\r",
+									"                },\r",
+									"\r",
+									"                stages: {\r",
+									"                    type: 'array',\r",
+									"                    items: {\r",
+									"                        type: 'object',\r",
+									"                        required: ['type', 'description', 'date'],\r",
+									"                        properties: {\r",
+									"                            type: { type: 'string' },\r",
+									"                            description: { type: 'string' },\r",
+									"                            date: { type: 'string' }\r",
+									"                        }\r",
+									"                    }\r",
+									"                },\r",
+									"\r",
+									"                viabilities: {\r",
+									"                    type: 'array',\r",
+									"                    items: {\r",
+									"                        type: 'object',\r",
+									"                        required: ['identifier', 'name', 'date'],\r",
+									"                        properties: {\r",
+									"                            identifier: { type: 'string' },\r",
+									"                            name: { type: 'string' },\r",
+									"                            date: { type: 'string' }\r",
+									"                        }\r",
+									"                    }\r",
+									"                }\r",
+									"            }\r",
+									"        }\r",
+									"    }\r",
+									"};\r",
+									"\r",
+									"const validateOk = ajv.compile(schemaOk);\r",
+									"const validOk = validateOk(response);\r",
+									"\r",
+									"pm.test('Cumple contrato', () => {\r",
+									"    if (!validOk) {\r",
+									"        validateOk.errors.forEach(err => {\r",
+									"            console.log(\r",
+									"                `➡️ En propiedad: ${err.instancePath || '(State)'}\\n` +\r",
+									"                `   ❗ Tipo de error: ${err.keyword}\\n` +\r",
+									"                `   📋 Mensaje: ${err.message}\\n` +\r",
+									"                (err.params ? `   ⚙️ Detalle: ${JSON.stringify(err.params)}\\n` : '')\r",
+									"            );\r",
+									"        });\r",
+									"    }\r",
+									"    pm.expect(validOk, 'Contrato no cumple').to.be.true;\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "tenant",
+								"value": "{{tenant}}",
+								"type": "text"
+							},
+							{
+								"key": "oncredit-api-token",
+								"value": "{{oncredit_api_token}}",
+								"type": "text"
+							},
+							{
+								"key": "authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"identifier\": \"pending_consume_providers\",\r\n    \"description\": \"Pendiente de consumo de proveedores\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/ms-orchestator/v1/request/{{ticket1}}/state",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ms-orchestator",
+								"v1",
+								"request",
+								"{{ticket1}}",
+								"state"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Viability (ms-orchestator/v1/request/483469498/viability)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const Ajv = require('ajv');\r",
+									"const ajv = new Ajv({ allErrors: true, strict: true });\r",
+									"\r",
+									"const response = pm.response.json();\r",
+									"\r",
+									"const schemaOk = {\r",
+									"    type: 'object',\r",
+									"    required: ['payload'],\r",
+									"    additionalProperties: false,\r",
+									"    properties: {\r",
+									"        payload: {\r",
+									"            type: 'object',\r",
+									"            required: [\r",
+									"                '_id',\r",
+									"                'ticket',\r",
+									"                'origin',\r",
+									"                'released',\r",
+									"                'user',\r",
+									"                'applicants',\r",
+									"                'states',\r",
+									"                'stages',\r",
+									"                'viabilities',\r",
+									"                'createdAt',\r",
+									"                'updatedAt'\r",
+									"            ],\r",
+									"            additionalProperties: true,\r",
+									"            properties: {\r",
+									"                _id: { type: 'string' },\r",
+									"                ticket: { type: 'string' },\r",
+									"                released: { type: 'boolean' },\r",
+									"                wasAssisted: { type: 'boolean' },\r",
+									"                origin: { type: 'string' },\r",
+									"                userID: { type: 'string' },\r",
+									"                consecutive: { type: ['number', 'null'] },\r",
+									"                schemaVersion: { type: 'number' },\r",
+									"                lastStep: { type: ['number', 'null'] },\r",
+									"                createdAt: { type: 'string' },\r",
+									"                updatedAt: { type: 'string' },\r",
+									"                __v: { type: 'number' },\r",
+									"\r",
+									"                user: {\r",
+									"                    type: 'object',\r",
+									"                    required: ['userName', 'role', 'email', 'fullName'],\r",
+									"                    additionalProperties: true,\r",
+									"                    properties: {\r",
+									"                        userName: { type: 'string' },\r",
+									"                        role: { type: 'string' },\r",
+									"                        email: { type: 'string' },\r",
+									"                        fullName: { type: 'string' },\r",
+									"                        offices: { type: 'array' },\r",
+									"                        phones: { type: 'array', items: { type: 'string' } }\r",
+									"                    }\r",
+									"                },\r",
+									"\r",
+									"                applicants: {\r",
+									"                    type: 'array',\r",
+									"                    items: {\r",
+									"                        type: 'object',\r",
+									"                        required: ['type', 'states', 'data', 'createdAt'],\r",
+									"                        additionalProperties: true,\r",
+									"                        properties: {\r",
+									"                            type: { type: 'string' },\r",
+									"                            providerId: { type: ['string', 'null'] },\r",
+									"                            engineId: { type: 'array', items: { type: 'string' } },\r",
+									"                            states: {\r",
+									"                                type: 'array',\r",
+									"                                items: {\r",
+									"                                    type: 'object',\r",
+									"                                    required: ['identifier', 'name', 'date'],\r",
+									"                                    properties: {\r",
+									"                                        identifier: { type: 'string' },\r",
+									"                                        name: { type: 'string' },\r",
+									"                                        date: { type: 'string' }\r",
+									"                                    }\r",
+									"                                }\r",
+									"                            },\r",
+									"                            viabilities: {\r",
+									"                                type: 'array',\r",
+									"                                items: {\r",
+									"                                    type: 'object',\r",
+									"                                    required: ['identifier', 'name', 'date'],\r",
+									"                                    properties: {\r",
+									"                                        identifier: { type: 'string' },\r",
+									"                                        name: { type: 'string' },\r",
+									"                                        date: { type: 'string' }\r",
+									"                                    }\r",
+									"                                }\r",
+									"                            },\r",
+									"                            data: {\r",
+									"                                type: 'array',\r",
+									"                                items: {\r",
+									"                                    type: 'object',\r",
+									"                                    required: ['sectionIdentifier', 'value'],\r",
+									"                                    properties: {\r",
+									"                                        sectionIdentifier: { type: 'string' },\r",
+									"                                        value: { type: 'object' }\r",
+									"                                    }\r",
+									"                                }\r",
+									"                            }\r",
+									"                        }\r",
+									"                    }\r",
+									"                },\r",
+									"\r",
+									"                states: {\r",
+									"                    type: 'array',\r",
+									"                    items: {\r",
+									"                        type: 'object',\r",
+									"                        required: ['identifier', 'name', 'date'],\r",
+									"                        properties: {\r",
+									"                            identifier: { type: 'string' },\r",
+									"                            name: { type: 'string' },\r",
+									"                            date: { type: 'string' }\r",
+									"                        }\r",
+									"                    }\r",
+									"                },\r",
+									"\r",
+									"                stages: {\r",
+									"                    type: 'array',\r",
+									"                    items: {\r",
+									"                        type: 'object',\r",
+									"                        required: ['type', 'description', 'date'],\r",
+									"                        properties: {\r",
+									"                            type: { type: 'string' },\r",
+									"                            description: { type: 'string' },\r",
+									"                            date: { type: 'string' }\r",
+									"                        }\r",
+									"                    }\r",
+									"                },\r",
+									"\r",
+									"                viabilities: {\r",
+									"                    type: 'array',\r",
+									"                    items: {\r",
+									"                        type: 'object',\r",
+									"                        required: ['identifier', 'name', 'date'],\r",
+									"                        properties: {\r",
+									"                            identifier: { type: 'string' },\r",
+									"                            name: { type: 'string' },\r",
+									"                            date: { type: 'string' }\r",
+									"                        }\r",
+									"                    }\r",
+									"                }\r",
+									"            }\r",
+									"        }\r",
+									"    }\r",
+									"};\r",
+									"\r",
+									"const validateOk = ajv.compile(schemaOk);\r",
+									"const validOk = validateOk(response);\r",
+									"\r",
+									"pm.test('Cumple contrato', () => {\r",
+									"    if (!validOk) {\r",
+									"        validateOk.errors.forEach(err => {\r",
+									"            console.log(\r",
+									"                `➡️ En propiedad: ${err.instancePath || '(Viability)'}\\n` +\r",
+									"                `   ❗ Tipo de error: ${err.keyword}\\n` +\r",
+									"                `   📋 Mensaje: ${err.message}\\n` +\r",
+									"                (err.params ? `   ⚙️ Detalle: ${JSON.stringify(err.params)}\\n` : '')\r",
+									"            );\r",
+									"        });\r",
+									"    }\r",
+									"    pm.expect(validOk, 'Contrato no cumple').to.be.true;\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "tenant",
+								"value": "{{tenant}}",
+								"type": "text"
+							},
+							{
+								"key": "oncredit-api-token",
+								"value": "{{oncredit_api_token}}",
+								"type": "text"
+							},
+							{
+								"key": "authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"identifier\": \"approved\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/ms-orchestator/v1/request/{{ticket1}}/viability",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ms-orchestator",
+								"v1",
+								"request",
+								"{{ticket1}}",
+								"viability"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Engine",
+			"item": [
+				{
+					"name": "Engine / Actions",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const Ajv = require('ajv')\r",
+									"const ajv = new Ajv({ allErrors: true, strict: true })\r",
+									"\r",
+									"const response = pm.response.json()\r",
+									"\r",
+									"const schemaOk = {\r",
+									"    type: 'object',\r",
+									"    properties: { \"$em\": { type: 'string' }}\r",
+									"}\r",
+									"\r",
+									"const valdiateOk = ajv.compile(schemaOk)\r",
+									"const validOk = valdiateOk(response)\r",
+									"\r",
+									"pm.test('Cumple con el contrato OK', ()=> {\r",
+									"    if (!validOk) {\r",
+									"        validateOk.errors.forEach(err => {\r",
+									"            console.log(\r",
+									"                `➡️ En propiedad: ${err.instancePath || '(Engine Actions)'}\\n` +\r",
+									"                `   ❗ Tipo de error: ${err.keyword}\\n` +\r",
+									"                `   📋 Mensaje: ${err.message}\\n` +\r",
+									"                (err.params ? `   ⚙️ Detalle: ${JSON.stringify(err.params)}\\n` : '')\r",
+									"            );\r",
+									"        });\r",
+									"    }\r",
+									"    pm.expect(validOk, 'No cumple con contrato definido').to.be.true\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "content-type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "tenant",
+								"value": "{{tenant}}",
+								"type": "text"
+							},
+							{
+								"key": "x-oncredit-secure",
+								"value": "true",
+								"type": "text"
+							},
+							{
+								"key": "oncredit-api-token",
+								"value": "{{oncredit_api_token}}",
+								"type": "text"
+							},
+							{
+								"key": "authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{}"
+						},
+						"url": {
+							"raw": "{{engineUrl}}/v1/admin/Actions",
+							"host": [
+								"{{engineUrl}}"
+							],
+							"path": [
+								"v1",
+								"admin",
+								"Actions"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Engine / Datacredito / Options",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const Ajv = require('ajv')\r",
+									"const ajv = new Ajv({ allErrors: true, strict: true })\r",
+									"\r",
+									"const response = pm.response.json()\r",
+									"\r",
+									"const schemaOk = {\r",
+									"    type: 'object',\r",
+									"    properties: { \"$em\": { type: 'string' }}\r",
+									"}\r",
+									"\r",
+									"const valdiateOk = ajv.compile(schemaOk)\r",
+									"const validOk = valdiateOk(response)\r",
+									"\r",
+									"pm.test('Cumple con el contrato OK', ()=> {\r",
+									"    if (!validOk) {\r",
+									"        validateOk.errors.forEach(err => {\r",
+									"            console.log(\r",
+									"                `➡️ En propiedad: ${err.instancePath || '(Engine Datacredito)'}\\n` +\r",
+									"                `   ❗ Tipo de error: ${err.keyword}\\n` +\r",
+									"                `   📋 Mensaje: ${err.message}\\n` +\r",
+									"                (err.params ? `   ⚙️ Detalle: ${JSON.stringify(err.params)}\\n` : '')\r",
+									"            );\r",
+									"        });\r",
+									"    }\r",
+									"    pm.expect(validOk, 'No cumple con contrato definido').to.be.true\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "tenant",
+								"value": "{{tenant}}",
+								"type": "text"
+							},
+							{
+								"key": "x-oncredit-secure",
+								"value": "true",
+								"type": "text"
+							},
+							{
+								"key": "oncredit-api-token",
+								"value": "{{oncredit_api_token}}",
+								"type": "text"
+							},
+							{
+								"key": "authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{engineUrl}}/v1/admin/datacredito/options",
+							"host": [
+								"{{engineUrl}}"
+							],
+							"path": [
+								"v1",
+								"admin",
+								"datacredito",
+								"options"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Advanced (ms-engine/v1/execute/advanced)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const Ajv = require('ajv')\r",
+									"const ajv = new Ajv({ allErrors: true, strict: true })\r",
+									"\r",
+									"const response = pm.response.json()\r",
+									"\r",
+									"const schemaOk = {\r",
+									"    type: 'object',\r",
+									"    required: ['payload'],\r",
+									"    additionalProperties: false,\r",
+									"    properties: { payload: { type: 'object' }}\r",
+									"}\r",
+									"\r",
+									"const valdiateOk = ajv.compile(schemaOk)\r",
+									"const validOk = valdiateOk(response)\r",
+									"\r",
+									"pm.test('Cumple con el contrato OK', ()=> {\r",
+									"    if (!validOk) {\r",
+									"        validateOk.errors.forEach(err => {\r",
+									"            console.log(\r",
+									"                `➡️ En propiedad: ${err.instancePath || '(Advanced)'}\\n` +\r",
+									"                `   ❗ Tipo de error: ${err.keyword}\\n` +\r",
+									"                `   📋 Mensaje: ${err.message}\\n` +\r",
+									"                (err.params ? `   ⚙️ Detalle: ${JSON.stringify(err.params)}\\n` : '')\r",
+									"            );\r",
+									"        });\r",
+									"    }\r",
+									"    pm.expect(validOk, 'No cumple con contrato definido').to.be.true\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "tenant",
+								"value": "{{tenant}}",
+								"type": "text"
+							},
+							{
+								"key": "oncredit-api-token",
+								"value": "{{oncredit_api_token}}",
+								"type": "text"
+							},
+							{
+								"key": "authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"data\":{\"ticket\":\"483469498\",\"states\":[{\"description\":\"\",\"date\":\"2025-09-18T21:56:37.128Z\",\"identifier\":\"opened\",\"name\":\"Abierta\",\"updatedAt\":\"2025-09-24T15:03:04.272Z\",\"createdAt\":\"2025-09-24T15:03:04.272Z\"}],\"stages\":[{\"date\":\"2025-09-24T15:03:05.764Z\",\"type\":\"saveApplicantSection\",\"description\":\"Guardó la sección Tabla de productos del deudor\",\"createdAt\":\"2025-09-24T15:03:05.765Z\",\"updatedAt\":\"2025-09-24T15:03:05.765Z\"},{\"date\":\"2025-09-24T15:03:05.971Z\",\"type\":\"productType\",\"description\":\"El tipo de producto se actualizó a: motos\",\"createdAt\":\"2025-09-24T15:03:05.973Z\",\"updatedAt\":\"2025-09-24T15:03:05.973Z\"},{\"date\":\"2025-09-24T15:03:10.856Z\",\"type\":\"saveApplicantSection\",\"description\":\"Guardó la sección Datos básicos del deudor\",\"createdAt\":\"2025-09-24T15:03:10.858Z\",\"updatedAt\":\"2025-09-24T15:03:10.858Z\"},{\"date\":\"2025-09-24T15:03:19.999Z\",\"type\":\"signDocuments\",\"description\":\"Firmó términos y condiciones con id 49f6c437-5b40-4360-86bd-93e48d4f015f\",\"createdAt\":\"2025-09-24T15:03:20.000Z\",\"updatedAt\":\"2025-09-24T15:03:20.000Z\"},{\"date\":\"2025-09-24T15:03:20.007Z\",\"type\":\"restrictiveList\",\"description\":\"Validando consumo de listas restrictivas\",\"createdAt\":\"2025-09-24T15:03:20.013Z\",\"updatedAt\":\"2025-09-24T15:03:20.013Z\"}],\"viabilities\":[],\"applicants\":[{\"ticket\":\"483469498\",\"data\":[{\"sectionIdentifier\":\"product_section\",\"value\":{\"modality\":\"047fd41d-4633-48be-978e-95a0bf726067\",\"credit_line\":\"def2a9ef-cf2d-4868-b1e7-8fd68522cd9f\",\"product_type\":\"7ce7c875-f38e-4025-b6ab-007b512414de\",\"company\":null}},{\"sectionIdentifier\":\"basic_section\",\"value\":{\"documentType\":\"CC\",\"identificationNumber\":\"51840792\",\"cellphoneNumber\":\"3006299326\",\"email\":\"CAMILO.SOTO@ONCREDIT.COM.CO\",\"email_confirmation\":\"CAMILO.SOTO@ONCREDIT.COM.CO\",\"firstName\":\"LUZ\",\"secondName\":\"ADRIANA\",\"firstSurname\":\"CAMARGO\",\"secondSurname\":\"GARZON\",\"residence_department\":null,\"residence_city\":null,\"storepreform\":null,\"adressPreForm\":null,\"product\":1}}],\"type\":\"debtor\",\"states\":[],\"viabilities\":[],\"engineId\":[],\"ResponseAdo\":[],\"createdAt\":\"2025-09-24T15:03:10.836Z\",\"signFlowId\":[],\"allowedApplicants\":[\"51840792\"],\"product\":{\"sectionIdentifier\":\"product_section\",\"value\":{\"modality\":\"047fd41d-4633-48be-978e-95a0bf726067\",\"credit_line\":\"def2a9ef-cf2d-4868-b1e7-8fd68522cd9f\",\"product_type\":\"7ce7c875-f38e-4025-b6ab-007b512414de\",\"company\":null}},\"_active\":true}],\"product\":{\"productType\":{\"name\":\"Motos\",\"identifier\":\"motos\"},\"_id\":\"68d40829c02359001a71599e\",\"taxes\":[],\"terms\":[],\"name\":\"Plan crédito directo\",\"identifier\":\"retail\",\"updatedAt\":\"2025-09-24T15:03:12.594Z\",\"createdAt\":\"2025-09-24T15:03:12.594Z\"},\"userActions\":[],\"origin\":\"web\",\"config\":\"62e99c16093fcd24a4392157\",\"creditSimulator\":[],\"controlList\":[],\"providerId\":\"0f4a72ab-7c44-4fd7-8a66-0a1f59314b40\",\"ResponseAdo\":[],\"lastStep\":0,\"createdAt\":\"2025-09-24T15:03:04.264Z\",\"flags\":[],\"tycFlowId\":\"49f6c437-5b40-4360-86bd-93e48d4f015f\",\"consecutive\":5464,\"_allowedApplicants\":[{\"applicantId\":\"51840792\",\"applicantType\":\"debtor\"}],\"user\":{\"userName\":\"admin1@coxti.com\",\"role\":\"superadmin\",\"email\":\"admin1@coxti.com\",\"fullName\":\"admin admin admin\",\"offices\":[],\"phones\":[\"3137655038\"],\"userID\":\"admin1@coxti.com\"},\"_lastState\":{\"description\":\"\",\"date\":\"2025-09-18T21:56:37.128Z\",\"identifier\":\"opened\",\"name\":\"Abierta\",\"updatedAt\":\"2025-09-24T15:03:12.594Z\",\"createdAt\":\"2025-09-24T15:03:12.594Z\"}},\"strategyId\":\"Strategy\",\"config\":{\"stage\":\"debtor_preform\",\"applicants\":[\"debtor\"],\"managementChannels\":[\"wc\"]}}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{engineUrl}}/v1/execute/advanced",
+							"host": [
+								"{{engineUrl}}"
+							],
+							"path": [
+								"v1",
+								"execute",
+								"advanced"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Stage (ms-engine/v1/audits/stage)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const Ajv = require('ajv');\r",
+									"const ajv = new Ajv({ allErrors: true, strict: true });\r",
+									"\r",
+									"const response = pm.response.json();\r",
+									"\r",
+									"const schemaOk = {\r",
+									"    type: 'object',\r",
+									"    required: ['payload'],\r",
+									"    additionalProperties: false,\r",
+									"    properties: {\r",
+									"        payload: {\r",
+									"            type: 'string',\r",
+									"            minLength: 1\r",
+									"        }\r",
+									"    }\r",
+									"};\r",
+									"\r",
+									"const schemaError = {\r",
+									"    type: 'object',\r",
+									"    required: ['msg', 'ticket', 'error'],\r",
+									"    additionalProperties: false,\r",
+									"    properties: {\r",
+									"        msg: { type: 'string', minLength: 1 },\r",
+									"        ticket: { type: 'string', minLength: 1 },\r",
+									"        error: {\r",
+									"            type: 'object',\r",
+									"            required: ['stack', 'message', 'status'],\r",
+									"            additionalProperties: false,\r",
+									"            properties: {\r",
+									"                stack: { type: 'string', minLength: 1 },\r",
+									"                message: { type: 'string', minLength: 1 },\r",
+									"                status: { type: 'integer', enum: [400] }\r",
+									"            }\r",
+									"        }\r",
+									"    }\r",
+									"};\r",
+									"\r",
+									"const validateOk = ajv.compile(schemaOk);\r",
+									"const validateError = ajv.compile(schemaError);\r",
+									"\r",
+									"const validOk = validateOk(response);\r",
+									"const validError = validateError(response);\r",
+									"const valid = validOk || validError;\r",
+									"\r",
+									"pm.test('Cumple contrato', () => {\r",
+									"    if (!valid) {\r",
+									"        const errors = validateOk.errors || validateError.errors;\r",
+									"        errors?.forEach(err => {\r",
+									"            console.log(\r",
+									"                `❌ Error en: ${err.instancePath || '(Stage)'}\\n` +\r",
+									"                `   → Tipo: ${err.keyword}\\n` +\r",
+									"                `   → Mensaje: ${err.message}\\n` +\r",
+									"                (err.params ? `   → Detalle: ${JSON.stringify(err.params)}\\n` : '')\r",
+									"            );\r",
+									"        });\r",
+									"    }\r",
+									"    pm.expect(valid, 'Contrato no cumple (ni positivo ni negativo)').to.be.true;\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "tenant",
+								"value": "{{tenant}}",
+								"type": "text"
+							},
+							{
+								"key": "oncredit-api-token",
+								"value": "{{oncredit_api_token}}",
+								"type": "text"
+							},
+							{
+								"key": "authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"engineId\": \"38dffd43-6ab0-47c7-a688-2a0df4cc4916\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{engineUrl}}/v1/audits/stage",
+							"host": [
+								"{{engineUrl}}"
+							],
+							"path": [
+								"v1",
+								"audits",
+								"stage"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Form",
+			"item": [
+				{
+					"name": "Form (ms-form/v1/form/)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const Ajv = require('ajv');\r",
+									"const ajv = new Ajv({ allErrors: true, strict: true });\r",
+									"\r",
+									"const response = pm.response.json();\r",
+									"\r",
+									"const schemaOk = {\r",
+									"    type: 'object',\r",
+									"    required: ['payload'],\r",
+									"    additionalProperties: false,\r",
+									"    properties: {\r",
+									"        payload: { type: 'array' }\r",
+									"    }\r",
+									"};\r",
+									"\r",
+									"const validateOk = ajv.compile(schemaOk);\r",
+									"const validOk = validateOk(response);\r",
+									"\r",
+									"pm.test('Cumple contrato', () => {\r",
+									"    if (!validOk) {\r",
+									"        validateOk.errors.forEach(err => {\r",
+									"            console.log(\r",
+									"                `➡️ En propiedad: ${err.instancePath || '(Form)'}\\n` +\r",
+									"                `   ❗ Tipo de error: ${err.keyword}\\n` +\r",
+									"                `   📋 Mensaje: ${err.message}\\n` +\r",
+									"                (err.params ? `   ⚙️ Detalle: ${JSON.stringify(err.params)}\\n` : '')\r",
+									"            );\r",
+									"        });\r",
+									"    }\r",
+									"    pm.expect(validOk, 'Contrato no cumple').to.be.true;\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "tenant",
+								"value": "{{tenant}}",
+								"type": "text"
+							},
+							{
+								"key": "oncredit-api-token",
+								"value": "{{oncredit_api_token}}",
+								"type": "text"
+							},
+							{
+								"key": "authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{formUrl}}/v1/form/",
+							"host": [
+								"{{formUrl}}"
+							],
+							"path": [
+								"v1",
+								"form",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Product table form (ms-form/v1/form/product_table_form)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const Ajv = require('ajv');\r",
+									"const ajv = new Ajv({ allErrors: true, strict: true });\r",
+									"\r",
+									"const response = pm.response.json();\r",
+									"\r",
+									"const schemaOk = {\r",
+									"    type: 'object',\r",
+									"    required: ['payload'],\r",
+									"    additionalProperties: false,\r",
+									"    properties: {\r",
+									"        payload: {\r",
+									"            type: 'object',\r",
+									"            required: [\r",
+									"                '_id',\r",
+									"                'active',\r",
+									"                'name',\r",
+									"                'identifier',\r",
+									"                'sections'\r",
+									"            ],\r",
+									"            additionalProperties: true,\r",
+									"            properties: {\r",
+									"                _id: { type: 'string' },\r",
+									"                mandatory: { type: 'boolean' },\r",
+									"                showName: { type: 'boolean' },\r",
+									"                active: { type: 'boolean' },\r",
+									"                preloadingData: { type: 'boolean' },\r",
+									"                name: { type: 'string' },\r",
+									"                identifier: { type: 'string' },\r",
+									"\r",
+									"                properties: {\r",
+									"                    type: 'object',\r",
+									"                    required: ['source', 'applicantType'],\r",
+									"                    additionalProperties: true,\r",
+									"                    properties: {\r",
+									"                        source: { type: 'string' },\r",
+									"                        applicantType: { type: 'string' }\r",
+									"                    }\r",
+									"                },\r",
+									"\r",
+									"                sections: {\r",
+									"                    type: 'array',\r",
+									"                    items: {\r",
+									"                        type: 'object',\r",
+									"                        required: ['identifier', 'fields', 'hooks', 'name'],\r",
+									"                        additionalProperties: true,\r",
+									"                        properties: {\r",
+									"                            identifier: { type: 'string' },\r",
+									"                            name: { type: 'string' },\r",
+									"                            state: { type: 'string' },\r",
+									"                            active: { type: 'boolean' },\r",
+									"                            disabled: { type: 'boolean' },\r",
+									"                            expanded: { type: 'boolean' },\r",
+									"\r",
+									"                            header: {\r",
+									"                                type: 'array',\r",
+									"                                items: {\r",
+									"                                    type: 'object',\r",
+									"                                    required: ['tag'],\r",
+									"                                    additionalProperties: true,\r",
+									"                                    properties: {\r",
+									"                                        value: { type: ['string', 'null'] },\r",
+									"                                        tag: { type: 'string' },\r",
+									"                                        class: { type: ['string', 'null'] }\r",
+									"                                    }\r",
+									"                                }\r",
+									"                            },\r",
+									"\r",
+									"                            fields: {\r",
+									"                                type: 'array',\r",
+									"                                items: {\r",
+									"                                    type: 'object',\r",
+									"                                    required: ['identifier', 'type', 'name'],\r",
+									"                                    additionalProperties: true,\r",
+									"                                    properties: {\r",
+									"                                        identifier: { type: 'string' },\r",
+									"                                        name: { type: 'string' },\r",
+									"                                        type: { type: 'string' },\r",
+									"                                        active: { type: 'boolean' },\r",
+									"                                        mandatory: { type: 'boolean' },\r",
+									"                                        values: { type: 'array' },\r",
+									"                                        size: { type: ['string', 'number'] },\r",
+									"\r",
+									"                                        validations: {\r",
+									"                                            type: 'array',\r",
+									"                                            items: {\r",
+									"                                                type: 'object',\r",
+									"                                                required: ['identifier', 'type'],\r",
+									"                                                properties: {\r",
+									"                                                    identifier: { type: 'string' },\r",
+									"                                                    type: { type: 'string' },\r",
+									"                                                    value: { type: ['string', 'boolean'] },\r",
+									"                                                    name: { type: ['string', 'null'] }\r",
+									"                                                }\r",
+									"                                            }\r",
+									"                                        },\r",
+									"\r",
+									"                                        subscriptions: {\r",
+									"                                            type: 'array',\r",
+									"                                            items: {\r",
+									"                                                type: 'object',\r",
+									"                                                required: ['source', 'actions'],\r",
+									"                                                properties: {\r",
+									"                                                    source: { type: 'string' },\r",
+									"                                                    value: { type: ['string', 'null'] },\r",
+									"                                                    actions: {\r",
+									"                                                        type: 'array',\r",
+									"                                                        items: {\r",
+									"                                                            type: 'object',\r",
+									"                                                            required: ['name', 'type'],\r",
+									"                                                            properties: {\r",
+									"                                                                name: { type: 'string' },\r",
+									"                                                                type: { type: 'string' },\r",
+									"                                                                value: { type: ['object', 'null'] }\r",
+									"                                                            }\r",
+									"                                                        }\r",
+									"                                                    }\r",
+									"                                                }\r",
+									"                                            }\r",
+									"                                        },\r",
+									"\r",
+									"                                        onInitFunctions: {\r",
+									"                                            type: 'array',\r",
+									"                                            items: {\r",
+									"                                                type: 'object',\r",
+									"                                                required: ['type', 'name'],\r",
+									"                                                properties: {\r",
+									"                                                    type: { type: 'string' },\r",
+									"                                                    name: { type: 'string' },\r",
+									"                                                    params: { type: ['object', 'null'] }\r",
+									"                                                }\r",
+									"                                            }\r",
+									"                                        }\r",
+									"                                    }\r",
+									"                                }\r",
+									"                            },\r",
+									"\r",
+									"                            hooks: {\r",
+									"                                type: 'array',\r",
+									"                                items: {\r",
+									"                                    type: 'object',\r",
+									"                                    required: ['type', 'name'],\r",
+									"                                    properties: {\r",
+									"                                        type: { type: 'string' },\r",
+									"                                        name: { type: 'string' },\r",
+									"                                        params: { type: ['object', 'null'] }\r",
+									"                                    }\r",
+									"                                }\r",
+									"                            }\r",
+									"                        }\r",
+									"                    }\r",
+									"                },\r",
+									"\r",
+									"                hooks: {\r",
+									"                    type: 'array',\r",
+									"                    items: {\r",
+									"                        type: 'object',\r",
+									"                        required: ['type', 'name'],\r",
+									"                        properties: {\r",
+									"                            type: { type: 'string' },\r",
+									"                            name: { type: 'string' },\r",
+									"                            params: { type: ['object', 'null'] }\r",
+									"                        }\r",
+									"                    }\r",
+									"                }\r",
+									"            }\r",
+									"        }\r",
+									"    }\r",
+									"};\r",
+									"\r",
+									"const validateOk = ajv.compile(schemaOk);\r",
+									"const validOk = validateOk(response);\r",
+									"\r",
+									"pm.test('Cumple contrato', () => {\r",
+									"    if (!validOk) {\r",
+									"        validateOk.errors.forEach(err => {\r",
+									"            console.log(\r",
+									"                `➡️ En propiedad: ${err.instancePath || '(Product table form)'}\\n` +\r",
+									"                `   ❗ Tipo de error: ${err.keyword}\\n` +\r",
+									"                `   📋 Mensaje: ${err.message}\\n` +\r",
+									"                (err.params ? `   ⚙️ Detalle: ${JSON.stringify(err.params)}\\n` : '')\r",
+									"            );\r",
+									"        });\r",
+									"    }\r",
+									"    pm.expect(validOk, 'Contrato no cumple').to.be.true;\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "tenant",
+								"value": "{{tenant}}",
+								"type": "text"
+							},
+							{
+								"key": "oncredit-api-token",
+								"value": "{{oncredit_api_token}}",
+								"type": "text"
+							},
+							{
+								"key": "authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{formUrl}}/v1/form/product_table_form",
+							"host": [
+								"{{formUrl}}"
+							],
+							"path": [
+								"v1",
+								"form",
+								"product_table_form"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Product table (Ticket = 483469498)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const Ajv = require('ajv');\r",
+									"const ajv = new Ajv({ allErrors: true, strict: true });\r",
+									"\r",
+									"const response = pm.response.json();\r",
+									"\r",
+									"const schemaOk = {\r",
+									"    type: 'object',\r",
+									"    additionalProperties: false\r",
+									"};\r",
+									"\r",
+									"const validateOk = ajv.compile(schemaOk);\r",
+									"const validOk = validateOk(response);\r",
+									"\r",
+									"pm.test('No debe venir vacío', () => {\r",
+									"    if (!validOk) {\r",
+									"        validateOk.errors.forEach(err => {\r",
+									"            console.log(\r",
+									"                `➡️ En propiedad: ${err.instancePath || '(Product table)'}\\n` +\r",
+									"                `   ❗ Tipo de error: ${err.keyword}\\n` +\r",
+									"                `   📋 Mensaje: ${err.message}\\n` +\r",
+									"                (err.params ? `   ⚙️ Detalle: ${JSON.stringify(err.params)}\\n` : '')\r",
+									"            );\r",
+									"        });\r",
+									"    }\r",
+									"    pm.expect(validOk, 'La respuesta está vacía o sin payload').to.be.true;\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "tenant",
+								"value": "{{tenant}}",
+								"type": "text"
+							},
+							{
+								"key": "oncredit-api-token",
+								"value": "{{oncredit_api_token}}",
+								"type": "text"
+							},
+							{
+								"key": "authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{formUrl}}/v1/form/product_table_form/preloading?ticket={{ticket1}}&socketId=q9q7xOXt-Rxi7X6_AATv",
+							"host": [
+								"{{formUrl}}"
+							],
+							"path": [
+								"v1",
+								"form",
+								"product_table_form",
+								"preloading"
+							],
+							"query": [
+								{
+									"key": "ticket",
+									"value": "{{ticket1}}"
+								},
+								{
+									"key": "socketId",
+									"value": "q9q7xOXt-Rxi7X6_AATv"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Send Product Section (ms-form/v1/form/send-section-data/product_section)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const Ajv = require('ajv');\r",
+									"const ajv = new Ajv({ allErrors: true, strict: true });\r",
+									"\r",
+									"const response = pm.response.json();\r",
+									"\r",
+									"const schemaOk = {\r",
+									"    type: 'object',\r",
+									"    additionalProperties: false\r",
+									"};\r",
+									"\r",
+									"const validateOk = ajv.compile(schemaOk);\r",
+									"const validOk = validateOk(response);\r",
+									"\r",
+									"pm.test('No debe venir vacío', () => {\r",
+									"    if (!validOk) {\r",
+									"        validateOk.errors.forEach(err => {\r",
+									"            console.log(\r",
+									"                `➡️ En propiedad: ${err.instancePath || '(Send product)'}\\n` +\r",
+									"                `   ❗ Tipo de error: ${err.keyword}\\n` +\r",
+									"                `   📋 Mensaje: ${err.message}\\n` +\r",
+									"                (err.params ? `   ⚙️ Detalle: ${JSON.stringify(err.params)}\\n` : '')\r",
+									"            );\r",
+									"        });\r",
+									"    }\r",
+									"    pm.expect(validOk, 'La respuesta está vacía o sin payload').to.be.true;\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "tenant",
+								"value": "{{tenant}}",
+								"type": "text"
+							},
+							{
+								"key": "oncredit-api-token",
+								"value": "{{oncredit_api_token}}",
+								"type": "text"
+							},
+							{
+								"key": "authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"modality\": \"047fd41d-4633-48be-978e-95a0bf726067\",\r\n    \"credit_line\": \"def2a9ef-cf2d-4868-b1e7-8fd68522cd9f\",\r\n    \"product_type\": \"7ce7c875-f38e-4025-b6ab-007b512414de\",\r\n    \"company\": null,\r\n    \"sectionName\": \"Tabla de productos\",\r\n    \"ticket\": {{ticket1}},\r\n    \"formId\": \"product_table_form\",\r\n    \"user\": {\r\n        \"userName\": \"admin1@coxti.com\",\r\n        \"rol\": \"superadmin\",\r\n        \"accordion\": \"\",\r\n        \"socketId\": \"q9q7xOXt-Rxi7X6_AATv\"\r\n    }\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{formUrl}}/v1/form/send-section-data/product_section",
+							"host": [
+								"{{formUrl}}"
+							],
+							"path": [
+								"v1",
+								"form",
+								"send-section-data",
+								"product_section"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Debtor Preform (ms-form/v1/form/debtor_preform)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const Ajv = require('ajv');\r",
+									"const ajv = new Ajv({ allErrors: true, strict: true });\r",
+									"\r",
+									"const response = pm.response.json();\r",
+									"\r",
+									"const schemaOk = {\r",
+									"    type: 'object',\r",
+									"    required: ['payload'],\r",
+									"    additionalProperties: false,\r",
+									"    properties: {\r",
+									"        payload: { type: 'object' }\r",
+									"    }\r",
+									"};\r",
+									"\r",
+									"const validateOk = ajv.compile(schemaOk);\r",
+									"const validOk = validateOk(response);\r",
+									"\r",
+									"pm.test('No debe venir vacío', () => {\r",
+									"    if (!validOk) {\r",
+									"        validateOk.errors.forEach(err => {\r",
+									"            console.log(\r",
+									"                `➡️ En propiedad: ${err.instancePath || '(Debtor preform)'}\\n` +\r",
+									"                `   ❗ Tipo de error: ${err.keyword}\\n` +\r",
+									"                `   📋 Mensaje: ${err.message}\\n` +\r",
+									"                (err.params ? `   ⚙️ Detalle: ${JSON.stringify(err.params)}\\n` : '')\r",
+									"            );\r",
+									"        });\r",
+									"    }\r",
+									"    pm.expect(validOk, 'La respuesta está vacía o sin payload').to.be.true;\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "tenant",
+								"value": "{{tenant}}",
+								"type": "text"
+							},
+							{
+								"key": "oncredit-api-token",
+								"value": "{{oncredit_api_token}}",
+								"type": "text"
+							},
+							{
+								"key": "authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{formUrl}}/v1/form/debtor_preform",
+							"host": [
+								"{{formUrl}}"
+							],
+							"path": [
+								"v1",
+								"form",
+								"debtor_preform"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Save Screenshot (ms-form/v1/form/save-screenshot)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const Ajv = require('ajv');",
+									"const ajv = new Ajv({ allErrors: true, strict: true });",
+									"",
+									"const response = pm.response.json();",
+									"",
+									"const schemaOk = {",
+									"    type: 'object',",
+									"    required: ['payload'],",
+									"    additionalProperties: false,",
+									"    properties: {",
+									"        payload: { type: 'string' }",
+									"    }",
+									"};",
+									"",
+									"const schemaError = {",
+									"    type: 'object',",
+									"    required: ['msg', 'ticket'],",
+									"    additionalProperties: false,",
+									"    properties: {",
+									"        msg: { type: 'string', minLength: 1 },",
+									"        ticket: { type: 'string' }",
+									"    }",
+									"}",
+									"",
+									"const validateOk = ajv.compile(schemaOk);",
+									"const validOk = validateOk(response);",
+									"const validateError = ajv.compile(schemaError);",
+									"const validError = validateError(response);",
+									"const valid = validOk || validError;",
+									"",
+									"pm.test('Cumple contrato (ok o error controlado)', () => {",
+									"    if (!valid) {",
+									"        const errors = validateOk.errors || validateError.errors;",
+									"        errors?.forEach(err => {",
+									"            console.log(",
+									"                `❌ Error en: ${err.instancePath || '(Save screenshot)'}\\n` +",
+									"                `   → Tipo: ${err.keyword}\\n` +",
+									"                `   → Mensaje: ${err.message}\\n` +",
+									"                (err.params ? `   → Detalle: ${JSON.stringify(err.params)}\\n` : '')",
+									"            );",
+									"        });",
+									"    }",
+									"    pm.expect(validOk, 'La respuesta está vacía o sin payload').to.be.true;",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "tenant",
+								"value": "{{tenant}}",
+								"type": "text"
+							},
+							{
+								"key": "oncredit-api-token",
+								"value": "{{oncredit_api_token}}",
+								"type": "text"
+							},
+							{
+								"key": "authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "ticket",
+									"value": "{{ticket1}}",
+									"type": "text"
+								},
+								{
+									"key": "screenshot_product_section",
+									"value": "",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{formUrl}}/v1/form/save-screenshot",
+							"host": [
+								"{{formUrl}}"
+							],
+							"path": [
+								"v1",
+								"form",
+								"save-screenshot"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Send Basic Section (ms-form/v1/form/send-section-data/basic_section)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const Ajv = require('ajv');\r",
+									"const ajv = new Ajv({ allErrors: true, strict: true });\r",
+									"\r",
+									"const response = pm.response.json();\r",
+									"\r",
+									"const schemaOk = {\r",
+									"    type: 'object',\r",
+									"    additionalProperties: false\r",
+									"};\r",
+									"\r",
+									"const validateOk = ajv.compile(schemaOk);\r",
+									"const validOk = validateOk(response);\r",
+									"\r",
+									"pm.test('No debe venir vacío', () => {\r",
+									"    if (!validOk) {\r",
+									"        validateOk.errors.forEach(err => {\r",
+									"            console.log(\r",
+									"                `➡️ En propiedad: ${err.instancePath || '(Send basic section)'}\\n` +\r",
+									"                `   ❗ Tipo de error: ${err.keyword}\\n` +\r",
+									"                `   📋 Mensaje: ${err.message}\\n` +\r",
+									"                (err.params ? `   ⚙️ Detalle: ${JSON.stringify(err.params)}\\n` : '')\r",
+									"            );\r",
+									"        });\r",
+									"    }\r",
+									"    pm.expect(validOk, 'La respuesta está vacía o sin payload').to.be.true;\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "tenant",
+								"value": "{{tenant}}",
+								"type": "text"
+							},
+							{
+								"key": "oncredit-api-token",
+								"value": "{{oncredit_api_token}}",
+								"type": "text"
+							},
+							{
+								"key": "authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"documentType\": \"CC\",\r\n    \"identificationNumber\": \"51840792\",\r\n    \"cellphoneNumber\": \"3006299326\",\r\n    \"email\": \"CAMILO.SOTO@ONCREDIT.COM.CO\",\r\n    \"email_confirmation\": \"CAMILO.SOTO@ONCREDIT.COM.CO\",\r\n    \"firstName\": \"LUZ\",\r\n    \"secondName\": \"ADRIANA\",\r\n    \"firstSurname\": \"CAMARGO\",\r\n    \"secondSurname\": \"GARZON\",\r\n    \"residence_department\": null,\r\n    \"residence_city\": null,\r\n    \"storepreform\": null,\r\n    \"adressPreForm\": null,\r\n    \"sectionName\": \"Datos básicos\",\r\n    \"ticket\": \"483469498\",\r\n    \"formId\": \"debtor_preform\",\r\n    \"user\": {\r\n        \"userName\": \"admin1@coxti.com\",\r\n        \"rol\": \"superadmin\",\r\n        \"accordion\": \"\",\r\n        \"socketId\": \"q9q7xOXt-Rxi7X6_AATv\"\r\n    }\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{formUrl}}/v1/form/send-section-data/basic_section",
+							"host": [
+								"{{formUrl}}"
+							],
+							"path": [
+								"v1",
+								"form",
+								"send-section-data",
+								"basic_section"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Sign documents",
+			"item": [
+				{
+					"name": "TyC Parametry (ms-sign_documents/v1/tycParametry)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const Ajv = require('ajv');\r",
+									"const ajv = new Ajv({ allErrors: true, strict: true });\r",
+									"\r",
+									"const response = pm.response.json();\r",
+									"\r",
+									"const schemaOk = {\r",
+									"    type: 'object',\r",
+									"    required: ['payload'],\r",
+									"    additionalProperties: false,\r",
+									"    properties: {\r",
+									"        payload: {\r",
+									"            type: 'object',\r",
+									"            required: [\r",
+									"                '_id',\r",
+									"                'identifier',\r",
+									"                'title',\r",
+									"                'buttonText',\r",
+									"                'active',\r",
+									"                'products',\r",
+									"                'applicantTypes',\r",
+									"                'signers',\r",
+									"                'requiredParams',\r",
+									"                'otpNotification',\r",
+									"                'codeParametry'\r",
+									"            ],\r",
+									"            additionalProperties: true,\r",
+									"            properties: {\r",
+									"                _id: { type: 'string' },\r",
+									"                identifier: { type: 'string' },\r",
+									"                active: { type: 'boolean' },\r",
+									"                title: { type: 'string' },\r",
+									"                buttonText: { type: 'string' },\r",
+									"                templatePath: { type: 'string' },\r",
+									"                preloadInformation: { type: 'boolean' },\r",
+									"                createdAt: { type: 'string' },\r",
+									"                updatedAt: { type: 'string' },\r",
+									"                __v: { type: 'number' },\r",
+									"\r",
+									"                products: {\r",
+									"                    type: 'array',\r",
+									"                    items: { type: 'string' }\r",
+									"                },\r",
+									"\r",
+									"                applicantTypes: {\r",
+									"                    type: 'array',\r",
+									"                    items: { type: 'string' }\r",
+									"                },\r",
+									"\r",
+									"                codeParametry: {\r",
+									"                    type: 'object',\r",
+									"                    required: ['numbers', 'lowercase', 'uppercase', 'length'],\r",
+									"                    additionalProperties: false,\r",
+									"                    properties: {\r",
+									"                        numbers: { type: 'boolean' },\r",
+									"                        lowercase: { type: 'boolean' },\r",
+									"                        uppercase: { type: 'boolean' },\r",
+									"                        length: { type: 'number' }\r",
+									"                    }\r",
+									"                },\r",
+									"\r",
+									"                otpNotification: {\r",
+									"                    type: 'object',\r",
+									"                    required: ['notificationType', 'expiresIn', 'message', 'title'],\r",
+									"                    additionalProperties: true,\r",
+									"                    properties: {\r",
+									"                        notificationType: {\r",
+									"                            type: 'array',\r",
+									"                            items: { type: 'string' }\r",
+									"                        },\r",
+									"                        expiresIn: { type: 'number' },\r",
+									"                        message: { type: 'string' },\r",
+									"                        title: { type: 'string' }\r",
+									"                    }\r",
+									"                },\r",
+									"\r",
+									"                documentNotification: {\r",
+									"                    type: 'object',\r",
+									"                    required: ['notificationType'],\r",
+									"                    additionalProperties: true,\r",
+									"                    properties: {\r",
+									"                        notificationType: { type: 'string' }\r",
+									"                    }\r",
+									"                },\r",
+									"\r",
+									"                signers: {\r",
+									"                    type: 'array',\r",
+									"                    items: {\r",
+									"                        type: 'object',\r",
+									"                        required: ['signerType', 'maxTries'],\r",
+									"                        properties: {\r",
+									"                            signerType: { type: 'string' },\r",
+									"                            maxTries: { type: 'number' }\r",
+									"                        }\r",
+									"                    }\r",
+									"                },\r",
+									"\r",
+									"                requiredParams: {\r",
+									"                    type: 'array',\r",
+									"                    items: {\r",
+									"                        type: 'object',\r",
+									"                        required: ['key'],\r",
+									"                        properties: {\r",
+									"                            key: { type: 'string' }\r",
+									"                        }\r",
+									"                    }\r",
+									"                },\r",
+									"\r",
+									"                additionalParameters: {\r",
+									"                    type: 'array'\r",
+									"                }\r",
+									"            }\r",
+									"        }\r",
+									"    }\r",
+									"};\r",
+									"\r",
+									"const validateOk = ajv.compile(schemaOk);\r",
+									"const validOk = validateOk(response);\r",
+									"\r",
+									"pm.test('Cumple contrato', () => {\r",
+									"    if (!validOk) {\r",
+									"        validateOk.errors.forEach(err => {\r",
+									"            console.log(\r",
+									"                `➡️ En propiedad: ${err.instancePath || '(TyC Parametry)'}\\n` +\r",
+									"                `   ❗ Tipo de error: ${err.keyword}\\n` +\r",
+									"                `   📋 Mensaje: ${err.message}\\n` +\r",
+									"                (err.params ? `   ⚙️ Detalle: ${JSON.stringify(err.params)}\\n` : '')\r",
+									"            );\r",
+									"        });\r",
+									"    }\r",
+									"    pm.expect(validOk, 'Contrato no cumple').to.be.true;\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "tenant",
+								"value": "{{tenant}}",
+								"type": "text"
+							},
+							{
+								"key": "oncredit-api-token",
+								"value": "{{oncredit_api_token}}",
+								"type": "text"
+							},
+							{
+								"key": "authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/ms-sign_documents/v1/tycParametry",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ms-sign_documents",
+								"v1",
+								"tycParametry"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Params (ms-sign_documents/v1/tycParametry/params)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const Ajv = require('ajv');\r",
+									"const ajv = new Ajv({ allErrors: true, strict: true });\r",
+									"\r",
+									"const response = pm.response.json();\r",
+									"\r",
+									"const schemaOk = {\r",
+									"    type: 'object',\r",
+									"    required: ['payload'],\r",
+									"    additionalProperties: false,\r",
+									"    properties: {\r",
+									"        payload: {\r",
+									"            type: 'array',\r",
+									"            items: { type: 'string' },\r",
+									"            minItems: 1\r",
+									"        }\r",
+									"    }\r",
+									"};\r",
+									"\r",
+									"const validateOk = ajv.compile(schemaOk);\r",
+									"const validOk = validateOk(response);\r",
+									"\r",
+									"pm.test('Cumple contrato', () => {\r",
+									"    if (!validOk) {\r",
+									"        validateOk.errors.forEach(err => {\r",
+									"            console.log(\r",
+									"                `➡️ En propiedad: ${err.instancePath || '(Params)'}\\n` +\r",
+									"                `   ❗ Tipo de error: ${err.keyword}\\n` +\r",
+									"                `   📋 Mensaje: ${err.message}\\n` +\r",
+									"                (err.params ? `   ⚙️ Detalle: ${JSON.stringify(err.params)}\\n` : '')\r",
+									"            );\r",
+									"        });\r",
+									"    }\r",
+									"    pm.expect(validOk, 'Contrato no cumple').to.be.true;\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "tenant",
+								"value": "{{tenant}}",
+								"type": "text"
+							},
+							{
+								"key": "oncredit-api-token",
+								"value": "{{oncredit_api_token}}",
+								"type": "text"
+							},
+							{
+								"key": "authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/ms-sign_documents/v1/tycParametry/params",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ms-sign_documents",
+								"v1",
+								"tycParametry",
+								"params"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Flow (ms-sign_documents/v1/tycSign/flow)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const Ajv = require('ajv');\r",
+									"const ajv = new Ajv({ allErrors: true, strict: true });\r",
+									"\r",
+									"const response = pm.response.json();\r",
+									"\r",
+									"const schemaOk = {\r",
+									"    type: 'object',\r",
+									"    required: ['payload'],\r",
+									"    additionalProperties: false,\r",
+									"    properties: {\r",
+									"        payload: {\r",
+									"            type: 'string',\r",
+									"            pattern: '^[0-9a-fA-F-]{36}$'\r",
+									"        }\r",
+									"    }\r",
+									"};\r",
+									"\r",
+									"const validateOk = ajv.compile(schemaOk);\r",
+									"const valid = validateOk(response);\r",
+									"\r",
+									"pm.test('Cumple contrato', () => {\r",
+									"    if (!valid) {\r",
+									"        validateOk.errors.forEach(err => {\r",
+									"            console.log(\r",
+									"                `❌ Error en: ${err.instancePath || '(Flow)'}\\n` +\r",
+									"                `   → Tipo: ${err.keyword}\\n` +\r",
+									"                `   → Mensaje: ${err.message}\\n` +\r",
+									"                (err.params ? `   → Detalle: ${JSON.stringify(err.params)}\\n` : '')\r",
+									"            );\r",
+									"        });\r",
+									"    }\r",
+									"    pm.expect(valid, 'Contrato no cumple').to.be.true;\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "tenant",
+								"value": "{{tenant}}",
+								"type": "text"
+							},
+							{
+								"key": "oncredit-api-token",
+								"value": "{{oncredit_api_token}}",
+								"type": "text"
+							},
+							{
+								"key": "authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"signer\": [\r\n        {\r\n            \"signerType\": \"debtor\",\r\n            \"requiredParams\": [\r\n                {\r\n                    \"key\": \"cellphoneNumber\",\r\n                    \"value\": \"3006299326\"\r\n                },\r\n                {\r\n                    \"key\": \"firstName\",\r\n                    \"value\": \"LUZ\"\r\n                },\r\n                {\r\n                    \"key\": \"secondName\",\r\n                    \"value\": \"ADRIANA\"\r\n                },\r\n                {\r\n                    \"key\": \"firstSurname\",\r\n                    \"value\": \"CAMARGO\"\r\n                },\r\n                {\r\n                    \"key\": \"secondSurname\",\r\n                    \"value\": \"GARZON\"\r\n                },\r\n                {\r\n                    \"key\": \"identificationNumber\",\r\n                    \"value\": \"51840792\"\r\n                },\r\n                {\r\n                    \"key\": \"email\",\r\n                    \"value\": \"CAMILO.SOTO@ONCREDIT.COM.CO\"\r\n                }\r\n            ],\r\n            \"additionalParams\": [\r\n                {\r\n                    \"key\": \"signerTypeName\",\r\n                    \"value\": \"Deudor\"\r\n                }\r\n            ]\r\n        }\r\n    ]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/ms-sign_documents/v1/tycSign/flow",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ms-sign_documents",
+								"v1",
+								"tycSign",
+								"flow"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Generate (ms-sign_documents/v1/tycSign/generate)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const Ajv = require('ajv');\r",
+									"const ajv = new Ajv({ allErrors: true, strict: true });\r",
+									"\r",
+									"const response = pm.response.json();\r",
+									"\r",
+									"const schemaOk = {\r",
+									"    type: 'object',\r",
+									"    required: ['payload'],\r",
+									"    additionalProperties: false,\r",
+									"    properties: {\r",
+									"        payload: {\r",
+									"            type: 'string',\r",
+									"            minLength: 1\r",
+									"        }\r",
+									"    }\r",
+									"};\r",
+									"\r",
+									"const schemaError = {\r",
+									"    type: 'object',\r",
+									"    required: ['msg', 'ticket'],\r",
+									"    additionalProperties: false,\r",
+									"    properties: {\r",
+									"        msg: { type: 'string', minLength: 1 },\r",
+									"        ticket: { type: 'string', minLength: 1 },\r",
+									"        error: {\r",
+									"            type: 'object',\r",
+									"            required: ['stack', 'message', 'status'],\r",
+									"            additionalProperties: false,\r",
+									"            properties: {\r",
+									"                stack: { type: 'string', minLength: 1 },\r",
+									"                message: { type: 'string', minLength: 1 },\r",
+									"                status: { type: 'integer', enum: [400] }\r",
+									"            }\r",
+									"        }\r",
+									"    }\r",
+									"};\r",
+									"\r",
+									"const validateOk = ajv.compile(schemaOk);\r",
+									"const validateError = ajv.compile(schemaError);\r",
+									"\r",
+									"const validOk = validateOk(response);\r",
+									"const validError = validateError(response);\r",
+									"const valid = validOk || validError;\r",
+									"\r",
+									"pm.test('Cumple contrato', () => {\r",
+									"    if (!valid) {\r",
+									"        const errors = validateOk.errors || validateError.errors;\r",
+									"        errors?.forEach(err => {\r",
+									"            console.log(\r",
+									"                `❌ Error en: ${err.instancePath || '(Generate)'}\\n` +\r",
+									"                `   → Tipo: ${err.keyword}\\n` +\r",
+									"                `   → Mensaje: ${err.message}\\n` +\r",
+									"                (err.params ? `   → Detalle: ${JSON.stringify(err.params)}\\n` : '')\r",
+									"            );\r",
+									"        });\r",
+									"    }\r",
+									"    pm.expect(valid, 'Contrato no cumple (ni positivo ni negativo)').to.be.true;\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "tenant",
+								"value": "{{tenant}}",
+								"type": "text"
+							},
+							{
+								"key": "oncredit-api-token",
+								"value": "{{oncredit_api_token}}",
+								"type": "text"
+							},
+							{
+								"key": "authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"flowId\": \"f73a54ae-33b3-4c1c-b2ee-3476dca6156d\",\r\n    \"signerType\": \"debtor\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/ms-sign_documents/v1/tyc-multi-sign/generate",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ms-sign_documents",
+								"v1",
+								"tyc-multi-sign",
+								"generate"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Validate (ms-sign_documents/v1/tycSign/validate)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const Ajv = require('ajv');\r",
+									"const ajv = new Ajv({ allErrors: true, strict: true });\r",
+									"\r",
+									"const response = pm.response.json();\r",
+									"\r",
+									"const schemaOk = {\r",
+									"    type: 'object',\r",
+									"    required: ['payload'],\r",
+									"    additionalProperties: false,\r",
+									"    properties: {\r",
+									"        payload: { type: 'string', const: 'completed' }\r",
+									"    }\r",
+									"};\r",
+									"\r",
+									"const schemaError = {\r",
+									"    type: 'object',\r",
+									"    required: ['msg', 'ticket'],\r",
+									"    additionalProperties: false,\r",
+									"    properties: {\r",
+									"        msg: { type: 'string', minLength: 1 },\r",
+									"        ticket: { type: 'string', pattern: '^[0-9a-fA-F-]{36}$' }\r",
+									"    }\r",
+									"};\r",
+									"\r",
+									"const validateOk = ajv.compile(schemaOk);\r",
+									"const validateError = ajv.compile(schemaError);\r",
+									"\r",
+									"const validOk = validateOk(response);\r",
+									"const validError = validateError(response);\r",
+									"const valid = validOk || validError;\r",
+									"\r",
+									"pm.test('Cumple contrato (ok o error controlado)', () => {\r",
+									"    if (!valid) {\r",
+									"        const errors = validateOk.errors || validateError.errors;\r",
+									"        errors?.forEach(err => {\r",
+									"            console.log(\r",
+									"                `❌ Error en: ${err.instancePath || '(Validate)'}\\n` +\r",
+									"                `   → Tipo: ${err.keyword}\\n` +\r",
+									"                `   → Mensaje: ${err.message}\\n` +\r",
+									"                (err.params ? `   → Detalle: ${JSON.stringify(err.params)}\\n` : '')\r",
+									"            );\r",
+									"        });\r",
+									"    }\r",
+									"    pm.expect(valid, 'Contrato no cumple ni éxito ni error esperado').to.be.true;\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "tenant",
+								"value": "{{tenant}}",
+								"type": "text"
+							},
+							{
+								"key": "oncredit-api-token",
+								"value": "{{oncredit_api_token}}",
+								"type": "text"
+							},
+							{
+								"key": "authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"flowId\": \"8b7852ec-80fb-4a45-9c23-569858f1801f\",\r\n    \"ticket\": {{ticket1}},\r\n    \"signerType\": \"debtor\",\r\n    \"signerTypeName\": \"Deudor\",\r\n    \"code\": {\r\n        \"code\": \"111111\"\r\n    },\r\n    \"parametry\": null\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/ms-sign_documents/v1/tycSign/validate",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ms-sign_documents",
+								"v1",
+								"tycSign",
+								"validate"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "ETL",
+			"item": [
+				{
+					"name": "All Modalities (ms-etl/v1/list/modalities/all)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const Ajv = require('ajv');\r",
+									"const ajv = new Ajv({ allErrors: true, strict: true });\r",
+									"\r",
+									"const response = pm.response.json();\r",
+									"\r",
+									"const schemaOk = {\r",
+									"    type: 'object',\r",
+									"    required: ['payload'],\r",
+									"    additionalProperties: false,\r",
+									"    properties: {\r",
+									"        payload: {\r",
+									"            type: 'array',\r",
+									"            minItems: 1,\r",
+									"            items: {\r",
+									"                type: 'object',\r",
+									"                required: ['identifier', 'name', 'origins', 'id'],\r",
+									"                additionalProperties: false,\r",
+									"                properties: {\r",
+									"                    identifier: { type: 'string', minLength: 1 },\r",
+									"                    name: { type: 'string', minLength: 1 },\r",
+									"                    origins: {\r",
+									"                        type: 'array',\r",
+									"                        minItems: 1,\r",
+									"                        items: { type: 'string', minLength: 1 }\r",
+									"                    },\r",
+									"                    id: { type: 'string', pattern: '^[0-9a-fA-F-]{36}$' }\r",
+									"                }\r",
+									"            }\r",
+									"        }\r",
+									"    }\r",
+									"};\r",
+									"\r",
+									"const validate = ajv.compile(schemaOk);\r",
+									"const valid = validate(response);\r",
+									"\r",
+									"pm.test('Cumple contrato', () => {\r",
+									"    if (!valid) {\r",
+									"        validate.errors?.forEach(err => {\r",
+									"            console.log(\r",
+									"                `❌ Error en: ${err.instancePath || '(All modalities)'}\\n` +\r",
+									"                `   → Tipo: ${err.keyword}\\n` +\r",
+									"                `   → Mensaje: ${err.message}\\n` +\r",
+									"                (err.params ? `   → Detalle: ${JSON.stringify(err.params)}\\n` : '')\r",
+									"            );\r",
+									"        });\r",
+									"    }\r",
+									"    pm.expect(valid, 'Contrato no cumple').to.be.true;\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "tenant",
+								"value": "{{tenant}}",
+								"type": "text"
+							},
+							{
+								"key": "oncredit-api-token",
+								"value": "{{oncredit_api_token}}",
+								"type": "text"
+							},
+							{
+								"key": "authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"filter\": [\r\n        {\r\n            \"key\": \"origins\",\r\n            \"value\": \"WA\",\r\n            \"operation\": \"includes\"\r\n        }\r\n    ]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{etlUrl}}/v1/list/modalities/all",
+							"host": [
+								"{{etlUrl}}"
+							],
+							"path": [
+								"v1",
+								"list",
+								"modalities",
+								"all"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "All Lines (ms-etl/v1/list/credit_lines/all)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const Ajv = require('ajv');\r",
+									"const ajv = new Ajv({ allErrors: true, strict: true });\r",
+									"\r",
+									"const response = pm.response.json();\r",
+									"\r",
+									"const schemaOk = {\r",
+									"    type: 'object',\r",
+									"    required: ['payload'],\r",
+									"    additionalProperties: false,\r",
+									"    properties: {\r",
+									"        payload: {\r",
+									"            type: 'array',\r",
+									"            minItems: 1,\r",
+									"            items: {\r",
+									"                type: 'object',\r",
+									"                required: ['id', 'value', 'status', 'modalityId'],\r",
+									"                additionalProperties: false,\r",
+									"                properties: {\r",
+									"                    id: { type: 'string', minLength: 1 },\r",
+									"                    value: { type: 'string', minLength: 1 },\r",
+									"                    status: { type: 'string', enum: ['active', 'inactive'] },\r",
+									"                    modalityId: { type: 'string', minLength: 1 }\r",
+									"                }\r",
+									"            }\r",
+									"        }\r",
+									"    }\r",
+									"};\r",
+									"\r",
+									"const validate = ajv.compile(schemaOk);\r",
+									"const valid = validate(response);\r",
+									"\r",
+									"pm.test('Cumple contrato', () => {\r",
+									"    if (!valid) {\r",
+									"        validate.errors?.forEach(err => {\r",
+									"            console.log(\r",
+									"                `❌ Error en: ${err.instancePath || '(All lines)'}\\n` +\r",
+									"                `   → Tipo: ${err.keyword}\\n` +\r",
+									"                `   → Mensaje: ${err.message}\\n` +\r",
+									"                (err.params ? `   → Detalle: ${JSON.stringify(err.params)}\\n` : '')\r",
+									"            );\r",
+									"        });\r",
+									"    }\r",
+									"    pm.expect(valid, 'Contrato no cumple').to.be.true;\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "tenant",
+								"value": "{{tenant}}",
+								"type": "text"
+							},
+							{
+								"key": "oncredit-api-token",
+								"value": "{{oncredit_api_token}}",
+								"type": "text"
+							},
+							{
+								"key": "authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"filter\": [\r\n        {\r\n            \"key\": \"modalityId\",\r\n            \"value\": \"047fd41d-4633-48be-978e-95a0bf726067\"\r\n        },\r\n        {\r\n            \"key\": \"status\",\r\n            \"value\": \"active\"\r\n        }\r\n    ]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{etlUrl}}/v1/list/credit_lines/all",
+							"host": [
+								"{{etlUrl}}"
+							],
+							"path": [
+								"v1",
+								"list",
+								"credit_lines",
+								"all"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Product Type (v1/list/product_types/productType)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const Ajv = require('ajv');\r",
+									"const ajv = new Ajv({ allErrors: true, strict: true });\r",
+									"\r",
+									"const response = pm.response.json();\r",
+									"\r",
+									"const schemaOk = {\r",
+									"    type: 'object',\r",
+									"    required: ['payload'],\r",
+									"    additionalProperties: false,\r",
+									"    properties: {\r",
+									"        payload: {\r",
+									"            type: 'array',\r",
+									"            minItems: 1,\r",
+									"            items: {\r",
+									"                type: 'object',\r",
+									"                required: ['id', 'value'],\r",
+									"                additionalProperties: false,\r",
+									"                properties: {\r",
+									"                    id: { type: 'string', minLength: 1 },\r",
+									"                    value: { type: 'string', minLength: 1 }\r",
+									"                }\r",
+									"            }\r",
+									"        }\r",
+									"    }\r",
+									"};\r",
+									"\r",
+									"const validate = ajv.compile(schemaOk);\r",
+									"const valid = validate(response);\r",
+									"\r",
+									"pm.test('Cumple contrato', () => {\r",
+									"    if (!valid) {\r",
+									"        validate.errors?.forEach(err => {\r",
+									"            console.log(\r",
+									"                `❌ Error en: ${err.instancePath || '(Product Type)'}\\n` +\r",
+									"                `   → Tipo: ${err.keyword}\\n` +\r",
+									"                `   → Mensaje: ${err.message}\\n` +\r",
+									"                (err.params ? `   → Detalle: ${JSON.stringify(err.params)}\\n` : '')\r",
+									"            );\r",
+									"        });\r",
+									"    }\r",
+									"    pm.expect(valid, 'Contrato no cumple').to.be.true;\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "tenant",
+								"value": "{{tenant}}",
+								"type": "text"
+							},
+							{
+								"key": "oncredit-api-token",
+								"value": "{{oncredit_api_token}}",
+								"type": "text"
+							},
+							{
+								"key": "authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"filter\": [\r\n        {\r\n            \"key\": \"creditLines\",\r\n            \"value\": \"def2a9ef-cf2d-4868-b1e7-8fd68522cd9f\"\r\n        }\r\n    ]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{etlUrl}}/v1/list/product_types/productType",
+							"host": [
+								"{{etlUrl}}"
+							],
+							"path": [
+								"v1",
+								"list",
+								"product_types",
+								"productType"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "One Modality (ms-etl/v1/list/modalities/one)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const Ajv = require('ajv');\r",
+									"const ajv = new Ajv({ allErrors: true, strict: true });\r",
+									"\r",
+									"const response = pm.response.json();\r",
+									"\r",
+									"const schemaOk = {\r",
+									"    type: 'object',\r",
+									"    required: ['payload'],\r",
+									"    additionalProperties: false,\r",
+									"    properties: {\r",
+									"        payload: {\r",
+									"            type: 'object',\r",
+									"            required: ['identifier', 'name', 'origins', 'id'],\r",
+									"            additionalProperties: false,\r",
+									"            properties: {\r",
+									"                identifier: { type: 'string', minLength: 1 },\r",
+									"                name: { type: 'string', minLength: 1 },\r",
+									"                origins: {\r",
+									"                    type: 'array',\r",
+									"                    minItems: 1,\r",
+									"                    items: { type: 'string', minLength: 1 }\r",
+									"                },\r",
+									"                id: { type: 'string', pattern: '^[0-9a-fA-F-]{36}$' }\r",
+									"            }\r",
+									"        }\r",
+									"    }\r",
+									"};\r",
+									"\r",
+									"const validate = ajv.compile(schemaOk);\r",
+									"const valid = validate(response);\r",
+									"\r",
+									"pm.test('Cumple contrato', () => {\r",
+									"    if (!valid) {\r",
+									"        validate.errors?.forEach(err => {\r",
+									"            console.log(\r",
+									"                `❌ Error en: ${err.instancePath || '(One modality)'}\\n` +\r",
+									"                `   → Tipo: ${err.keyword}\\n` +\r",
+									"                `   → Mensaje: ${err.message}\\n` +\r",
+									"                (err.params ? `   → Detalle: ${JSON.stringify(err.params)}\\n` : '')\r",
+									"            );\r",
+									"        });\r",
+									"    }\r",
+									"    pm.expect(valid, 'Contrato no cumple').to.be.true;\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "tenant",
+								"value": "{{tenant}}",
+								"type": "text"
+							},
+							{
+								"key": "oncredit-api-token",
+								"value": "{{oncredit_api_token}}",
+								"type": "text"
+							},
+							{
+								"key": "authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"filter\": [\r\n        {\r\n            \"key\": \"id\",\r\n            \"value\": \"047fd41d-4633-48be-978e-95a0bf726067\"\r\n        }\r\n    ]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{etlUrl}}/v1/list/modalities/one",
+							"host": [
+								"{{etlUrl}}"
+							],
+							"path": [
+								"v1",
+								"list",
+								"modalities",
+								"one"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Client Parametry",
+			"item": [
+				{
+					"name": "Create Credit (ms-client-parametry/v1/consecutive/create_credit)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const Ajv = require('ajv');\r",
+									"const ajv = new Ajv({ allErrors: true, strict: true });\r",
+									"\r",
+									"const response = pm.response.json();\r",
+									"\r",
+									"const schemaOk = {\r",
+									"    type: 'object',\r",
+									"    required: ['payload'],\r",
+									"    additionalProperties: false,\r",
+									"    properties: {\r",
+									"        payload: {\r",
+									"            type: 'number'\r",
+									"        }\r",
+									"    }\r",
+									"};\r",
+									"\r",
+									"const validate = ajv.compile(schemaOk);\r",
+									"const valid = validate(response);\r",
+									"\r",
+									"pm.test('Cumple contrato', () => {\r",
+									"    if (!valid) {\r",
+									"        validate.errors?.forEach(err => {\r",
+									"            console.log(\r",
+									"                `❌ Error en: ${err.instancePath || '(Create credit)'}\\n` +\r",
+									"                `   → Tipo: ${err.keyword}\\n` +\r",
+									"                `   → Mensaje: ${err.message}\\n` +\r",
+									"                (err.params ? `   → Detalle: ${JSON.stringify(err.params)}\\n` : '')\r",
+									"            );\r",
+									"        });\r",
+									"    }\r",
+									"    pm.expect(valid, 'Contrato no cumple').to.be.true;\r",
+									"});\r",
+									"\r",
+									"pm.collectionVariables.set('consecutive', response?.payload)\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "tenant",
+								"value": "{{tenant}}",
+								"type": "text"
+							},
+							{
+								"key": "oncredit-api-token",
+								"value": "{{oncredit_api_token}}",
+								"type": "text"
+							},
+							{
+								"key": "authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/ms-client-parametry/v1/consecutive/create_credit",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ms-client-parametry",
+								"v1",
+								"consecutive",
+								"create_credit"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Common",
+			"item": [
+				{
+					"name": "Department (ms-common-data/v1/department/)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const Ajv = require('ajv');\r",
+									"const ajv = new Ajv({ allErrors: true, strict: true });\r",
+									"\r",
+									"const response = pm.response.json();\r",
+									"\r",
+									"const schemaOk = {\r",
+									"    type: 'object',\r",
+									"    required: ['payload'],\r",
+									"    additionalProperties: false,\r",
+									"    properties: {\r",
+									"        payload: {\r",
+									"            type: 'array',\r",
+									"            minItems: 1,\r",
+									"            items: {\r",
+									"                type: 'object',\r",
+									"                required: [\r",
+									"                    '_id',\r",
+									"                    'name',\r",
+									"                    'code',\r",
+									"                    'numericCode',\r",
+									"                    'countryId',\r",
+									"                    'createdAt',\r",
+									"                    'updatedAt',\r",
+									"                    '__v'\r",
+									"                ],\r",
+									"                additionalProperties: false,\r",
+									"                properties: {\r",
+									"                    _id: { type: 'string', minLength: 1 },\r",
+									"                    name: { type: 'string', minLength: 1 },\r",
+									"                    code: { type: 'string', minLength: 1 },\r",
+									"                    numericCode: { type: 'string', minLength: 1 },\r",
+									"                    countryId: { type: 'string', minLength: 1 },\r",
+									"                    createdAt: { type: 'string', format: 'date-time' },\r",
+									"                    updatedAt: { type: 'string', format: 'date-time' },\r",
+									"                    __v: { type: 'number' }\r",
+									"                }\r",
+									"            }\r",
+									"        }\r",
+									"    }\r",
+									"};\r",
+									"\r",
+									"const validate = ajv.compile(schemaOk);\r",
+									"const valid = validate(response);\r",
+									"\r",
+									"pm.test('Cumple contrato', () => {\r",
+									"    if (!valid) {\r",
+									"        validate.errors?.forEach(err => {\r",
+									"            console.log(\r",
+									"                `❌ Error en: ${err.instancePath || '(Department)'}\\n` +\r",
+									"                `   → Tipo: ${err.keyword}\\n` +\r",
+									"                `   → Mensaje: ${err.message}\\n` +\r",
+									"                (err.params ? `   → Detalle: ${JSON.stringify(err.params)}\\n` : '')\r",
+									"            );\r",
+									"        });\r",
+									"    }\r",
+									"    pm.expect(valid, 'Contrato no cumple').to.be.true;\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "tenant",
+								"value": "{{tenant}}",
+								"type": "text"
+							},
+							{
+								"key": "oncredit-api-token",
+								"value": "{{oncredit_api_token}}",
+								"type": "text"
+							},
+							{
+								"key": "authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{commonUrl}}/v1/department/",
+							"host": [
+								"{{commonUrl}}"
+							],
+							"path": [
+								"v1",
+								"department",
+								""
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Applicant",
+			"item": [
+				{
+					"name": "Allow (ms-applicants/v1/applicant/483469498/allow/debtor)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const Ajv = require('ajv');\r",
+									"const ajv = new Ajv({ allErrors: true, strict: true });\r",
+									"\r",
+									"const response = pm.response.json();\r",
+									"\r",
+									"const schemaOk = {\r",
+									"    type: 'object',\r",
+									"    required: ['payload'],\r",
+									"    additionalProperties: false,\r",
+									"    properties: {\r",
+									"        payload: {\r",
+									"            type: 'string',\r",
+									"            minLength: 1\r",
+									"        }\r",
+									"    }\r",
+									"};\r",
+									"\r",
+									"const validate = ajv.compile(schemaOk);\r",
+									"const valid = validate(response);\r",
+									"\r",
+									"pm.test('Cumple contrato', () => {\r",
+									"    if (!valid) {\r",
+									"        validate.errors?.forEach(err => {\r",
+									"            console.log(\r",
+									"                `❌ Error en: ${err.instancePath || '(Allow)'}\\n` +\r",
+									"                `   → Tipo: ${err.keyword}\\n` +\r",
+									"                `   → Mensaje: ${err.message}\\n` +\r",
+									"                (err.params ? `   → Detalle: ${JSON.stringify(err.params)}\\n` : '')\r",
+									"            );\r",
+									"        });\r",
+									"    }\r",
+									"    pm.expect(valid, 'Contrato no cumple').to.be.true;\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "tenant",
+								"value": "{{tenant}}",
+								"type": "text"
+							},
+							{
+								"key": "oncredit-api-token",
+								"value": "{{oncredit_api_token}}",
+								"type": "text"
+							},
+							{
+								"key": "authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"applicantId\": \"51840792\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{applicantUrl}}/v1/applicant/{{ticket1}}/allow/debtor",
+							"host": [
+								"{{applicantUrl}}"
+							],
+							"path": [
+								"v1",
+								"applicant",
+								"{{ticket1}}",
+								"allow",
+								"debtor"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Viability Debtor (ms-applicants/v1/applicant/483469498/viability/debtor)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const Ajv = require('ajv');\r",
+									"const ajv = new Ajv({ allErrors: true, strict: true });\r",
+									"\r",
+									"const response = pm.response.json();\r",
+									"\r",
+									"const schemaOk = {\r",
+									"    type: 'object',\r",
+									"    required: ['payload'],\r",
+									"    additionalProperties: false,\r",
+									"    properties: {\r",
+									"        payload: { \r",
+									"            type: 'string',\r",
+									"            minLength: 1 \r",
+									"        }\r",
+									"    }\r",
+									"};\r",
+									"\r",
+									"const validate = ajv.compile(schemaOk);\r",
+									"const valid = validate(response);\r",
+									"\r",
+									"pm.test('Cumple contrato', () => {\r",
+									"    if (!valid) {\r",
+									"        validate.errors?.forEach(err => {\r",
+									"            console.log(\r",
+									"                `❌ Error en: ${err.instancePath || '(Viability debtor)'}\\n` +\r",
+									"                `   → Tipo: ${err.keyword}\\n` +\r",
+									"                `   → Mensaje: ${err.message}\\n` +\r",
+									"                (err.params ? `   → Detalle: ${JSON.stringify(err.params)}\\n` : '')\r",
+									"            );\r",
+									"        });\r",
+									"    }\r",
+									"    pm.expect(valid, 'Contrato no cumple').to.be.true;\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "tenant",
+								"value": "{{tenant}}",
+								"type": "text"
+							},
+							{
+								"key": "oncredit-api-token",
+								"value": "{{oncredit_api_token}}",
+								"type": "text"
+							},
+							{
+								"key": "authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"identifier\": \"approved\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{applicantUrl}}/v1/applicant/{{ticket}}/viability/debtor",
+							"host": [
+								"{{applicantUrl}}"
+							],
+							"path": [
+								"v1",
+								"applicant",
+								"{{ticket}}",
+								"viability",
+								"debtor"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Providers",
+			"item": [
+				{
+					"name": "Verify List (ms-providers/v1/yam/verifyList)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const Ajv = require('ajv');\r",
+									"const ajv = new Ajv({ allErrors: true, strict: true });\r",
+									"\r",
+									"const response = pm.response.json();\r",
+									"\r",
+									"const schemaOk = {\r",
+									"    type: 'object',\r",
+									"    required: ['list', 'peps'],\r",
+									"    additionalProperties: false,\r",
+									"    properties: {\r",
+									"        list: {\r",
+									"            type: 'array'\r",
+									"        },\r",
+									"        peps: {\r",
+									"            type: 'array',\r",
+									"            items: {\r",
+									"                type: 'object',\r",
+									"                required: [\r",
+									"                    'idLista',\r",
+									"                    'orden',\r",
+									"                    'fecha',\r",
+									"                    'prioridad',\r",
+									"                    'nombreTipoLista',\r",
+									"                    'nombreGrupoLista',\r",
+									"                    'idGrupoLista',\r",
+									"                    'tipoDocumento',\r",
+									"                    'documentoIdentidad',\r",
+									"                    'nombreCompleto',\r",
+									"                    'idTipoLista',\r",
+									"                    'fuenteConsulta',\r",
+									"                    'tipoPersona',\r",
+									"                    'alias',\r",
+									"                    'delito',\r",
+									"                    'peps',\r",
+									"                    'zona',\r",
+									"                    'link',\r",
+									"                    'entidadEmpresa',\r",
+									"                    'otraInformacion',\r",
+									"                    'fechaActualizacion',\r",
+									"                    'justificacionCambio'\r",
+									"                ],\r",
+									"                additionalProperties: false,\r",
+									"                properties: {\r",
+									"                    idLista: { type: 'number' },\r",
+									"                    orden: { type: 'number' },\r",
+									"                    fecha: { type: 'string' },\r",
+									"                    prioridad: { type: 'string' },\r",
+									"                    nombreTipoLista: { type: 'string' },\r",
+									"                    nombreGrupoLista: { type: 'string' },\r",
+									"                    idGrupoLista: { type: 'number' },\r",
+									"                    tipoDocumento: { type: 'string' },\r",
+									"                    documentoIdentidad: { type: 'string' },\r",
+									"                    nombreCompleto: { type: 'string' },\r",
+									"                    idTipoLista: { type: 'number' },\r",
+									"                    fuenteConsulta: { type: 'string' },\r",
+									"                    tipoPersona: { type: 'string' },\r",
+									"                    alias: { type: 'string' },\r",
+									"                    delito: { type: 'string' },\r",
+									"                    peps: { type: 'string' },\r",
+									"                    zona: { type: 'string' },\r",
+									"                    link: { type: 'string', format: 'uri' },\r",
+									"                    entidadEmpresa: { type: ['string', 'null'] },\r",
+									"                    otraInformacion: { type: 'string' },\r",
+									"                    fechaActualizacion: { type: 'string' },\r",
+									"                    justificacionCambio: { type: ['string', 'null'] }\r",
+									"                }\r",
+									"            }\r",
+									"        }\r",
+									"    }\r",
+									"};\r",
+									"\r",
+									"const validate = ajv.compile(schemaOk);\r",
+									"const valid = validate(response);\r",
+									"\r",
+									"pm.test('Cumple contrato', () => {\r",
+									"    if (!valid) {\r",
+									"        validate.errors?.forEach(err => {\r",
+									"            console.log(\r",
+									"                `❌ Error en: ${err.instancePath || '(Verify List)'}\\n` +\r",
+									"                `   → Tipo: ${err.keyword}\\n` +\r",
+									"                `   → Mensaje: ${err.message}\\n` +\r",
+									"                (err.params ? `   → Detalle: ${JSON.stringify(err.params)}\\n` : '')\r",
+									"            );\r",
+									"        });\r",
+									"    }\r",
+									"    pm.expect(valid, 'Contrato no cumple').to.be.true;\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "tenant",
+								"value": "{{tenant}}",
+								"type": "text"
+							},
+							{
+								"key": "oncredit-api-token",
+								"value": "{{oncredit_api_token}}",
+								"type": "text"
+							},
+							{
+								"key": "authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"nombre\": \"LUZ ADRIANA CAMARGO GARZON\",\r\n    \"identificacion\": \"51840792\",\r\n    \"cantidadPalabras\": \"4\",\r\n    \"tienePrioridad_4\": true,\r\n    \"firstLastName\": \"CAMARGO\",\r\n    \"applicantType\": \"debtor\",\r\n    \"ticket\": {{ticket1}}\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{providersUrl}}/v1/yam/verifyList",
+							"host": [
+								"{{providersUrl}}"
+							],
+							"path": [
+								"v1",
+								"yam",
+								"verifyList"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Consume Provider (ms-providers/v1/provider/consume-provider)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const Ajv = require('ajv');\r",
+									"const ajv = new Ajv({ allErrors: true, strict: true });\r",
+									"\r",
+									"const response = pm.response.json();\r",
+									"\r",
+									"const schemaOk = {\r",
+									"    type: 'object',\r",
+									"    required: ['payload'],\r",
+									"    additionalProperties: false,\r",
+									"    properties: {\r",
+									"        payload: {\r",
+									"            type: 'object',\r",
+									"            required: ['providerId'],\r",
+									"            additionalProperties: true,\r",
+									"            properties: {\r",
+									"                providerId: { type: 'string', minLength: 1 }\r",
+									"            },\r",
+									"            patternProperties: {\r",
+									"                '^(?!providerId$)[A-Za-z0-9\\\\-]+$': {\r",
+									"                    type: 'object',\r",
+									"                    additionalProperties: false,\r",
+									"                    properties: {\r",
+									"                        isValid: { type: 'boolean' },\r",
+									"                        isFake: { type: 'boolean' }\r",
+									"                    },\r",
+									"                    required: ['isValid']\r",
+									"                }\r",
+									"            }\r",
+									"        }\r",
+									"    }\r",
+									"};\r",
+									"\r",
+									"const validate = ajv.compile(schemaOk);\r",
+									"const valid = validate(response);\r",
+									"\r",
+									"pm.test('Cumple contrato', () => {\r",
+									"    if (!valid) {\r",
+									"        validate.errors?.forEach(err => {\r",
+									"            console.log(\r",
+									"                `❌ Error en: ${err.instancePath || '(Consume)'}\\n` +\r",
+									"                `   → Tipo: ${err.keyword}\\n` +\r",
+									"                `   → Mensaje: ${err.message}\\n` +\r",
+									"                (err.params ? `   → Detalle: ${JSON.stringify(err.params)}\\n` : '')\r",
+									"            );\r",
+									"        });\r",
+									"    }\r",
+									"    pm.expect(valid, 'Contrato no cumple').to.be.true;\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "tenant",
+								"value": "{{tenant}}",
+								"type": "text"
+							},
+							{
+								"key": "oncredit-api-token",
+								"value": "{{oncredit_api_token}}",
+								"type": "text"
+							},
+							{
+								"key": "authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"actions\": [\r\n        {\r\n            \"isCreditHistory\": true,\r\n            \"keyApp\": \"\",\r\n            \"_id\": \"6352395a6d06b846a0f685d5\",\r\n            \"name\": \"Datacredito Originación\",\r\n            \"provider_name\": \"DATACREDITO-O\",\r\n            \"consume_traduce\": true,\r\n            \"traducerId\": \"DatacreditoAndPreselect\",\r\n            \"order\": 1,\r\n            \"createdAt\": \"2022-10-21T06:16:58.139Z\",\r\n            \"updatedAt\": \"2022-10-21T06:16:58.139Z\",\r\n            \"__v\": 0,\r\n            \"provider_identifier\": \"Datacredito\"\r\n        },\r\n        {\r\n            \"isCreditHistory\": false,\r\n            \"keyApp\": \"2a12HXshxBcyxyPdJ3DKfV4W1aApJZHZStFud5AbnkFWwNAqd1aSKK\",\r\n            \"_id\": \"635239e46d06b846a0f685da\",\r\n            \"name\": \"Mareigua - Consult Analytics\",\r\n            \"provider_name\": \"mareigua\",\r\n            \"consume_traduce\": false,\r\n            \"traducerId\": \"\",\r\n            \"order\": 2,\r\n            \"createdAt\": \"2022-10-21T06:19:16.955Z\",\r\n            \"updatedAt\": \"2022-10-21T06:19:16.955Z\",\r\n            \"__v\": 0,\r\n            \"provider_identifier\": \"Datacredito\",\r\n            \"productId\": 20\r\n        },\r\n        {\r\n            \"isCreditHistory\": false,\r\n            \"keyApp\": \"\",\r\n            \"_id\": \"6359dfa67b0ee7639411932b\",\r\n            \"name\": \"Datacredito Preselecta\",\r\n            \"provider_name\": \"preselecta\",\r\n            \"consume_traduce\": true,\r\n            \"traducerId\": \"DatacreditoAndPreselect\",\r\n            \"order\": 0,\r\n            \"createdAt\": \"2022-10-27T01:32:22.944Z\",\r\n            \"updatedAt\": \"2022-10-27T01:32:22.944Z\",\r\n            \"__v\": 0\r\n        },\r\n        {\r\n            \"isCreditHistory\": false,\r\n            \"keyApp\": \"\",\r\n            \"_id\": \"639b708e06ce6754f05e7784\",\r\n            \"name\": \"Datacredito Originación\",\r\n            \"provider_name\": \"DATACREDITO-O\",\r\n            \"consume_traduce\": true,\r\n            \"traducerId\": \"Datacredito\",\r\n            \"order\": 0,\r\n            \"createdAt\": \"2022-12-15T19:07:58.113Z\",\r\n            \"updatedAt\": \"2022-12-15T19:07:58.113Z\",\r\n            \"__v\": 0\r\n        }\r\n    ],\r\n    \"args\": {\r\n        \"ticket\": \"483469498\",\r\n        \"applicant\": {\r\n            \"type\": \"debtor\",\r\n            \"data\": [\r\n                {\r\n                    \"sectionIdentifier\": \"product_section\",\r\n                    \"value\": {\r\n                        \"modality\": \"047fd41d-4633-48be-978e-95a0bf726067\",\r\n                        \"credit_line\": \"def2a9ef-cf2d-4868-b1e7-8fd68522cd9f\",\r\n                        \"product_type\": \"7ce7c875-f38e-4025-b6ab-007b512414de\",\r\n                        \"company\": null\r\n                    }\r\n                },\r\n                {\r\n                    \"sectionIdentifier\": \"basic_section\",\r\n                    \"value\": {\r\n                        \"documentType\": \"CC\",\r\n                        \"identificationNumber\": \"51840792\",\r\n                        \"cellphoneNumber\": \"3006299326\",\r\n                        \"email\": \"CAMILO.SOTO@ONCREDIT.COM.CO\",\r\n                        \"email_confirmation\": \"CAMILO.SOTO@ONCREDIT.COM.CO\",\r\n                        \"firstName\": \"LUZ\",\r\n                        \"secondName\": \"ADRIANA\",\r\n                        \"firstSurname\": \"CAMARGO\",\r\n                        \"secondSurname\": \"GARZON\",\r\n                        \"residence_department\": null,\r\n                        \"residence_city\": null,\r\n                        \"storepreform\": null,\r\n                        \"adressPreForm\": null,\r\n                        \"product\": 1\r\n                    }\r\n                }\r\n            ],\r\n            \"signFlowId\": [],\r\n            \"engineId\": [],\r\n            \"states\": [],\r\n            \"viabilities\": [],\r\n            \"ResponseAdo\": [],\r\n            \"createdAt\": \"2025-09-24T15:03:10.836Z\",\r\n            \"updatedAt\": \"2025-09-24T15:03:10.836Z\"\r\n        }\r\n    }\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{providersUrl}}/v1/provider/consume-provider",
+							"host": [
+								"{{providersUrl}}"
+							],
+							"path": [
+								"v1",
+								"provider",
+								"consume-provider"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Backup (ms-providers/v1/backup/)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const Ajv = require('ajv');\r",
+									"const ajv = new Ajv({ allErrors: true, strict: true });\r",
+									"\r",
+									"const response = pm.response.json();\r",
+									"\r",
+									"const schemaOk = {\r",
+									"    type: 'object',\r",
+									"    required: ['payload'],\r",
+									"    additionalProperties: false,\r",
+									"    properties: {\r",
+									"        payload: {\r",
+									"            type: 'object'\r",
+									"        }\r",
+									"    }\r",
+									"};\r",
+									"\r",
+									"const validate = ajv.compile(schemaOk);\r",
+									"const valid = validate(response);\r",
+									"\r",
+									"pm.test('Cumple contrato', () => {\r",
+									"    if (!valid) {\r",
+									"        validate.errors?.forEach(err => {\r",
+									"            console.log(\r",
+									"                `❌ Error en: ${err.instancePath || '(Backup)'}\\n` +\r",
+									"                `   → Tipo: ${err.keyword}\\n` +\r",
+									"                `   → Mensaje: ${err.message}\\n` +\r",
+									"                (err.params ? `   → Detalle: ${JSON.stringify(err.params)}\\n` : '')\r",
+									"            );\r",
+									"        });\r",
+									"    }\r",
+									"    pm.expect(valid, 'Contrato no cumple').to.be.true;\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "tenant",
+								"value": "{{tenant}}",
+								"type": "text"
+							},
+							{
+								"key": "oncredit-api-token",
+								"value": "{{oncredit_api_token}}",
+								"type": "text"
+							},
+							{
+								"key": "authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"surname\": \"CAMARGO\",\r\n    \"identification\": \"51840792\",\r\n    \"providerId\": \"0f4a72ab-7c44-4fd7-8a66-0a1f59314b40\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{providersUrl}}/v1/backup/",
+							"host": [
+								"{{providersUrl}}"
+							],
+							"path": [
+								"v1",
+								"backup",
+								""
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"requests": {},
+				"exec": [
+					"// Asegura valores por defecto",
+					"if (!pm.environment.get('baseUrl')) pm.environment.set('baseUrl', 'https://tapq6jz535.execute-api.us-east-1.amazonaws.com/preproduccion');",
+					"if (!pm.environment.get('tenant')) pm.environment.set('tenant', 'yam-pre');",
+					"if (!pm.environment.get('email')) pm.environment.set('email', 'admin1@coxti.com');",
+					"if (!pm.environment.get('password')) pm.environment.set('password', '!QAZxsw2');"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					"const code = pm.response.code\r",
+					"\r",
+					"pm.test('Respuesta controlada', ()=> {\r",
+					"    pm.expect(code, 'Falta manejo de errores').to.be.within(200, 499)\r",
+					"})"
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "https://tapq6jz535.execute-api.us-east-1.amazonaws.com/preproduccion"
+		},
+		{
+			"key": "oncredit_api_token",
+			"value": ""
+		},
+		{
+			"key": "access_token",
+			"value": ""
+		},
+		{
+			"key": "email",
+			"value": "admin1@coxti.com"
+		},
+		{
+			"key": "password",
+			"value": "!QAZxsw2"
+		},
+		{
+			"key": "engineUrl",
+			"value": "http://services-alb-pre.oncredit.com.co:3408"
+		},
+		{
+			"key": "formUrl",
+			"value": "http://services-alb-pre.oncredit.com.co:3402"
+		},
+		{
+			"key": "etlUrl",
+			"value": "http://services-alb-pre.oncredit.com.co:3412"
+		},
+		{
+			"key": "ticket1",
+			"value": ""
+		},
+		{
+			"key": "orchestatorUrl",
+			"value": "http://services-alb-pre.oncredit.com.co:3403"
+		},
+		{
+			"key": "commonUrl",
+			"value": "http://services-alb-pre.oncredit.com.co:3401"
+		},
+		{
+			"key": "applicantUrl",
+			"value": "http://services-alb-pre.oncredit.com.co:3413"
+		},
+		{
+			"key": "providersUrl",
+			"value": "http://services-alb-pre.oncredit.com.co:3409"
+		},
+		{
+			"key": "tenant",
+			"value": ""
+		},
+		{
+			"key": "consecutive",
+			"value": ""
+		}
+	]
+}

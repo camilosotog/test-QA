@@ -1,0 +1,236 @@
+<div class="returns-container">
+  <!-- Header -->
+  <div class="header mb-4">
+    <h1>Gestor de devoluciones</h1>
+    <p class="subtitle">Registrar y rastrear devoluciones de análisis de requisitos</p>
+  </div>
+
+  <!-- Tabs Navigation -->
+  <div class="tabs-nav">
+    <button 
+      class="tab-btn"
+      [class.active]="activeTab === 'form'"
+      (click)="activeTab = 'form'">
+      📝 Registrar
+    </button>
+    <button 
+      class="tab-btn"
+      [class.active]="activeTab === 'list'"
+      (click)="activeTab = 'list'">
+      📋 Lista
+    </button>
+    <button 
+      class="tab-btn"
+      [class.active]="activeTab === 'stats'"
+      (click)="activeTab = 'stats'">
+      📊 Estadísticas
+    </button>
+  </div>
+
+  <!-- Tab 1: Registration Form -->
+  <div class="tab-content" *ngIf="activeTab === 'form'">
+    <div class="card">
+      <h2>{{ editingId ? 'Editar Devolución' : 'Registrar Nueva Devolución' }}</h2>
+      
+      <form>
+        <div class="form-group">
+          <label for="po_name">Nombre de PO *</label>
+          <select 
+            id="po_name"
+            [(ngModel)]="form.po_name"
+            name="po_name"
+            class="form-control">
+            <option value="">-- Seleccionar PO --</option>
+            <option *ngFor="let po of pos" [value]="po">{{ po }}</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="task_code">Código de tarea *</label>
+          <input 
+            type="text"
+            id="task_code"
+            [(ngModel)]="form.task_code"
+            name="task_code"
+            placeholder="e.g., TASK-001"
+            class="form-control">
+        </div>
+
+        <div class="form-group">
+          <label for="return_reason">Razón de devolución *</label>
+          <textarea 
+            id="return_reason"
+            [(ngModel)]="form.return_reason"
+            name="return_reason"
+            placeholder="Describe por qué se devolvió"
+            class="form-control"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="info-label">
+            ℹ️ Fecha capturada automaticamente: {{ getCurrentMonth() }}/{{ getCurrentYear() }}
+          </label>
+        </div>
+
+        <div class="form-actions">
+          <button 
+            type="button"
+            class="btn btn-primary"
+            (click)="save()">
+            💾 Guardar
+          </button>
+          <button 
+            type="button"
+            class="btn btn-secondary"
+            (click)="resetForm()">
+            ✕ Cancelar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Tab 2: Returns List -->
+  <div class="tab-content" *ngIf="activeTab === 'list'">
+    <div class="card">
+      <h2>Lista de Devoluciones</h2>
+
+      <!-- Filters -->
+      <div class="filters">
+        <div class="filter-group">
+          <label>Nombre de PO</label>
+          <select 
+            [(ngModel)]="filterPoName"
+            class="form-control">
+            <option value="">-- Todos los POs --</option>
+            <option *ngFor="let po of pos" [value]="po">{{ po }}</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label>Código de tarea</label>
+          <input 
+            type="text"
+            [(ngModel)]="filterTaskCode"
+            placeholder="Buscar código de tarea"
+            class="form-control">
+        </div>
+
+        <button 
+          class="btn btn-primary"
+          (click)="applyFilters()">
+          🔍 Filtrar
+        </button>
+        <button 
+          class="btn btn-secondary"
+          (click)="clearFilters()">
+          ✕ Limpiar
+        </button>
+      </div>
+
+      <!-- Table -->
+      <div class="table-responsive">
+        <table *ngIf="returns.length > 0" class="table">
+          <thead>
+            <tr>
+              <th>Nombre de PO</th>
+              <th>Código de tarea</th>
+              <th>Razón de devolución</th>
+              <th>Fecha</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of returns">
+              <td><span class="badge badge-info">{{ item.po_name }}</span></td>
+              <td>{{ item.task_code }}</td>
+              <td>{{ item.return_reason | slice:0:50 }}...</td>
+              <td>{{ formatDate(item.created_at) }}</td>
+              <td>
+                <button 
+                  class="btn-icon"
+                  (click)="edit(item)"
+                  title="Editar">
+                  ✏️
+                </button>
+                <button 
+                  class="btn-icon danger"
+                  (click)="delete(item.id!)"
+                  title="Eliminar">
+                  🗑️
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div *ngIf="returns.length === 0" class="empty-state">
+          <p>No se encontraron devoluciones. ¡Comienza registrando una nueva devolución!</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab 3: Statistics -->
+  <div class="tab-content" *ngIf="activeTab === 'stats'">
+    <div class="card">
+      <h2>Estadísticas</h2>
+
+      <!-- Month Selector -->
+      <div class="month-selector">
+        <p class="selector-title">Seleccionar un mes</p>
+        <div class="month-grid">
+          <button 
+            *ngFor="let month of [1,2,3,4,5,6,7,8,9,10,11,12]"
+            class="month-btn"
+            [class.active]="selectedMonth?.month === month && selectedMonth?.year === getCurrentYear()"
+            (click)="selectMonth(getCurrentYear(), month)">
+            {{ getMonthName(month) }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Statistics Table -->
+      <div class="table-responsive" *ngIf="statistics.length > 0">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Nombre de PO</th>
+              <th>Total de devoluciones</th>
+              <th>Mes</th>
+              <th>Año</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let stat of statistics">
+              <td>{{ stat.po_name }}</td>
+              <td><strong>{{ stat.total_returns }}</strong></td>
+              <td>{{ getMonthName(stat.month) }}</td>
+              <td>{{ stat.year }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div *ngIf="statistics.length === 0" class="empty-state">
+        <p>No hay datos disponibles para el mes seleccionado.</p>
+      </div>
+
+      <!-- Summary Cards -->
+      <div *ngIf="statistics.length > 0" class="summary-cards">
+        <div class="summary-card">
+          <div class="summary-label">Total de devoluciones</div>
+          <div class="summary-value">{{ getTotalReturns() }}</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-label">POs involucrados</div>
+          <div class="summary-value">{{ statistics.length }}</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-label">Promedio por PO</div>
+          <div class="summary-value">{{ getAveragePerPO() }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

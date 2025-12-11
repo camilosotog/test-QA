@@ -1,0 +1,169 @@
+<div class="container-fluid mt-4">
+  <!-- 📌 ENCABEZADO -->
+  <div class="row mb-4">
+    <div class="col-md-8">
+      <h1 class="page-title">
+        <i class="bi bi-folder-check"></i> Casos de Prueba
+      </h1>
+      <p class="text-muted">Gestiona tus proyectos de prueba, casos y ejecuciones</p>
+    </div>
+    <div class="col-md-4 text-end">
+      <button 
+        class="btn btn-primary btn-lg"
+        (click)="openCreateForm()"
+        [disabled]="loading"
+      >
+        <i class="bi bi-plus-circle"></i> Nuevo Proyecto
+      </button>
+    </div>
+  </div>
+
+  <!-- 📋 NAVEGACIÓN DE PESTAÑAS -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <ul class="nav nav-tabs">
+        <li class="nav-item">
+          <a class="nav-link active" href="#" onclick="return false;">
+            <i class="bi bi-folder2-open me-1"></i>Proyectos
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/testomat/ejecuciones">
+            <i class="bi bi-play-circle me-1"></i>Ejecuciones
+          </a>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ⚠️ MENSAJES DE ERROR -->
+  <div *ngIf="error" class="alert alert-danger alert-dismissible fade show" role="alert">
+    <i class="bi bi-exclamation-circle"></i> {{ error }}
+    <button type="button" class="btn-close" (click)="error = null"></button>
+  </div>
+
+  <!-- 📋 CONTENIDO PRINCIPAL -->
+  <div class="projects-container">
+    <!-- Cargando -->
+    <div *ngIf="loading" class="text-center py-5">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Cargando...</span>
+      </div>
+      <p class="mt-2 text-muted">Cargando proyectos...</p>
+    </div>
+
+    <!-- Tabla -->
+    <div *ngIf="!loading && projects.length > 0" class="table-wrapper">
+      <table class="table table-hover table-dark projects-table">
+        <thead>
+          <tr>
+            <th class="col-name">Nombre</th>
+            <th class="col-suites text-center">Total Suites</th>
+            <th class="col-actions text-center">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let project of projects" class="align-middle">
+            <td class="col-name fw-semibold">{{ project.name }}</td>
+            <td class="col-suites text-center">
+              <span class="badge bg-info">{{ getSuiteCount(project.id) }}</span>
+            </td>
+            <td class="col-actions text-center">
+              <button 
+                class="btn btn-sm btn-outline-success me-2"
+                title="Ver Suites"
+                (click)="goToSuites(project)"
+              >
+                <i class="bi bi-folder2-open"></i> Suites
+              </button>
+              <button 
+                class="btn btn-sm btn-outline-warning"
+                title="Editar"
+                (click)="openEditForm(project)"
+              >
+                <i class="bi bi-pencil"></i>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Sin proyectos -->
+    <div *ngIf="!loading && projects.length === 0" class="alert alert-info text-center py-5">
+      <i class="bi bi-inbox" style="font-size: 3rem; display: block; margin-bottom: 1rem;"></i>
+      <p>No hay proyectos aún. <strong>Crea uno para comenzar.</strong></p>
+    </div>
+  </div>
+
+  <!-- 📝 FORMULARIO MODAL -->
+  <div *ngIf="showForm" class="modal-overlay" (click)="closeForm()">
+    <div class="modal-dialog" (click)="$event.stopPropagation()">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">
+            <i class="bi" [class.bi-plus-circle]="!editingProjectId" [class.bi-pencil]="editingProjectId"></i>
+            {{ editingProjectId ? 'Editar Proyecto' : 'Nuevo Proyecto' }}
+          </h5>
+          <button type="button" class="btn-close" (click)="closeForm()"></button>
+        </div>
+        <form [formGroup]="projectForm">
+          <div class="modal-body">
+            <!-- Nombre -->
+            <div class="mb-3">
+              <label for="projectName" class="form-label">Nombre del Proyecto</label>
+              <input 
+                type="text" 
+                class="form-control"
+                id="projectName"
+                formControlName="name"
+                placeholder="Ej: Test Automatización Frontend"
+              />
+              <div class="invalid-feedback d-block" *ngIf="projectForm.get('name')?.invalid && projectForm.get('name')?.touched">
+                El nombre es requerido y debe tener al menos 3 caracteres
+              </div>
+            </div>
+
+            <!-- Descripción -->
+            <div class="mb-3">
+              <label for="projectDescription" class="form-label">Descripción</label>
+              <textarea 
+                class="form-control"
+                id="projectDescription"
+                formControlName="description"
+                rows="3"
+                placeholder="Describe el propósito de este proyecto..."
+              ></textarea>
+            </div>
+
+            <!-- Estado -->
+            <div class="mb-3">
+              <label for="projectStatus" class="form-label">Estado</label>
+              <select 
+                class="form-select"
+                id="projectStatus"
+                formControlName="status"
+              >
+                <option value="ready">Listo</option>
+                <option value="deprecated">Deprecado</option>
+              </select>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" (click)="closeForm()">
+              Cancelar
+            </button>
+            <button 
+              type="button" 
+              class="btn btn-primary"
+              (click)="saveProject()"
+              [disabled]="projectForm.invalid"
+            >
+              <i class="bi bi-check-circle"></i> Guardar
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

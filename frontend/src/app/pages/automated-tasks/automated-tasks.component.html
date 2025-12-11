@@ -1,0 +1,291 @@
+<!-- Modal: duplicada -->
+<div class="modal-backdrop" *ngIf="showDuplicateModal">
+  <div class="modal-dialog modal--sm" role="dialog" aria-modal="true" aria-labelledby="dupTitle">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 id="dupTitle" class="modal-title">¡Ojo!</h5>
+        <button type="button" class="modal-close" aria-label="Cerrar" (click)="closeDuplicateModal()">×</button>
+      </div>
+      <div class="modal-body">
+        Esta tarea es para automatizar o ya está automatizada.
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="modal-btn modal-btn-cancel" (click)="closeDuplicateModal()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="main-automated-tasks">
+  <div class="card-automated-tasks">
+
+    <!-- Modal: edición -->
+    <div class="modal-backdrop" *ngIf="editingTask">
+      <div class="modal-dialog modal--lg" role="dialog" aria-modal="true" aria-labelledby="editTitle">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 id="editTitle" class="modal-title">Editar tarea automatizada</h5>
+            <button type="button" class="modal-close" aria-label="Cerrar" (click)="cancelEditTask()">×</button>
+          </div>
+
+          <form [formGroup]="editForm" (ngSubmit)="saveEditTask()">
+            <div class="modal-body">
+              <div class="form-row form-row-grid">
+                <div class="form-col">
+                  <label for="edit_task_name">Nombre:</label>
+                  <input id="edit_task_name" formControlName="task_name" />
+                </div>
+
+                <div class="form-col">
+                  <label for="edit_state">Estado:</label>
+                  <select id="edit_state" formControlName="state" class="form-select custom-select">
+                    <option value="">Seleccione estado</option>
+                    <option value="SIN INICIAR">SIN INICIAR</option>
+                    <option value="EN PROCESO">EN PROCESO</option>
+                    <option value="FINALIZADO">FINALIZADO</option>
+                  </select>
+                </div>
+
+                <div class="form-col">
+                  <label for="edit_qa">QA:</label>
+                  <select id="edit_qa" formControlName="qa" class="form-select custom-select">
+                    <option value="">Seleccione QA</option>
+                    <option value="SEBASTIAN">SEBASTIAN</option>
+                    <option value="CAMILO">CAMILO</option>
+                    <option value="MATEO">MATEO</option>
+                    <option value="FELIPE">FELIPE</option>
+                  </select>
+                </div>
+
+                <div class="form-col form-col-btn">
+                  <label class="sr-only" for="btn-save-edit">Guardar</label>
+                  <button id="btn-save-edit" type="submit" [disabled]="editForm.invalid || loading" class="modal-btn modal-btn-save">
+                    <i class="fa fa-check"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: confirmar borrado -->
+    <div class="modal-backdrop" *ngIf="taskToDelete">
+      <div class="modal-dialog modal--sm" role="dialog" aria-modal="true" aria-labelledby="deleteTitle">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 id="deleteTitle" class="modal-title">¿Eliminar tarea?</h5>
+            <button type="button" class="modal-close" aria-label="Cerrar" (click)="cancelDeleteTask()">×</button>
+          </div>
+          <div class="modal-body">
+            ¿Seguro que deseas eliminar la tarea <strong>{{ taskToDelete.task_name }}</strong>?
+          </div>
+          <div class="modal-footer modal-footer-icons">
+            <button type="button" (click)="deleteTask()" [disabled]="loading" class="modal-btn modal-btn-save">
+              <i class="fa fa-trash"></i>
+            </button>
+            <button type="button" (click)="cancelDeleteTask()" class="modal-btn modal-btn-cancel">
+              <i class="fa fa-times"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="error" class="error">{{ error }}</div>
+
+    <div class="qa-collapsibles">
+      <!-- Colapsable: crear -->
+      <div class="qa-collapsible">
+        <div class="qa-collapsible-header" (click)="createExpanded = !createExpanded">
+          <h4 class="qa-title">Crear registro</h4>
+          <span class="qa-toggle-icon">{{ createExpanded ? '▼' : '►' }}</span>
+        </div>
+
+        <div class="qa-collapsible-body" *ngIf="createExpanded">
+          <form [formGroup]="form" (ngSubmit)="onSubmit()" class="form-grid">
+            <div class="form-row form-row-grid">
+              <div class="form-col">
+                <label for="task_name">Nombre:</label>
+                <input id="task_name" formControlName="task_name" />
+              </div>
+
+              <div class="form-col">
+                <label for="state">Estado:</label>
+                <select id="state" formControlName="state" class="form-select custom-select">
+                  <option value="">Seleccione estado</option>
+                  <option value="SIN INICIAR">SIN INICIAR</option>
+                  <option value="EN PROCESO">EN PROCESO</option>
+                  <option value="FINALIZADO">FINALIZADO</option>
+                </select>
+              </div>
+
+              <div class="form-col">
+                <label for="qa">QA:</label>
+                <select id="qa" formControlName="qa" class="form-select custom-select">
+                  <option value="">Seleccione QA</option>
+                  <option value="SEBASTIAN">SEBASTIAN</option>
+                  <option value="CAMILO">CAMILO</option>
+                  <option value="MATEO">MATEO</option>
+                  <option value="FELIPE">FELIPE</option>
+                </select>
+              </div>
+
+              <div class="form-col form-col-btn">
+                <label class="sr-only" for="btn-add">Agregar</label>
+                  <button id="btn-add" type="submit" [disabled]="form.invalid || loading" style="margin: 0 auto; width: 28px; height: 28px; font-size: 1em; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: #2563EB; color: #fff; border: none; padding: 0;">
+                    <i class="fa fa-plus"></i>
+                  </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Colapsables por QA -->
+      <div class="qa-collapsible" *ngFor="let qa of (tasksByQA | keyvalue); let i = index">
+        <div class="qa-collapsible-header" (click)="qaExpanded[i] = !qaExpanded[i]">
+          <h4 class="qa-title">{{ qa.key }}</h4>
+          <span class="qa-toggle-icon">{{ qaExpanded[i] ? '▼' : '►' }}</span>
+        </div>
+
+        <div class="qa-collapsible-body" *ngIf="qaExpanded[i]">
+          <ul class="qa-task-list">
+            <li *ngFor="let task of qa.value" (click)="startEditTask(task)" class="qa-task-card">
+              <div class="card-row">
+                <a
+                  [href]="'https://cox-ti.atlassian.net/browse/' + task.task_name"
+                  target="_blank"
+                  rel="noopener"
+                  [title]="'Ir a Jira: https://cox-ti.atlassian.net/browse/' + task.task_name"
+                  class="card-name"
+                  (click)="$event.stopPropagation()"
+                >{{ task.task_name }}</a>
+
+                <span class="state-badge state-badge-small"
+                  [ngClass]="{
+                    'badge-finalizado': task.state === 'FINALIZADO',
+                    'badge-proceso': task.state === 'EN PROCESO',
+                    'badge-sininiciar': task.state === 'SIN INICIAR'
+                  }">
+                  {{ task.state }}
+                </span>
+
+                <span class="task-actions">
+                  <button class="edit-btn" (click)="startEditTask(task); $event.stopPropagation()">
+                    <i class="fa fa-pencil"></i>
+                  </button>
+                  <button class="delete-btn" (click)="confirmDeleteTask(task); $event.stopPropagation()">
+                    <i class="fa fa-trash"></i>
+                  </button>
+                </span>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+    </div><!-- /.qa-collapsibles -->
+  </div><!-- /.card-automated-tasks -->
+</div><!-- /.main-automated-tasks -->
+
+<style>
+  /* ---------- Layout tarjeta principal ---------- */
+  .main-automated-tasks{
+    display:flex; flex-direction:column; align-items:center;
+    margin-top:2rem; width:100%; max-width:1200px; box-sizing:border-box; padding:0 1rem;
+  }
+  .card-automated-tasks{
+    background:#fff; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.07);
+    padding:2rem 1rem; width:100%; max-width:1200px; display:flex; flex-direction:column;
+    position:relative; z-index:2;
+  }
+
+  /* ---------- Modales ---------- */
+  .modal-backdrop{
+    position:fixed; inset:0; z-index:9999;
+    background:rgba(17,24,39,.55); backdrop-filter:blur(1px);
+    display:grid; place-items:center; padding:1.25rem;
+  }
+  .modal-dialog{ width:min(96vw, 720px); max-height:90vh; display:flex; }
+  .modal-dialog.modal--lg{ width:min(96vw, 720px); }
+  .modal-dialog.modal--sm{ width:min(96vw, 420px); }
+  .modal-content{
+    background:#fff; border-radius:12px; box-shadow:0 20px 60px rgba(0,0,0,.18);
+    width:100%; display:flex; flex-direction:column; max-height:90vh; overflow:hidden;
+  }
+  .modal-header, .modal-footer{ padding:.9rem 1.1rem; display:flex; align-items:center; }
+  .modal-header{ border-bottom:1px solid #e5e7eb; justify-content:space-between; }
+  .modal-footer{ border-top:1px solid #e5e7eb; justify-content:flex-end; gap:.6rem; }
+  .modal-title{ margin:0; font-weight:700; color:#2b3a67; }
+  .modal-close{
+    border:none; background:none; cursor:pointer; font-size:1.5rem; line-height:1;
+    color:#6b7280; padding:.25rem .4rem; border-radius:6px;
+  }
+  .modal-close:hover{ background:#f3f4f6; color:#111827; }
+  .modal-body{ padding:1rem 1.1rem; overflow:auto; }
+
+  /* ---------- Form grid (alineación) ---------- */
+  .form-row-grid{
+    display:grid; grid-template-columns: repeat(4, minmax(220px, 1fr));
+    gap:1.2rem; align-items:end; width:100%;
+  }
+  .form-col{ display:flex; flex-direction:column; justify-content:flex-end; }
+  .form-col label{ display:block; margin:0 0 .35rem; font-weight:600; color:#2b3a67; }
+  .form-col input, .form-col select, .form-col button{
+    width:100%; height:40px; box-sizing:border-box; padding:.5rem .75rem;
+    border:1px solid #d1d5db; border-radius:8px; background:#fff;
+  }
+  /* mantiene el botón alineado (label “fantasma”) */
+  .form-col-btn::before{ content:''; display:block; margin:0 0 .35rem; visibility:hidden; }
+  .form-col-btn button{ height:40px; }
+
+  /* ---------- Botones ---------- */
+  .modal-footer-icons{ display:flex; justify-content:flex-end; gap:1.2rem; padding-top:.5rem; }
+  .modal-btn{
+    border:none; background:none; font-size:1rem; cursor:pointer;
+    padding:.5rem .9rem; border-radius:8px; display:flex; align-items:center; justify-content:center;
+  }
+  .modal-btn-save{ color:#fff !important; background:#2563EB !important; border:1px solid #2563EB !important; }
+  .modal-btn-save:disabled{ opacity:.6; cursor:not-allowed; }
+  .modal-btn-cancel{ color:#fff !important; background:#EF4444 !important; border:1px solid #EF4444 !important; }
+  .modal-btn i{ pointer-events:none; }
+
+  /* ---------- Colapsables / lista ---------- */
+  .qa-collapsibles{ width:100%; margin-top:1.5rem; display:flex; flex-direction:column; gap:1.2rem; max-width:900px; margin-inline:auto; }
+  .qa-collapsible{ background:#f4f6fb; border-radius:8px; box-shadow:0 1px 4px rgba(0,0,0,0.04); width:100%; max-width:900px; margin-inline:auto; }
+  .qa-collapsible-header{ display:flex; align-items:center; justify-content:space-between; cursor:pointer; padding:1rem; border-bottom:1px solid #e5e7eb; user-select:none; }
+  .qa-title{ margin:0; font-size:1.1rem; font-weight:700; color:#2b3a67; }
+  .qa-toggle-icon{ font-size:1.2rem; color:#2563EB; margin-left:.5em; }
+
+  .qa-collapsible-body{ padding:.5rem .5rem 1rem; width:100%; max-width:900px; margin-inline:auto; box-sizing:border-box; }
+  .qa-task-list{ list-style:none; padding:0; margin:0; display:grid; grid-template-columns:repeat(3, 1fr); gap:.7rem; }
+  .qa-task-card{ background:#fff; border-radius:10px; padding:.3rem .7rem; box-shadow:0 2px 8px rgba(37,99,235,0.07); display:flex; align-items:center; height:44px; font-size:.97em; transition: box-shadow .2s; }
+  .qa-task-card:hover{ box-shadow:0 4px 16px rgba(37,99,235,0.15); }
+  .card-row{ display:flex; align-items:center; width:100%; gap:.7em; justify-content:space-between; }
+  .card-name{ font-weight:600; color:#2563EB; text-decoration:underline; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:90px; }
+  .state-badge-small{ font-size:.7rem; padding:.10em .5em; }
+  .task-actions{ display:flex; gap:.5em; margin-left:.7em; }
+  .edit-btn, .delete-btn{ background:none; border:none; cursor:pointer; font-size:1.1em; color:#2563EB; transition:color .2s; }
+  .delete-btn{ color:#EF4444; }
+  .edit-btn:hover{ color:#1E40AF; }
+  .delete-btn:hover{ color:#B91C1C; }
+
+  /* Responsive */
+  @media (max-width:1000px){
+    .qa-task-list{ grid-template-columns:repeat(2, 1fr); }
+    .form-row-grid{ grid-template-columns: repeat(2, minmax(220px, 1fr)); }
+  }
+  @media (max-width:600px){
+    .qa-task-list{ grid-template-columns:1fr; }
+    .form-row-grid{ grid-template-columns:1fr; }
+  }
+
+  /* Accesibilidad */
+  .sr-only{
+    position:absolute!important; width:1px; height:1px; padding:0; margin:-1px;
+    overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0;
+  }
+</style>

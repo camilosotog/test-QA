@@ -1,0 +1,887 @@
+<!-- Pantalla de selección de proyectos -->
+<div *ngIf="!selectedProject" class="project-selection">
+  <div class="header-section">
+    <h2 class="text-center mb-4">
+      <i class="fas fa-flask me-3"></i>
+      Módulo de Pruebas Automatizadas
+    </h2>
+    <p class="text-center text-muted mb-5">
+      Pruebas por proyecto
+    </p>
+  </div>
+
+  <div class="projects-grid">
+    <div 
+      *ngFor="let project of availableProjects" 
+      class="project-card"
+      [class.featured]="project.featured"
+      [style.--card-color]="project.color"
+      (click)="selectProject(project)">
+      <div class="project-header">
+        <div class="project-icon">
+          <span class="project-initials">{{getProjectInitials(project.name)}}</span>
+        </div>
+        <div class="project-status">
+          <span 
+            class="status-badge" 
+            [class.active]="project.status === 'active'"
+            [class.maintenance]="project.status === 'maintenance'"
+          >
+            {{getStatusLabel(project.status)}}
+          </span>
+        </div>
+      </div>
+
+      <div class="project-info">
+        <h3 class="project-title">{{project.name}}</h3>
+        <p class="project-description">{{project.description}}</p>
+        
+        <div class="project-stats">
+          <div class="stat-item">
+            <i class="fas fa-vial"></i>
+            <span>{{project.testSuites}} suites</span>
+          </div>
+          <div class="stat-item">
+            <i class="fas fa-clock"></i>
+            <span>{{project.lastExecution | date:'short'}}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="project-footer">
+        <div class="view-tests">
+          <span>Ver pruebas</span>
+          <i class="fas fa-arrow-right"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Pantalla de selección de tipos de prueba -->
+<div *ngIf="selectedProject && !selectedTestType" class="test-types-selection">
+  <div class="breadcrumb-nav">
+    <button class="btn-back" (click)="goBack()">
+      <i class="fas fa-arrow-left"></i>
+      Volver a proyectos
+    </button>
+    <div class="breadcrumb">
+      <span class="breadcrumb-item">Proyectos</span>
+      <i class="fas fa-chevron-right"></i>
+      <span class="breadcrumb-item active">{{selectedProject.name}}</span>
+    </div>
+  </div>
+
+  <div class="header-section">
+    <h2 class="text-center mb-2">
+      <i [class]="selectedProject.icon" [style.color]="selectedProject.color"></i>
+      {{selectedProject.name}}
+    </h2>
+    <p class="text-center text-muted mb-5">
+      Selecciona el tipo de prueba que deseas ejecutar o revisar
+    </p>
+  </div>
+
+  <div class="test-types-grid">
+    <div class="test-type-card" (click)="selectTestType('contract')">
+      <div class="test-icon contract-tests">
+        <i class="fas fa-file-contract"></i>
+      </div>
+      <h3>Pruebas de Contrato</h3>
+      <p>Validación de contratos API y estructura de respuestas</p>
+      <div class="test-stats">
+        <div class="stat-row">
+          <span class="label">Total:</span>
+          <span class="value">{{contractStats.total}}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="test-type-card" (click)="selectTestType('response')">
+      <div class="test-icon response-tests">
+        <i class="fas fa-check-circle"></i>
+      </div>
+      <h3>Respuesta Controlada</h3>
+      <p>Verificación de códigos de estado y tiempo de respuesta</p>
+      <div class="test-stats">
+        <div class="stat-row">
+          <span class="label">Total:</span>
+          <span class="value">{{responseStats.total}}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="test-type-card" (click)="selectTestType('automation')">
+      <div class="test-icon automation-tests">
+        <i class="fas fa-robot"></i>
+      </div>
+      <h3>Ticket Automático</h3>
+      <p>Creación y procesamiento automático de tickets</p>
+      <div class="test-stats">
+        <div class="stat-row">
+          <span class="label">Total:</span>
+          <span class="value">{{automationStats.total}}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Pantalla de resultados de pruebas -->
+<div *ngIf="selectedProject && selectedTestType" class="test-results">
+  <div class="breadcrumb-nav">
+    <button class="btn-back" (click)="goToProjects()">
+      <i class="fas fa-home"></i>
+      Proyectos
+    </button>
+    <div class="breadcrumb">
+      <span class="breadcrumb-item" (click)="goToProjects()">Proyectos</span>
+      <i class="fas fa-chevron-right"></i>
+      <span class="breadcrumb-item" (click)="goToTestTypes()">{{selectedProject.name}}</span>
+      <i class="fas fa-chevron-right"></i>
+      <span class="breadcrumb-item active">{{getTestTypeTitle()}}</span>
+    </div>
+  </div>
+
+  <div class="results-header">
+    <div class="test-type-info">
+      <h2>
+        <i [class]="getTestTypeIcon()" [class]="getTestTypeIconClass()"></i>
+        {{getTestTypeTitle()}}
+      </h2>
+      <p class="text-muted">{{getTestTypeDescription()}}</p>
+    </div>
+
+    <div class="action-buttons">
+      <button class="btn btn-outline-secondary me-2" (click)="refreshResults()" [disabled]="loading">
+        <i class="fas fa-sync" [class.fa-spin]="loading"></i>
+        Actualizar
+      </button>
+      <button class="btn btn-outline-primary me-2" (click)="exportResults()">
+        <i class="fas fa-download"></i>
+        Exportar
+      </button>
+      <!-- Solo mostrar botón de Ejecutar para pruebas de Postman (no para Ticket Automático) -->
+      <button *ngIf="selectedTestType !== 'automation'" class="btn btn-execute" (click)="executeTests()" [disabled]="loading || executionProgress.isExecuting">
+        <i class="fas" [ngClass]="executionProgress.isExecuting ? 'fa-spinner fa-spin' : 'fa-play'"></i>
+        {{ executionProgress.isExecuting ? 'Ejecutando...' : 'Ejecutar Pruebas' }}
+      </button>
+    </div>
+  </div>
+
+  
+
+  <!-- Filtros -->
+  <div class="filters-section">
+    <div class="row">
+      <div class="col-md-4">
+        <label class="form-label">Filtrar por estado:</label>
+        <select class="form-select" [(ngModel)]="statusFilter" (change)="applyFilters()">
+          <option value="">Todos los estados</option>
+          <option value="PASS">Pasadas</option>
+          <option value="FAIL">Falladas</option>
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Buscar:</label>
+        <input 
+          type="text" 
+          class="form-control" 
+          placeholder="Buscar por nombre..." 
+          [(ngModel)]="searchFilter"
+          (input)="applyFilters()"
+        >
+      </div>
+    </div>
+  </div>
+
+  <!-- � BARRA DE PROGRESO DE EJECUCIÓN -->
+  <div *ngIf="executionProgress.isExecuting" class="execution-progress-container">
+    <div class="progress-card">
+      <div class="progress-header">
+        <div class="progress-title">
+          <i class="fas fa-spinner fa-spin me-2"></i>
+          Ejecutando Pruebas
+        </div>
+        <div class="progress-stats">
+          <span class="badge bg-primary">{{executionProgress.current}}/{{executionProgress.total}}</span>
+          <span class="badge bg-info ms-2">{{executionProgress.timeRemaining}}</span>
+        </div>
+      </div>
+      
+      <div class="progress-body">
+        <div class="progress-bar-container">
+          <div class="progress" style="height: 30px;">
+            <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                 role="progressbar" 
+                 [style.width.%]="executionProgress.percentage"
+                 [class.bg-success]="executionProgress.percentage === 100"
+                 [class.bg-primary]="executionProgress.percentage < 100">
+              {{executionProgress.percentage}}%
+            </div>
+          </div>
+        </div>
+        
+        <div class="progress-details mt-3">
+          <div class="detail-item">
+            <span class="label">Test actual:</span>
+            <span class="value">{{executionProgress.currentTest || 'Iniciando...' | slice:0:60}}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Tiempo transcurrido:</span>
+            <span class="value">{{executionProgress.elapsedTime}}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Velocidad promedio:</span>
+            <span class="value">{{executionProgress.avgTestTime}} por test</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- �📊 DASHBOARD COMPLETO - 8 VISUALIZACIONES -->
+  <div *ngIf="selectedProject && selectedTestType && (selectedTestType === 'contract' || selectedTestType === 'response')" class="dashboard-section">
+    
+    <!-- 1️⃣ MÉTRICAS GLOBALES - KPI CARDS -->
+    <div class="kpi-section mb-4">
+      <h3 class="section-title">📊 Métricas Globales</h3>
+      <div class="kpi-grid">
+        <div class="kpi-card total">
+          <div class="kpi-icon">✅</div>
+          <div class="kpi-content">
+            <div class="kpi-value">{{globalStats.totalTests}}</div>
+            <div class="kpi-label">Total Pruebas</div>
+          </div>
+        </div>
+        
+        <div class="kpi-card assertions">
+          <div class="kpi-icon">🧩</div>
+          <div class="kpi-content">
+            <div class="kpi-value">{{globalStats.totalAssertions}}</div>
+            <div class="kpi-label">Aserciones</div>
+          </div>
+        </div>
+        
+        <div class="kpi-card fails">
+          <div class="kpi-icon">💥</div>
+          <div class="kpi-content">
+            <div class="kpi-value">{{globalStats.totalFails}}</div>
+            <div class="kpi-label">Fallas</div>
+          </div>
+        </div>
+        
+        <div class="kpi-card success">
+          <div class="kpi-icon">📈</div>
+          <div class="kpi-content">
+            <div class="kpi-value">{{globalStats.successRate}}%</div>
+            <div class="kpi-label">Tasa Éxito</div>
+          </div>
+        </div>
+        
+        <div class="kpi-card execution">
+          <div class="kpi-icon">🕒</div>
+          <div class="kpi-content">
+            <div class="kpi-value">{{globalStats.lastExecution | date:'dd/MM'}}</div>
+            <div class="kpi-label">Última Ejecución</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FILA SUPERIOR: 2️⃣ Estado General + 3️⃣ Tendencia Temporal -->
+    <div class="charts-row mb-4">
+      <div class="chart-container">
+        <div class="chart-header">
+          <h4>🥧 Estado General</h4>
+        </div>
+        <div class="chart-body">
+          <canvas #generalStatusChart></canvas>
+        </div>
+      </div>
+      
+      <div class="chart-container">
+        <div class="chart-header">
+          <h4>📈 Tendencia Temporal</h4>
+        </div>
+        <div class="chart-body">
+          <canvas #temporalTrendChart></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- FILA MEDIA: 4️⃣ Por Tipo + 5️⃣ Por Ejecución -->
+    <div class="charts-row mb-4">
+      <div class="chart-container">
+        <div class="chart-header">
+          <h4>📊 Por Tipo de Aserción</h4>
+        </div>
+        <div class="chart-body">
+          <canvas #assertionTypeChart></canvas>
+        </div>
+      </div>
+      
+      <div class="chart-container">
+        <div class="chart-header">
+          <h4>📊 Rendimiento por Ejecución</h4>
+        </div>
+        <div class="chart-body">
+          <canvas #executionPerformanceChart></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- FILA INFERIOR: 6️⃣ Top Errores + 7️⃣ Fallas Acumuladas -->
+    <div class="charts-row mb-4">
+      <!-- 6️⃣ TOP ERRORES FRECUENTES -->
+      <div class="chart-container">
+        <div class="chart-header">
+          <h4>📋 Top Errores Frecuentes</h4>
+        </div>
+        <div class="chart-body errors-table">
+          <div class="table-container">
+            <table class="errors-table">
+              <thead>
+                <tr>
+                  <th>Error</th>
+                  <th>Cantidad</th>
+                  <th>%</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let error of topErrors; let i = index">
+                  <td class="error-message">
+                    <span class="error-rank">{{i + 1}}.</span>
+                    {{error.message | slice:0:50}}{{error.message.length > 50 ? '...' : ''}}
+                  </td>
+                  <td>
+                    <span class="error-count">{{error.count}}</span>
+                  </td>
+                  <td>
+                    <span class="error-percentage">{{error.percentage}}%</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 7️⃣ FALLAS ACUMULADAS -->
+      <div class="chart-container">
+        <div class="chart-header">
+          <h4>📉 Fallas Acumuladas</h4>
+        </div>
+        <div class="chart-body">
+          <canvas #cumulativeFailuresChart></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- FILA COMPLETA: 8️⃣ Distribución por Proyecto -->
+    <div class="charts-row-full mb-4">
+      <div class="chart-container-full">
+        <div class="chart-header">
+          <h4>🧱 Distribución por Proyecto/Entorno</h4>
+        </div>
+        <div class="chart-body">
+          <canvas #projectDistributionChart></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- 📋 TABLA DETALLADA DE RESULTADOS -->
+    <div class="charts-row-full mb-4">
+      <div class="chart-container-full">
+        <div class="chart-header">
+          <h4>📋 Detalle de Resultados - {{getTestTypeTitle()}}</h4>
+          <div class="header-actions">
+            <button class="btn btn-sm btn-outline-primary" (click)="exportResults()">
+              <i class="fas fa-download"></i> Exportar
+            </button>
+          </div>
+        </div>
+        <div class="chart-body table-responsive">
+          <table class="table table-hover table-striped details-table">
+            <thead class="table-dark sticky-top">
+              <tr>
+                <th style="width: 50px;">#</th>
+                <th style="width: 80px;">ID</th>
+                <th style="width: 300px;">Nombre de Prueba</th>
+                <th style="width: 180px;">Aserción</th>
+                <th style="width: 100px;">Estado</th>
+                <th style="width: 120px;">Código HTTP</th>
+                <th style="width: 140px;">Tiempo Respuesta</th>
+                <th style="width: 350px;">Response Body</th>
+                <th>Mensaje de Error</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let result of filteredPostmanResults; let i = index" 
+                  [class.table-success]="result.assertion_name && !result.error_message"
+                  [class.table-danger]="result.error_message">
+                <td>{{i + 1}}</td>
+                <td><span class="badge bg-secondary">{{result.id}}</span></td>
+                <td class="fw-semibold text-wrap" style="max-width: 300px;">
+                  {{result.test_name}}
+                </td>
+                <td>
+                  <span class="badge bg-info text-wrap" style="max-width: 180px;">
+                    {{result.assertion_name || 'N/A'}}
+                  </span>
+                </td>
+                <td>
+                  <span class="badge" 
+                        [class.bg-success]="!result.error_message"
+                        [class.bg-danger]="result.error_message">
+                    {{result.error_message ? 'FAIL' : 'PASS'}}
+                  </span>
+                </td>
+                <td>
+                  <span class="badge" 
+                        [class.bg-success]="result.http_code && result.http_code >= 200 && result.http_code < 300"
+                        [class.bg-warning]="result.http_code && result.http_code >= 300 && result.http_code < 400"
+                        [class.bg-danger]="result.http_code && result.http_code >= 400">
+                    {{result.http_code || 'N/A'}}
+                  </span>
+                </td>
+                <td>
+                  <span class="badge" 
+                        [class.bg-success]="result.response_time && result.response_time < 500"
+                        [class.bg-warning]="result.response_time && result.response_time >= 500 && result.response_time < 1000"
+                        [class.bg-danger]="result.response_time && result.response_time >= 1000">
+                    {{result.response_time ? result.response_time + 'ms' : 'N/A'}}
+                  </span>
+                </td>
+                <td class="text-wrap" style="max-width: 350px;">
+                  <small class="text-muted font-monospace" style="font-size: 0.75rem;">
+                    {{result.response_body ? (result.response_body | slice:0:200) + (result.response_body.length > 200 ? '...' : '') : 'N/A'}}
+                  </small>
+                </td>
+                <td class="text-wrap" style="max-width: 300px;">
+                  <small [class.text-danger]="result.error_message">
+                    {{result.error_message || '—'}}
+                  </small>
+                </td>
+              </tr>
+              <tr *ngIf="filteredPostmanResults.length === 0">
+                <td colspan="9" class="text-center text-muted py-4">
+                  <i class="fas fa-inbox fa-2x mb-2"></i>
+                  <p>No hay resultados disponibles</p>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="chart-footer">
+          <div class="results-info">
+            <span class="text-muted">
+              Mostrando {{filteredPostmanResults.length}} resultados
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 🔥 TOP REQUESTS MÁS FALLIDOS -->
+    <div class="charts-row-full mb-4">
+      <div class="chart-container-full">
+        <div class="chart-header">
+          <h4>🔥 Top Requests Más Fallidos</h4>
+        </div>
+        <div class="chart-body table-responsive">
+          <table class="table table-hover table-striped details-table">
+            <thead class="table-dark sticky-top">
+              <tr>
+                <th style="width: 60px;">#</th>
+                <th style="width: 450px;">Nombre del Request</th>
+                <th style="width: 120px;">Fallas</th>
+                <th style="width: 120px;">Total</th>
+                <th style="width: 150px;">Tasa de Fallas</th>
+                <th>Gráfico</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let request of topFailedRequests; let i = index"
+                  [class.table-danger]="request.failRate >= 75"
+                  [class.table-warning]="request.failRate >= 50 && request.failRate < 75">
+                <td>
+                  <span class="badge bg-secondary">{{i + 1}}</span>
+                </td>
+                <td class="fw-semibold text-wrap" style="max-width: 450px;">
+                  {{request.requestName}}
+                </td>
+                <td>
+                  <span class="badge bg-danger">
+                    {{request.failCount}}
+                  </span>
+                </td>
+                <td>
+                  <span class="badge bg-info">
+                    {{request.totalCount}}
+                  </span>
+                </td>
+                <td>
+                  <span class="badge" 
+                        [class.bg-danger]="request.failRate >= 75"
+                        [class.bg-warning]="request.failRate >= 50 && request.failRate < 75"
+                        [class.bg-success]="request.failRate < 50">
+                    {{request.failRate}}%
+                  </span>
+                </td>
+                <td>
+                  <div class="progress" style="height: 25px; min-width: 150px;">
+                    <div class="progress-bar bg-danger" 
+                         role="progressbar" 
+                         [style.width.%]="request.failRate"
+                         [attr.aria-valuenow]="request.failRate" 
+                         aria-valuemin="0" 
+                         aria-valuemax="100">
+                      {{request.failRate}}%
+                    </div>
+                  </div>
+                </td>
+              </tr>
+              <tr *ngIf="topFailedRequests.length === 0">
+                <td colspan="6" class="text-center text-muted py-4">
+                  <i class="fas fa-check-circle fa-2x mb-2 text-success"></i>
+                  <p>🎉 ¡Excelente! No hay requests con fallas</p>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="chart-footer">
+          <div class="results-info">
+            <span class="text-muted">
+              Mostrando {{topFailedRequests.length}} requests con fallas
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 📅 RESULTADOS DE LA ÚLTIMA EJECUCIÓN -->
+    <div class="charts-row-full mb-4">
+      <div class="chart-container-full">
+        <div class="chart-header">
+          <h4>📅 Última Ejecución - {{lastExecutionDate | date:'dd/MM/yyyy HH:mm:ss'}}</h4>
+          <div class="header-actions">
+            <span class="badge bg-info">
+              {{lastExecutionResults.length}} tests ejecutados
+            </span>
+          </div>
+        </div>
+        <div class="chart-body table-responsive">
+          <table class="table table-hover table-striped details-table">
+            <thead class="table-dark sticky-top">
+              <tr>
+                <th style="width: 50px;">#</th>
+                <th style="width: 80px;">ID</th>
+                <th style="width: 350px;">Nombre de Prueba</th>
+                <th style="width: 180px;">Aserción</th>
+                <th style="width: 100px;">Estado</th>
+                <th style="width: 120px;">Código HTTP</th>
+                <th style="width: 140px;">Tiempo Respuesta</th>
+                <th style="width: 150px;">Hora Ejecución</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let result of lastExecutionResults; let i = index" 
+                  [class.table-success]="result.assertion_name && !result.error_message"
+                  [class.table-danger]="result.error_message">
+                <td>{{i + 1}}</td>
+                <td><span class="badge bg-secondary">{{result.id}}</span></td>
+                <td class="fw-semibold text-wrap" style="max-width: 350px;">
+                  {{result.test_name}}
+                </td>
+                <td>
+                  <span class="badge bg-info text-wrap" style="max-width: 180px;">
+                    {{result.assertion_name || 'N/A'}}
+                  </span>
+                </td>
+                <td>
+                  <span class="badge" 
+                        [class.bg-success]="!result.error_message"
+                        [class.bg-danger]="result.error_message">
+                    {{result.error_message ? 'FAIL' : 'PASS'}}
+                  </span>
+                </td>
+                <td>
+                  <span class="badge" 
+                        [class.bg-success]="result.http_code && result.http_code >= 200 && result.http_code < 300"
+                        [class.bg-warning]="result.http_code && result.http_code >= 300 && result.http_code < 400"
+                        [class.bg-danger]="result.http_code && result.http_code >= 400">
+                    {{result.http_code || 'N/A'}}
+                  </span>
+                </td>
+                <td>
+                  <span class="badge" 
+                        [class.bg-success]="result.response_time && result.response_time < 500"
+                        [class.bg-warning]="result.response_time && result.response_time >= 500 && result.response_time < 1000"
+                        [class.bg-danger]="result.response_time && result.response_time >= 1000">
+                    {{result.response_time ? result.response_time + 'ms' : 'N/A'}}
+                  </span>
+                </td>
+                <td>
+                  <small class="text-muted">{{result.created_at | date:'HH:mm:ss'}}</small>
+                </td>
+              </tr>
+              <tr *ngIf="lastExecutionResults.length === 0">
+                <td colspan="8" class="text-center text-muted py-4">
+                  <i class="fas fa-info-circle fa-2x mb-2"></i>
+                  <p>No hay datos de la última ejecución</p>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="chart-footer">
+          <div class="results-info">
+            <span class="text-muted">
+              Resultados de la última ejecución
+              <span *ngIf="lastExecutionResults.length > 0">
+                - {{lastExecutionPassedCount}} pasados, 
+                {{lastExecutionFailedCount}} fallidos
+              </span>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 📊 DASHBOARD COMPLETO PLAYWRIGHT - 8 VISUALIZACIONES -->
+  <div *ngIf="selectedProject && selectedTestType === 'automation'" class="dashboard-section">
+    
+    <!-- 1️⃣ MÉTRICAS GLOBALES - KPI CARDS -->
+    <div class="kpi-section mb-4">
+      <h3 class="section-title">📊 Métricas Globales - Playwright</h3>
+      <div class="kpi-grid">
+        <div class="kpi-card total">
+          <div class="kpi-icon">✅</div>
+          <div class="kpi-content">
+            <div class="kpi-value">{{playwrightGlobalStats.totalTests}}</div>
+            <div class="kpi-label">Total Tests</div>
+          </div>
+        </div>
+        
+        <div class="kpi-card assertions">
+          <div class="kpi-icon">🧩</div>
+          <div class="kpi-content">
+            <div class="kpi-value">{{playwrightGlobalStats.totalTests}}</div>
+            <div class="kpi-label">Tests Ejecutados</div>
+          </div>
+        </div>
+        
+        <div class="kpi-card fails">
+          <div class="kpi-icon">💥</div>
+          <div class="kpi-content">
+            <div class="kpi-value">{{playwrightGlobalStats.totalFails}}</div>
+            <div class="kpi-label">Fallas</div>
+          </div>
+        </div>
+        
+        <div class="kpi-card success">
+          <div class="kpi-icon">📈</div>
+          <div class="kpi-content">
+            <div class="kpi-value">{{playwrightGlobalStats.successRate}}%</div>
+            <div class="kpi-label">Tasa Éxito</div>
+          </div>
+        </div>
+        
+        <div class="kpi-card execution">
+          <div class="kpi-icon">🕒</div>
+          <div class="kpi-content">
+            <div class="kpi-value">{{playwrightGlobalStats.lastExecution | date:'dd/MM'}}</div>
+            <div class="kpi-label">Última Ejecución</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FILA SUPERIOR: 2️⃣ Estado General + 3️⃣ Tendencia Temporal -->
+    <div class="charts-row mb-4">
+      <div class="chart-container">
+        <div class="chart-header">
+          <h4>🥧 Estado General</h4>
+        </div>
+        <div class="chart-body">
+          <canvas #playwrightGeneralStatusChart></canvas>
+        </div>
+      </div>
+      
+      <div class="chart-container">
+        <div class="chart-header">
+          <h4>📈 Tendencia Temporal</h4>
+        </div>
+        <div class="chart-body">
+          <canvas #playwrightTemporalTrendChart></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- FILA MEDIA: 4️⃣ Por Test + 5️⃣ Por Browser -->
+    <div class="charts-row mb-4">
+      <div class="chart-container">
+        <div class="chart-header">
+          <h4>📊 Distribución por Test</h4>
+        </div>
+        <div class="chart-body">
+          <canvas #playwrightTestDistributionChart></canvas>
+        </div>
+      </div>
+      
+      <div class="chart-container">
+        <div class="chart-header">
+          <h4>📊 Rendimiento por Ejecución</h4>
+        </div>
+        <div class="chart-body">
+          <canvas #playwrightExecutionPerformanceChart></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- FILA INFERIOR: 6️⃣ Top Fallos + 7️⃣ Fallas Acumuladas -->
+    <div class="charts-row mb-4">
+      <!-- 6️⃣ TOP FALLOS FRECUENTES -->
+      <div class="chart-container">
+        <div class="chart-header">
+          <h4>📋 Top Fallos Frecuentes</h4>
+        </div>
+        <div class="chart-body errors-table">
+          <div class="table-container">
+            <table class="errors-table">
+              <thead>
+                <tr>
+                  <th>Test</th>
+                  <th>Fallos</th>
+                  <th>%</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let failure of playwrightTopFailures; let i = index">
+                  <td class="error-message">
+                    <span class="error-rank">{{i + 1}}.</span>
+                    {{failure.testName | slice:0:40}}{{failure.testName.length > 40 ? '...' : ''}}
+                  </td>
+                  <td>
+                    <span class="error-count">{{failure.count}}</span>
+                  </td>
+                  <td>
+                    <span class="error-percentage">{{failure.percentage}}%</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 7️⃣ FALLAS ACUMULADAS -->
+      <div class="chart-container">
+        <div class="chart-header">
+          <h4>📉 Fallas Acumuladas</h4>
+        </div>
+        <div class="chart-body">
+          <canvas #playwrightCumulativeFailuresChart></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- FILA COMPLETA: 8️⃣ Distribución por Suite -->
+    <div class="charts-row-full mb-4">
+      <div class="chart-container-full">
+        <div class="chart-header">
+          <h4>🧱 Distribución por Suite de Tests</h4>
+        </div>
+        <div class="chart-body">
+          <canvas #playwrightSuiteDistributionChart></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- 📋 TABLA DETALLADA DE RESULTADOS PLAYWRIGHT -->
+    <div class="charts-row-full mb-4">
+      <div class="chart-container-full">
+        <div class="chart-header">
+          <h4>📋 Detalle de Resultados - {{getTestTypeTitle()}}</h4>
+          <div class="header-actions">
+            <button class="btn btn-sm btn-outline-primary" (click)="exportResults()">
+              <i class="fas fa-download"></i> Exportar
+            </button>
+          </div>
+        </div>
+        <div class="chart-body table-responsive">
+          <table class="table table-hover table-striped details-table">
+            <thead class="table-dark sticky-top">
+              <tr>
+                <th style="width: 50px;">#</th>
+                <th style="width: 80px;">ID</th>
+                <th style="width: 180px;">Suite</th>
+                <th style="width: 400px;">Nombre de Prueba</th>
+                <th style="width: 100px;">Estado</th>
+                <th style="width: 130px;">Duración (s)</th>
+                <th style="width: 150px;">Fecha</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let result of filteredPlaywrightResults; let i = index" 
+                  [class.table-success]="result.status === 'passed'"
+                  [class.table-danger]="result.status === 'failed'"
+                  [class.table-warning]="result.status === 'skipped'">
+                <td>{{i + 1}}</td>
+                <td><span class="badge bg-secondary">{{result.id}}</span></td>
+                <td>
+                  <span class="badge bg-primary">{{result.suite}}</span>
+                </td>
+                <td class="fw-semibold text-wrap" style="max-width: 400px;">
+                  {{result.test_name}}
+                </td>
+                <td>
+                  <span class="badge" 
+                        [class.bg-success]="result.status === 'passed'"
+                        [class.bg-danger]="result.status === 'failed'"
+                        [class.bg-warning]="result.status === 'skipped'">
+                    {{result.status.toUpperCase()}}
+                  </span>
+                </td>
+                <td>
+                  <span class="badge" 
+                        [class.bg-success]="(result.duration_ms / 1000) <= 100"
+                        [class.bg-danger]="(result.duration_ms / 1000) > 100">
+                    {{(result.duration_ms / 1000) | number:'1.1-1'}}s
+                  </span>
+                </td>
+                <td>
+                  <small class="text-muted">{{result.run_date | date:'dd/MM/yyyy HH:mm'}}</small>
+                </td>
+              </tr>
+              <tr *ngIf="filteredPlaywrightResults.length === 0">
+                <td colspan="7" class="text-center text-muted py-4">
+                  <i class="fas fa-inbox fa-2x mb-2"></i>
+                  <p>No hay resultados disponibles</p>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="chart-footer">
+          <div class="results-info">
+            <span class="text-muted">
+              Mostrando {{filteredPlaywrightResults.length}} resultados
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Loading overlay -->
+<div *ngIf="loading" class="loading-overlay">
+  <div class="loading-spinner">
+    <i class="fas fa-spinner fa-spin"></i>
+    <p>Ejecutando pruebas...</p>
+  </div>
+</div>

@@ -1,0 +1,475 @@
+  <div class="modal-backdrop" *ngIf="showDuplicateAutomatedModal">
+    <div class="modal-dialog warning-modal">
+      <div class="modal-content warning-content">
+        <div class="modal-header warning-header">
+          <h5 class="modal-title text-center w-100"><span class="warning-icon">&#9888;</span> Advertencia</h5>
+        </div>
+        <div class="modal-body text-center">
+          <div class="fw-bold mb-2">Esta tarea es para automatizar o ya está automatizada.</div>
+          <div>¿Deseas crearla de todas formas?</div>
+        </div>
+        <div class="modal-footer warning-footer">
+          <button type="button" class="btn btn-outline-secondary btn-lg me-3" (click)="closeDuplicateAutomatedModal()">Cancelar</button>
+          <button type="button" class="btn btn-warning btn-lg" (click)="confirmDuplicateAutomatedModal()">Crear de todas formas</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para tarea duplicada en base de datos -->
+  <div class="modal-backdrop" *ngIf="showDuplicateTaskModal">
+    <div class="modal-dialog warning-modal">
+      <div class="modal-content warning-content">
+        <div class="modal-header warning-header">
+          <h5 class="modal-title text-center w-100"><span class="warning-icon">&#9888;</span> Tarea Duplicada</h5>
+        </div>
+        <div class="modal-body text-center">
+          <div class="fw-bold mb-3">La tarea ya fue creada en el sprint <strong>{{duplicateTaskInfo?.sprint_name}}</strong> y se encuentra en estado <strong>{{duplicateTaskInfo?.state}}</strong>.</div>
+          <div>¿Deseas crearla de todas formas?</div>
+        </div>
+        <div class="modal-footer warning-footer">
+          <button type="button" class="btn btn-outline-secondary btn-lg me-3" (click)="closeDuplicateTaskModal()">Cancelar</button>
+          <button type="button" class="btn btn-warning btn-lg" (click)="confirmDuplicateTaskModal()">Aceptar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+<div class="container-fluid px-0 py-4">
+  
+  <div *ngIf="error" class="alert alert-danger text-center">{{ error }}</div>
+
+  <!-- Vista de Sprints -->
+  <div >
+    <div *ngIf="authService.getCurrentUser()?.role === 'ADMIN'" class="card mb-4">
+      <div class="d-flex justify-content-between align-items-center bg-light p-2 rounded sprint-header" (click)="toggleCreateSprintCollapse()" style="cursor:pointer; user-select:none;">
+        <h3 class="card-title mb-0 text-dark fw-bold">Crear nuevo sprint</h3>
+        <i class="bi bi-chevron-down sprint-chevron ms-2" [class.rotate-180]="createSprintCollapse" style="font-size:1.5rem; transition: transform 0.3s cubic-bezier(.4,2,.6,1);"></i>
+      </div>
+      <div class="sprint-collapse-content" [class.show]="createSprintCollapse">
+        <div class="card-body">
+          <form class="row g-3" #sprintForm="ngForm">
+            <div class="col-md-4">
+              <label class="form-label">Nombre del Sprint *</label>
+              <input type="text" [(ngModel)]="newSprint.name" name="sprintName" placeholder="Nombre del sprint" required class="form-control" #sprintName="ngModel">
+              <div *ngIf="sprintName.invalid && sprintName.touched" class="text-danger small">Este campo es obligatorio.</div>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Fecha de Inicio *</label>
+              <input type="date" [(ngModel)]="newSprint.start_date" name="startDate" class="form-control" required #startDate="ngModel">
+              <div *ngIf="startDate.invalid && startDate.touched" class="text-danger small">Este campo es obligatorio.</div>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Fecha de Fin *</label>
+              <input type="date" [(ngModel)]="newSprint.finish_date" name="finishDate" class="form-control" required #finishDate="ngModel">
+              <div *ngIf="finishDate.invalid && finishDate.touched" class="text-danger small">Este campo es obligatorio.</div>
+            </div>
+          </form>
+          <button class="btn btn-primary mt-3" (click)="createSprint()" [disabled]="loading || sprintForm.invalid">
+            <span *ngIf="loading" class="spinner-border spinner-border-sm me-2"></span>
+            {{ loading ? 'Creando...' : 'Crear Sprint' }}
+          </button>
+        </div>
+      </div>
+    </div>
+<!-- Vista de Lista -->
+  <div *ngIf="authService.getCurrentUser()?.role === 'ADMIN' || authService.getCurrentUser()?.role === 'QA'">
+    <div class="card mb-4">
+      <div class="d-flex justify-content-between align-items-center bg-light p-2 rounded sprint-header" (click)="toggleCreateTareaCollapse()" style="cursor:pointer; user-select:none;">
+        <h3 class="card-title mb-0 text-dark fw-bold">Crear nueva tarea</h3>
+        <i class="bi bi-chevron-down sprint-chevron ms-2" [class.rotate-180]="createTareaCollapse" style="font-size:1.5rem; transition: transform 0.3s cubic-bezier(.4,2,.6,1);"></i>
+      </div>
+      <div class="sprint-collapse-content" [class.show]="createTareaCollapse">
+        <div class="card-body">
+          <form class="row g-3" #tareaForm="ngForm">
+            <div class="col-md-4">
+              <label class="form-label">Nombre de la tarea *</label>
+              <input type="text" [(ngModel)]="newItem.name" name="tareaName" placeholder="Nombre de la tarea" required class="form-control text-uppercase" #tareaName="ngModel" (input)="newItem.name = (newItem.name || '').toUpperCase()">
+              <div *ngIf="tareaName.invalid && tareaName.touched" class="text-danger small">Este campo es obligatorio.</div>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Estimación (horas)</label>
+              <input type="number" [(ngModel)]="newItem.estimate" name="estimate" class="form-control" min="0" step="0.1" placeholder="Horas estimadas">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Casos *</label>
+              <input type="number" [(ngModel)]="newItem.test_cases" name="testCases" class="form-control" min="0" required [value]="newItem.test_cases" #testCases="ngModel">
+              <div *ngIf="testCases.invalid && testCases.touched" class="text-danger small">Este campo es obligatorio y debe ser mayor o igual a 0.</div>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Desarrollador *</label>
+              <select [(ngModel)]="newItem.developer_id" name="developerId" class="form-select" required #developerId="ngModel">
+                <option [ngValue]="null" disabled>Sin asignar</option>
+                <option *ngFor="let dev of devUsers" [ngValue]="dev.id">{{ dev.name }}</option>
+              </select>
+              <div *ngIf="developerId.invalid && developerId.touched" class="text-danger small">Selecciona un desarrollador.</div>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Estado *</label>
+              <select [(ngModel)]="newItem.state" name="state" class="form-select" required #state="ngModel">
+                <option value="En pruebas" style="background-color:#ffc107;color:#212529;">En pruebas</option>
+                <option value="Bloqueado" style="background-color:#795548;color:#fff;">Bloqueado</option>
+                <option value="Listo" style="background-color:#198754;color:#fff;">Listo</option>
+                <option value="Sin iniciar" style="background-color:#6c757d;color:#fff;">Sin iniciar</option>
+                <option value="Devuelta" style="background-color:#dc3545;color:#fff;">Devuelta</option>
+              </select>
+              <div *ngIf="state.invalid && state.touched" class="text-danger small">Selecciona un estado.</div>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Sprint *</label>
+              <select [(ngModel)]="newItem.sprint_id" name="sprintId" class="form-select" required #sprintId="ngModel">
+                <option [value]="null" disabled>Sin Sprint</option>
+                <option *ngFor="let sprint of sprints" [value]="sprint.id">{{ sprint.name }}</option>
+              </select>
+              <div *ngIf="sprintId.invalid && sprintId.touched" class="text-danger small">Selecciona un sprint.</div>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Sprint anterior? *</label>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="sprintPrev" id="sprintPrevNo" [(ngModel)]="newItem.sprint_prev" [value]="false" required #sprintPrev="ngModel">
+                <label class="form-check-label" for="sprintPrevNo">No</label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="sprintPrev" id="sprintPrevYes" [(ngModel)]="newItem.sprint_prev" [value]="true" required #sprintPrev="ngModel">
+                <label class="form-check-label" for="sprintPrevYes">Sí</label>
+              </div>
+              <div *ngIf="sprintPrev.invalid && sprintPrev.touched" class="text-danger small">Selecciona una opción.</div>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Devoluciones *</label>
+              <input type="number" [(ngModel)]="newItem.returns" name="returns" placeholder="Número de devoluciones" class="form-control" required min="0" #returns="ngModel">
+              <div *ngIf="returns.invalid && returns.touched" class="text-danger small">Este campo es obligatorio y debe ser mayor o igual a 0.</div>
+            </div>
+          <div class="col-md-4">
+            <label class="form-label">Fecha Devolución</label>
+            <input type="date" [(ngModel)]="newItem.return_date" name="returnDate" class="form-control">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Casos Auto.</label>
+            <input type="number" [(ngModel)]="newItem.automated_cases" name="automatedCases" placeholder="Número de casos automatizados" class="form-control">
+          </div>
+          </form>
+          <div class="mt-3 d-flex gap-2">
+            <button class="btn btn-primary" (click)="createItem()" [disabled]="loading || tareaForm.invalid">
+              <span *ngIf="loading" class="spinner-border spinner-border-sm me-2"></span>
+              {{ loading ? 'Creando...' : 'Crear tarea' }}
+            </button>
+            <button class="btn btn-outline-secondary" type="button" (click)="resetNewItem(); tareaForm.resetForm();" [disabled]="loading">
+              Limpiar campos
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+  </div>
+    <!-- Tablas organizadas por Sprint -->
+    <div class="mb-4">
+      <div *ngIf="loading" class="text-center py-3">
+        <div class="spinner-border text-primary"></div>
+        <div>Cargando...</div>
+      </div>
+      <div *ngIf="!loading">
+        <div class="row mb-3 g-2 align-items-end">
+          <div class="col-md-6">
+            <input type="text" class="form-control form-control-lg" placeholder="Filtrar tareas por nombre..." [(ngModel)]="taskFilter" style="max-width:400px;">
+          </div>
+          <div class="col-md-6" *ngIf="authService.getCurrentUser()?.role === 'ADMIN'">
+            <select class="form-select form-select-lg" [(ngModel)]="developerFilter" style="max-width:400px;">
+              <option value="">Filtrar por desarrollador</option>
+              <option *ngFor="let dev of devUsers" [value]="dev.id">{{ dev.name }}</option>
+            </select>
+          </div>
+        </div>
+        <ng-container *ngFor="let sprintData of sprints">
+          <div *ngIf="sprintData.name !== 'Tareas que no se han podido probar' || authService.getCurrentUser()?.role === 'ADMIN'" class="mb-4">
+            <div class="d-flex justify-content-between align-items-center bg-light p-2 rounded">
+              <div (click)="toggleSprintCollapse(sprintData.id!)" style="cursor:pointer;flex:1;">
+                <h4 class="mb-0 d-inline">{{ sprintData.name || 'Sin Sprint' }}</h4>
+                <small>
+                  <span *ngIf="sprintData.start_date"> Inicio: {{ sprintData.start_date | date:'shortDate' }}</span>
+                  <span *ngIf="sprintData.finish_date" class="ms-2">Fin: {{ sprintData.finish_date | date:'shortDate' }}</span>
+                </small>
+              </div>
+            <i class="bi" [ngClass]="sprintCollapse[sprintData.id!] !== false ? 'bi-chevron-up' : 'bi-chevron-down'" (click)="toggleSprintCollapse(sprintData.id!)" style="cursor:pointer;"></i>
+          </div>
+          <div class="sprint-collapse-content" [class.show]="sprintCollapse[sprintData.id!] !== false">
+            <div *ngIf="loadingBoards[sprintData.id!]" class="text-center py-3">
+              <div class="spinner-border text-primary"></div>
+              <div>Cargando tareas...</div>
+            </div>
+            <div *ngIf="!loadingBoards[sprintData.id!] && boardsBySprint[sprintData.id!] && boardsBySprint[sprintData.id!].length > 0" class="table-responsive mt-2 sprint-table-scroll sprint-table-x-scroll" style="max-height: 900px; overflow-y: auto; overflow-x: auto;">
+              <div class="d-flex justify-content-end mb-2">
+                <button class="btn btn-outline-primary btn-sm" (click)="refreshBoardsBySprint(sprintData.id!)" [disabled]="loadingBoards[sprintData.id!]">
+                  <i class="fa fa-refresh"></i> Actualizar
+                </button>
+              </div>
+              <table class="table table-bordered table-hover align-middle dark-table sprint-table-opt" style="width: 100%; background: rgba(30, 41, 59, 0.8) !important;">
+                <thead class="custom-dark-header" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.25) 0%, rgba(236, 72, 153, 0.15) 100%) !important;">
+                  <tr>
+                    <th style="width: 7%; min-width: 70px; color: #FFF !important; font-weight: 800 !important; font-size: 0.75rem !important; padding: 0.6rem 0.4rem !important;">Nombre</th>
+                    <th style="width: 8%; min-width: 65px; color: #FFF !important; font-weight: 800 !important; font-size: 0.75rem !important; padding: 0.6rem 0.4rem !important;">QA</th>
+                    <th style="width: 4%; min-width: 45px; color: #FFF !important; font-weight: 800 !important; font-size: 0.75rem !important; padding: 0.6rem 0.3rem !important;">Casos</th>
+                    <th style="width: 10%; min-width: 85px; color: #FFF !important; font-weight: 800 !important; font-size: 0.75rem !important; padding: 0.6rem 0.4rem !important;">Desarrollo</th>
+                    <th style="width: 8%; min-width: 75px; color: #FFF !important; font-weight: 800 !important; font-size: 0.75rem !important; padding: 0.6rem 0.4rem !important;">Estado</th>
+                    <th style="width: 7%; min-width: 70px; color: #FFF !important; font-weight: 800 !important; font-size: 0.75rem !important; padding: 0.6rem 0.4rem !important;">Estim.</th>
+                    <th style="width: 9%; min-width: 80px; color: #FFF !important; font-weight: 800 !important; font-size: 0.75rem !important; padding: 0.6rem 0.4rem !important;">T. Pruebas</th>
+                    <th style="width: 6%; min-width: 55px; color: #FFF !important; font-weight: 800 !important; font-size: 0.75rem !important; padding: 0.6rem 0.3rem !important;">Devol.</th>
+                    <th style="width: 6%; min-width: 55px; color: #FFF !important; font-weight: 800 !important; font-size: 0.75rem !important; padding: 0.6rem 0.3rem !important;">Auto.</th>
+                    <th style="width: 6%; min-width: 60px; color: #FFF !important; font-weight: 800 !important; font-size: 0.75rem !important; padding: 0.6rem 0.3rem !important;">Ant.</th>
+                    <th style="width: 12%; min-width: 100px; color: #FFF !important; font-weight: 800 !important; font-size: 0.75rem !important; padding: 0.6rem 0.4rem !important;">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let item of getBoardsSafe(sprintData.id!)" [ngClass]="getRowAgeClass(item)">
+                    <!-- Nombre -->
+                    <td>
+                      <span *ngIf="editingItem?.id !== item.id">
+                        <a 
+                          [href]="'https://cox-ti.atlassian.net/browse/' + item.name"
+                          target="_blank"
+                          rel="noopener"
+                          [title]="'Ir a Jira: https://cox-ti.atlassian.net/browse/' + item.name"
+                          style="text-decoration: underline; cursor: pointer;"
+                        >
+                          {{ item.name }}
+                        </a>
+                      </span>
+                      <input *ngIf="editingItem?.id === item.id && editingItem" type="text" [(ngModel)]="editingItem.name" class="form-control form-control-sm text-uppercase" (input)="editingItem.name = (editingItem.name || '').toUpperCase()">
+                    </td>
+                    <!-- QA -->
+                    <td>
+                      <span *ngIf="editingItem?.id !== item.id">{{ item.owner_name }}</span>
+                      <select *ngIf="editingItem?.id === item.id && editingItem" [(ngModel)]="editingItem.owner_id" class="form-select form-select-sm">
+                        <option [ngValue]="null">Sin asignar</option>
+                        <option *ngFor="let qa of qaUsers" [ngValue]="qa.id">{{ qa.name }}</option>
+                      </select>
+                    </td>
+                    <!-- Casos -->
+                    <td>
+                      <span *ngIf="editingItem?.id !== item.id">{{ item.test_cases }}</span>
+                      <input *ngIf="editingItem?.id === item.id && editingItem" type="number" [(ngModel)]="editingItem.test_cases" class="form-control form-control-sm">
+                    </td>
+                    <!-- Desarrollador -->
+                    <td>
+                      <span *ngIf="editingItem?.id !== item.id">{{ item.developer_name }}</span>
+                      <select *ngIf="editingItem?.id === item.id && editingItem" [(ngModel)]="editingItem.developer_id" class="form-select form-select-sm">
+                        <option [ngValue]="null">Sin asignar</option>
+                        <option *ngFor="let dev of devUsers" [ngValue]="dev.id">{{ dev.name }}</option>
+                      </select>
+                    </td>
+                    <!-- Estado -->
+          <td [ngStyle]="editingItem?.id !== item.id ? {} : {}"
+            [attr.title]="item.state === 'En pruebas' && getTestingPercent(item) >= 80 ? 'La estimación está por cumplirse' : null">
+                      <span *ngIf="editingItem?.id !== item.id"
+                            class="state-pill"
+                            [ngClass]="{
+                              'state-en-pruebas': item.state === 'En pruebas',
+                              'state-bloqueado': item.state === 'Bloqueado',
+                              'state-listo': item.state === 'Listo',
+                              'state-sin-iniciar': item.state === 'Sin iniciar',
+                              'state-devuelta': item.state === 'Devuelta',
+                              'testing-warning': item.state === 'En pruebas' && getTestingPercent(item) >= 80 && getTestingPercent(item) < 100,
+                              'testing-danger': item.state === 'En pruebas' && getTestingPercent(item) >= 100
+                            }"
+                            [attr.data-anim-trigger]="testingAnimTrigger[item.id!] || 0">
+                        <span class="testing-anim-bar" *ngIf="item.state === 'En pruebas'">
+                          <span class="testing-anim-fill" [style.width]="getTestingPercent(item) + '%'"
+                                [ngClass]="{'bar-warning': getTestingPercent(item) >= 80 && getTestingPercent(item) < 100, 'bar-danger': getTestingPercent(item) >= 100}"></span>
+                        </span>
+                        {{ item.state }}
+                        <span *ngIf="item.state === 'En pruebas' && getTestingPercent(item) >= 80"
+                              class="ms-1"
+                              [ngClass]="{'text-warning': getTestingPercent(item) < 100, 'text-danger': getTestingPercent(item) >= 100}"
+                              [attr.title]="'La estimación está por cumplirse'">
+                          <i class="fa fa-exclamation-triangle"></i>
+                        </span>
+                      </span>
+                      <select *ngIf="editingItem?.id === item.id && editingItem" [(ngModel)]="editingItem.state" class="form-select form-select-sm">
+                        <option value="En pruebas" style="background-color:#ffc107;color:#212529;">En pruebas</option>
+                        <option value="Bloqueado" style="background-color:#795548;color:#fff;">Bloqueado</option>
+                        <option value="Listo" style="background-color:#198754;color:#fff;">Listo</option>
+                        <option value="Sin iniciar" style="background-color:#6c757d;color:#fff;">Sin iniciar</option>
+                        <option value="Devuelta" style="background-color:#dc3545;color:#fff;">Devuelta</option>
+                      </select>
+                    </td>
+                    <!-- Estimación -->
+                    <td>
+                      <span *ngIf="editingItem?.id !== item.id">{{ item.estimate ? item.estimate + ' - Horas' : '' }}</span>
+                      <input *ngIf="editingItem?.id === item.id && editingItem" type="number" [(ngModel)]="editingItem.estimate" class="form-control form-control-sm" min="0" step="0.1" disabled>
+                    </td>
+                    <!-- Tiempo en pruebas -->
+                    <td>
+                      <span *ngIf="item.in_testing_age">
+                        <button class="btn btn-link p-0 me-1" (click)="calcularTiempoEnPruebas(item)" title="Actualizar tiempo" [disabled]="item.state !== 'En pruebas'">
+                          <i class="fa fa-refresh"></i>
+                        </button>
+                        <span>{{ testingTimeCache[item.id!] || '--:--:--' }}</span>
+                        <span *ngIf="item.state !== 'En pruebas'" class="text-muted small ms-1">(finalizado)</span>
+                      </span>
+                    </td>
+                    <!-- Devoluciones -->
+                    <td>
+                      <ng-container *ngIf="editingItem?.id !== item?.id && item">
+                        <span *ngIf="hasReturns(item)"
+                              class="returns-tooltip-trigger"
+                              [attr.title]="'Fecha de última devolución: ' + (item && item.return_date ? (item.return_date | date:'shortDate') : 'N/A')">
+                          {{ item.returns }}
+                        </span>
+                        <span *ngIf="item.returns == 0">0</span>
+                      </ng-container>
+                      <input *ngIf="editingItem?.id === item?.id && editingItem" type="number" [(ngModel)]="editingItem.returns" class="form-control form-control-sm">
+                    </td>
+                    <!-- Casos Auto. -->
+                    <td>
+                      <span *ngIf="editingItem?.id !== item.id">{{ item.automated_cases }}</span>
+                      <input *ngIf="editingItem?.id === item.id && editingItem" type="number" [(ngModel)]="editingItem.automated_cases" class="form-control form-control-sm">
+                    </td>
+                    <!-- Sprint anterior? -->
+                    <td>
+                      <span *ngIf="editingItem?.id !== item.id">{{ isSprintPrevYes(item.sprint_prev) ? 'Sí' : 'No' }}</span>
+                      <div *ngIf="editingItem?.id === item.id && editingItem" class="mt-2">
+                        <label class="form-label">Sprint anterior?</label>
+                        <div class="form-check form-check-inline">
+                          <input class="form-check-input" type="radio" name="sprintPrevEdit{{item.id}}" id="sprintPrevEditNo{{item.id}}" [(ngModel)]="editingItem.sprint_prev" [value]="false">
+                          <label class="form-check-label" for="sprintPrevEditNo{{item.id}}">No</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                          <input class="form-check-input" type="radio" name="sprintPrevEdit{{item.id}}" id="sprintPrevEditYes{{item.id}}" [(ngModel)]="editingItem.sprint_prev" [value]="true">
+                          <label class="form-check-label" for="sprintPrevEditYes{{item.id}}">Sí</label>
+                        </div>
+                      </div>
+                    </td>
+                    <!-- Acciones -->
+                    <td>
+                      <div class="d-flex gap-1 flex-row align-items-center" *ngIf="editingItem?.id !== item.id">
+                        <button class="btn btn-outline-secondary btn-sm" (click)="startEdit(item)" title="Editar">
+                          <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="btn btn-outline-danger btn-sm" (click)="deleteItem(item.id!)" title="Eliminar">
+                          <i class="bi bi-trash"></i>
+                        </button>
+                      </div>
+                      <div class="d-flex gap-1 flex-row align-items-center" *ngIf="editingItem?.id === item.id">
+                        <button class="btn btn-success btn-sm" (click)="updateItem(editingItem)" title="Guardar">
+                          <i class="bi bi-check-lg"></i>
+                        </button>
+                        <button class="btn btn-secondary btn-sm" (click)="cancelEdit()" title="Cancelar">
+                          <i class="bi bi-x-lg"></i>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div *ngIf="!loadingBoards[sprintData.id!] && (!boardsBySprint[sprintData.id!] || boardsBySprint[sprintData.id!].length === 0)" class="alert alert-info mt-2">No hay tareas en este sprint</div>
+          </div>
+        </div>
+        </ng-container>
+      </div>
+    </div>
+  </div>
+
+
+<style>
+.sprint-header:hover {
+  background: #e9ecef !important;
+}
+.sprint-chevron {
+  transition: transform 0.3s cubic-bezier(.4,2,.6,1);
+  display: inline-block;
+}
+.rotate-180 {
+  transform: rotate(180deg);
+}
+.sprint-collapse-content {
+  transition: max-height 1s cubic-bezier(.4,2,.6,1), opacity 0.6s;
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  margin-bottom: 0 !important;
+}
+.sprint-collapse-content.show {
+  max-height: 3000px;
+  opacity: 1;
+  padding-top: 2rem !important;
+  padding-bottom: 2rem !important;
+  margin-bottom: 2.5rem !important;
+}
+.sprint-table-scroll {
+  max-height: 900px;
+  overflow-y: auto;
+}
+/* Tooltip visual para devoluciones */
+.returns-tooltip-trigger {
+  cursor: pointer;
+  text-decoration: underline dotted;
+  position: relative;
+}
+.returns-tooltip-trigger:hover {
+  color: #0d6efd;
+}
+/* Encabezados de tabla estilo oscuro */
+.custom-dark-header th {
+  background: #2d3846 !important;
+  color: #fff !important;
+  font-size: 1rem;
+  font-weight: 500;
+  text-align: left;
+  border-bottom: 2.5px solid #232b36;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+  box-shadow: none;
+  letter-spacing: 0.01em;
+  padding-top: 0.38rem;
+  padding-bottom: 0.38rem;
+  padding-left: 1.1rem;
+  padding-right: 0.7rem;
+}
+.custom-dark-header th:first-child {
+  border-top-left-radius: 8px;
+}
+.custom-dark-header th:last-child {
+  border-top-right-radius: 8px;
+}
+.custom-dark-header tr {
+  border-radius: 8px;
+}
+table tbody td {
+  font-size: 0.97rem;
+  font-weight: 400;
+  padding-top: 0.35rem;
+  padding-bottom: 0.35rem;
+  padding-left: 0.4rem;
+  padding-right: 0.4rem;
+  vertical-align: middle;
+}
+table thead th:first-child {
+  border-top-left-radius: 12px;
+}
+table thead th:last-child {
+  border-top-right-radius: 12px;
+}
+</style>
+
+
+<style>
+.qa-colapsable-table {
+  width: 100% !important;
+  table-layout: fixed;
+}
+.container-fluid > .mb-4 > .table-responsive {
+  padding-left: 0;
+  padding-right: 0;
+}
+.qa-colapsable-table th, .qa-colapsable-table td {
+  white-space: normal;
+  word-break: break-word;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+}
+</style>
+  
+<table class="table table-bordered table-hover align-middle qa-colapsable-table">

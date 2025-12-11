@@ -1,0 +1,136 @@
+<div *ngIf="isLoggedIn">
+	<!-- Navbar horizontal -->
+		<nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom px-4">
+			<div class="container-fluid justify-content-between">
+				<div class="d-flex align-items-center">
+					<h1 class="mb-0 fs-4 fw-bold">Gestor de QA</h1>
+				</div>
+				<div class="d-flex align-items-center gap-2 flex-grow-1 justify-content-center">
+					<div class="d-flex align-items-center gap-1">
+						<ng-container *ngFor="let user of onlineUsers">
+						  <ng-container *ngIf="user.email === 'camilo.soto@oncredit.com.co'; else notCamilo">
+						    <img src="assets/cami_cara2.png" [title]="user.name" class="profile-avatar-navbar online-avatar" />
+						  </ng-container>
+						  <ng-template #notCamilo>
+						    <ng-container *ngIf="user.email === 'juanse.martinez@oncredit.com.co'; else notSebas">
+						      <img src="assets/sebas_cara2.png" [title]="user.name" class="profile-avatar-navbar online-avatar" />
+						    </ng-container>
+						    <ng-template #notSebas>
+						      <ng-container *ngIf="user.email === 'andresm.reyes@oncredit.com.co'; else notAndres">
+						        <img src="assets/mateo_cara2.png" [title]="user.name" class="profile-avatar-navbar online-avatar" />
+						      </ng-container>
+						      <ng-template #notAndres>
+						        <ng-container *ngIf="user.email === 'luis.lasso@oncredit.com.co'; else notPipe">
+						          <img src="assets/pipe_cara.png" [title]="user.name" class="profile-avatar-navbar online-avatar" />
+						        </ng-container>
+						        <ng-template #notPipe>
+						          <ng-container *ngIf="user.avatarUrl; else initialsOrDefault">
+						            <img [src]="user.avatarUrl" [title]="user.name" class="profile-avatar-navbar online-avatar" />
+						          </ng-container>
+						          <ng-template #initialsOrDefault>
+						            <span class="profile-avatar-navbar online-avatar profile-avatar-initials" [title]="user.name">
+						              {{ user.name.split(' ').length === 1 ? user.name.charAt(0).toUpperCase() : (user.name.split(' ')[0].charAt(0) + user.name.split(' ')[user.name.split(' ').length-1].charAt(0)).toUpperCase() }}
+						            </span>
+						          </ng-template>
+						        </ng-template>
+						      </ng-template>
+						    </ng-template>
+						  </ng-template>
+						</ng-container>
+					</div>
+				</div>
+				<div class="d-flex align-items-center gap-2">
+					<span class="fw-bold">{{ userName }}</span>
+					<i class="bi bi-bell fs-4 mx-2" title="Notificaciones" style="cursor:pointer;"></i>
+					<button class="btn btn-link p-0" title="Detalles de perfil" (click)="openProfileModal()">
+						<ng-container *ngIf="userAvatarUrl; else initialsAvatar">
+							<img [src]="userAvatarUrl" alt="Avatar" class="profile-avatar-navbar" />
+						</ng-container>
+						<ng-template #initialsAvatar>
+							<span class="profile-avatar-navbar profile-avatar-initials">{{ userInitials }}</span>
+						</ng-template>
+					</button>
+				</div>
+			</div>
+		</nav>
+ 
+			<!-- Modal de perfil -->
+			<div class="modal fade show" tabindex="-1" [ngStyle]="{display: showProfileModal ? 'block' : 'none', background: showProfileModal ? 'rgba(0,0,0,0.3)' : 'transparent'}" *ngIf="showProfileModal">
+				<div class="modal-dialog">
+					<div class="modal-content">
+						<div class="modal-header">
+							<h5 class="modal-title">Detalles del perfil</h5>
+							<button type="button" class="btn-close" (click)="closeProfileModal()"></button>
+						</div>
+						<div class="modal-body">
+							<div class="d-flex align-items-center gap-3 mb-3">
+											<ng-container *ngIf="userAvatarUrl; else initialsAvatarModal">
+												<img [src]="userAvatarUrl" alt="Avatar" class="profile-avatar-modal" />
+											</ng-container>
+											<ng-template #initialsAvatarModal>
+												<span class="profile-avatar-modal profile-avatar-initials">{{ userInitials }}</span>
+											</ng-template>
+								<div>
+									<div class="fw-bold">{{ userName }}</div>
+									<div class="badge bg-secondary mt-2" color="white">{{ userRole }}</div>
+								</div>
+							</div>
+						</div>
+						<div class="modal-footer d-flex justify-content-between">
+							<button type="button" class="btn btn-danger" (click)="logout(); closeProfileModal()">Cerrar sesión</button>
+							<button (click)="logoutAllUsers(); closeProfileModal()" class="btn btn-danger" *ngIf="userRole === 'ADMIN'">
+								<i class="bi bi-box-arrow-right"></i> Cerrar sesión a todos
+							</button>
+						</div>
+					</div>
+				</div>
+			</div>
+	<div class="d-flex">
+		<nav [ngClass]="{'collapsed': !sidebarOpen, 'bg-light': true, 'border-end': true, 'p-3': true}" class="sidebar-nav">
+			<div class="d-flex justify-content-between align-items-center mb-4">
+				<h5 class="mb-0">Menú</h5>
+				<button class="btn btn-sm btn-outline-secondary ms-2" (click)="toggleSidebar()" title="Ocultar menú">
+					<i class="bi" [ngClass]="sidebarOpen ? 'bi-chevron-left' : 'bi-chevron-right'"></i>
+				</button>
+			</div>
+			<ul class="nav flex-column">
+				<li class="nav-item mb-2">
+					<a class="nav-link" routerLink="/qa-items" routerLinkActive="active"><i class="bi bi-kanban me-1"></i>Sprints</a>
+				</li>
+				   <li class="nav-item mb-2" *ngIf="userRole === 'ADMIN'">
+					   <a class="nav-link" routerLink="/usuarios" routerLinkActive="active"><i class="bi bi-people me-1"></i>Usuarios</a>
+				   </li>
+				   <li class="nav-item mb-2" *ngIf="userRole === 'ADMIN'">
+					   <a class="nav-link" routerLink="/estadisticas" routerLinkActive="active"><i class="bi bi-graph-up me-1"></i>Estadísticas</a>
+				   </li>
+				   <li class="nav-item mb-2" >
+					   <a class="nav-link" routerLink="/automated-tasks" routerLinkActive="active"><i class="bi bi-robot me-1"></i>Tareas Automatizadas</a>
+				   </li>
+				   <li class="nav-item mb-2">
+					   <a class="nav-link" routerLink="/grafica-pruebas" routerLinkActive="active"><i class="bi bi-bar-chart me-1"></i>Pruebas</a>
+				   </li>
+				   <li class="nav-item mb-2">
+					   <a class="nav-link" routerLink="/returns" routerLinkActive="active"><i class="bi bi-arrow-counterclockwise me-1"></i>Analisis de requerimientos</a>
+				   </li>
+				   <li class="nav-item mb-2">
+					   <a class="nav-link" routerLink="/dibujo-colaborativo" routerLinkActive="active"><i class="bi bi-controller me-1"></i>Juegos</a>
+				   </li>
+				   <li class="nav-item mb-2" *ngIf="userRole === 'ADMIN' || userRole === 'QA'">
+					   <a class="nav-link" routerLink="/testomat" routerLinkActive="active"><i class="bi bi-folder-check me-1"></i>Casos de prueba</a>
+				   </li>
+						<li class="nav-item mb-2" *ngIf="userRole === 'ADMIN'">
+							<a class="nav-link" routerLink="/bugs" routerLinkActive="active"><i class="bi bi-bug me-1"></i>Bugs</a>
+						</li>
+			</ul>
+		</nav>
+		<button *ngIf="!sidebarOpen" class="btn btn-sm btn-outline-secondary position-fixed m-2" style="z-index:1000;" (click)="toggleSidebar()" title="Mostrar menú">
+			<i class="bi bi-chevron-right"></i>
+		</button>
+		<main class="flex-fill p-4">
+			<router-outlet></router-outlet>
+		</main>
+	</div>
+</div>
+<div *ngIf="!isLoggedIn">
+	<router-outlet></router-outlet>
+</div>

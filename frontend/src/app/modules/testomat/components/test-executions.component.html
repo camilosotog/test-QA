@@ -1,0 +1,151 @@
+<div class="container-fluid mt-4">
+  <!-- 📌 ENCABEZADO -->
+  <div class="row mb-4">
+    <div class="col-md-8">
+      <h1 class="page-title">
+        <i class="bi bi-folder-check"></i> Casos de Prueba
+      </h1>
+      <p class="text-muted">Ejecuta y registra los resultados de tus casos de prueba</p>
+    </div>
+    <div class="col-md-4 text-end">
+      <button 
+        class="btn btn-success btn-lg"
+        (click)="startNewExecution()"
+        [disabled]="loading || !currentSuite"
+        *ngIf="executions.length > 0 || !loading"
+      >
+        <i class="bi bi-play-fill"></i> Nueva Ejecución
+      </button>
+    </div>
+  </div>
+
+  <!-- 📋 NAVEGACIÓN DE PESTAÑAS -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <ul class="nav nav-tabs">
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/testomat">
+            <i class="bi bi-folder2-open me-1"></i>Proyectos
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link active" href="#" onclick="return false;">
+            <i class="bi bi-play-circle me-1"></i>Ejecuciones
+          </a>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ⚠️ MENSAJES DE ERROR -->
+  <div *ngIf="error" class="alert alert-danger alert-dismissible fade show" role="alert">
+    <i class="bi bi-exclamation-circle"></i> {{ error }}
+    <button type="button" class="btn-close" (click)="error = null"></button>
+  </div>
+
+  <!-- 📋 LISTA DE EJECUCIONES AGRUPADAS POR MES -->
+  <div class="executions-container">
+    <!-- Cargando -->
+    <div *ngIf="loading" class="text-center py-5">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Cargando...</span>
+      </div>
+      <p class="mt-2 text-muted">Cargando ejecuciones...</p>
+    </div>
+
+    <!-- Ejecuciones agrupadas por mes -->
+    <div *ngIf="!loading && monthGroups.length > 0" class="months-container">
+      <!-- Carpeta de mes -->
+      <div *ngFor="let monthGroup of monthGroups" class="month-folder">
+        <!-- Encabezado del mes (carpeta clickeable) -->
+        <div class="month-header" (click)="toggleMonthGroup(monthGroup)">
+          <div class="month-header-left">
+            <i class="bi" [class.bi-folder-fill]="monthGroup.isExpanded" [class.bi-folder]="!monthGroup.isExpanded"></i>
+            <span class="month-name">{{ monthGroup.displayName }}</span>
+            <span class="executions-count">{{ monthGroup.executions.length }}</span>
+          </div>
+          <i class="bi toggle-arrow" [class.bi-chevron-down]="monthGroup.isExpanded" [class.bi-chevron-right]="!monthGroup.isExpanded"></i>
+        </div>
+
+        <!-- Contenido de ejecuciones del mes -->
+        <div class="month-content" *ngIf="monthGroup.isExpanded">
+          <div class="executions-grid">
+            <div *ngFor="let execution of monthGroup.executions" class="execution-card" (click)="openExecution(execution)">
+              <div class="card-header">
+              <div class="d-flex justify-content-between align-items-start">
+                  <div>
+                    <h5 class="card-title mb-1">{{ execution.suite_name || 'Suite sin nombre' }}</h5>
+                    <small class="text-muted">Ejecutada por: {{ execution.executed_by_name || 'Sin Asignar' }}</small>
+                  </div>
+                  <span [class]="'badge ' + getStatusBadge(execution)">
+                    {{ getStatusText(execution) }}
+                  </span>
+                </div>
+              </div>
+
+              <div class="card-body">
+                <!-- Progreso -->
+                <div class="progress-section">
+                  <div class="progress" style="height: 25px;">
+                    <div 
+                      [class]="'progress-bar ' + ((execution.failed_cases ?? 0) > 0 ? 'bg-danger' : 'bg-success')"
+                      role="progressbar" 
+                      [style.width.%]="getProgressPercentage(execution)"
+                      [attr.aria-valuenow]="getProgressPercentage(execution)"
+                      aria-valuemin="0" 
+                      aria-valuemax="100"
+                    >
+                      <small class="fw-bold">{{ getProgressPercentage(execution) }}%</small>
+                    </div>
+                  </div>
+                  <div class="progress-stats mt-2">
+                    <span class="stat-item">
+                      <i class="bi bi-check-circle text-success"></i> {{ execution.passed_cases ?? 0 }} Pasaron
+                    </span>
+                    <span class="stat-item">
+                      <i class="bi bi-x-circle text-danger"></i> {{ execution.failed_cases ?? 0 }} Fallaron
+                    </span>
+                    <span class="stat-item">
+                      <i class="bi bi-question-circle text-secondary"></i> {{ (execution.total_cases ?? 0) - ((execution.passed_cases ?? 0) + (execution.failed_cases ?? 0)) }} Pendientes
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Fecha y hora -->
+                <div class="metadata mt-3 pt-3 border-top">
+                  <small class="text-muted">
+                    <i class="bi bi-calendar-event"></i> Iniciada: {{ (execution.start_date || execution.created_at) | date: 'short' }}
+                  </small>
+                  <small class="text-muted d-block" *ngIf="execution.ended_at">
+                    <i class="bi bi-calendar-check"></i> Finalizada: {{ execution.ended_at | date: 'short' }}
+                  </small>
+                </div>
+              </div>
+
+              <div class="card-footer">
+                <button 
+                  class="btn btn-sm btn-primary w-100"
+                  (click)="continueExecution(execution)"
+                >
+                  <i class="bi bi-arrow-right-circle"></i> Continuar Ejecución
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sin ejecuciones -->
+    <div *ngIf="!loading && monthGroups.length === 0" class="alert alert-info text-center py-5">
+      <i class="bi bi-inbox" style="font-size: 3rem; display: block; margin-bottom: 1rem;"></i>
+      <p class="mb-3">No hay ejecuciones aún. <strong>Inicia una para comenzar a registrar resultados.</strong></p>
+      <button 
+        class="btn btn-success btn-lg"
+        (click)="startNewExecution()"
+        [disabled]="loading || !currentSuite"
+      >
+        <i class="bi bi-play-fill"></i> Iniciar Primera Ejecución
+      </button>
+    </div>
+  </div>

@@ -1,0 +1,228 @@
+<div class="container-fluid mt-4">
+  <!-- ⚠️ SIN PROYECTO SELECCIONADO -->
+  <div *ngIf="!hasProjectSelected()" class="alert alert-info text-center py-5">
+    <i class="bi bi-info-circle" style="font-size: 2.5rem; display: block; margin-bottom: 1rem;"></i>
+    <p class="mb-2"><strong>Selecciona un proyecto primero</strong></p>
+    <p class="text-muted">Vuelve atrás y haz click en "Suites" dentro de un proyecto</p>
+  </div>
+
+  <!-- 📌 CONTENIDO PRINCIPAL (cuando hay proyecto) -->
+  <div *ngIf="hasProjectSelected()">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-3">
+      <ol class="breadcrumb breadcrumb-dark">
+        <li class="breadcrumb-item">
+          <a href="javascript:history.back()" class="text-info">Proyectos</a>
+        </li>
+        <li class="breadcrumb-item active" aria-current="page">{{ currentProject?.name }}</li>
+      </ol>
+    </nav>
+
+    <!-- Encabezado -->
+    <div class="row mb-4">
+      <div class="col-md-8">
+        <h1 class="page-title">
+          <i class="bi bi-folder2-open"></i> Suites de {{ currentProject?.name }}
+        </h1>
+      </div>
+      <div class="col-md-4 text-end">
+        <button 
+          class="btn btn-primary btn-lg"
+          (click)="openCreateForm()"
+          [disabled]="loading"
+        >
+          <i class="bi bi-plus-circle"></i> Nueva Suite
+        </button>
+      </div>
+    </div>
+
+    <!-- ⚠️ MENSAJES DE ERROR -->
+    <div *ngIf="error" class="alert alert-danger alert-dismissible fade show" role="alert">
+      <i class="bi bi-exclamation-circle"></i> {{ error }}
+      <button type="button" class="btn-close" (click)="error = null"></button>
+    </div>
+
+    <!-- 📋 TABLA DE SUITES -->
+    <div class="suites-container">
+      <!-- Cargando -->
+      <div *ngIf="loading" class="text-center py-5">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Cargando...</span>
+        </div>
+        <p class="mt-2 text-muted">Cargando suites...</p>
+      </div>
+
+      <!-- Card wrapper -->
+      <div class="card card-dark shadow-sm" *ngIf="!loading">
+        <div class="card-header bg-primary-dark border-bottom-primary">
+          <h5 class="card-title mb-0">
+            <i class="bi bi-list-ul"></i> {{ suites.length }} Suite{{ suites.length !== 1 ? 's' : '' }}
+          </h5>
+        </div>
+        <div class="card-body p-0">
+          <!-- Tabla -->
+          <div *ngIf="suites.length > 0" class="table-responsive">
+            <table class="table table-hover table-dark">
+              <thead>
+                <tr>
+                  <th>Nombre</th>
+                  <th>Estado</th>
+                  <th>Creado</th>
+                  <th class="text-center">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let suite of suites" class="align-middle">
+                  <td class="fw-semibold">{{ suite.name }}</td>
+                  <td>
+                    <span [class]="'badge ' + getStatusClass(suite.status)">
+                      {{ getStatusText(suite.status) }}
+                    </span>
+                  </td>
+                  <td class="text-muted small">
+                    {{ suite.created_at | date: 'short' }}
+                  </td>
+                  <td class="text-center">
+                    <button 
+                      class="btn btn-sm btn-success me-2"
+                      title="Ver y crear casos de prueba"
+                      routerLink="/testomat/casos"
+                      [queryParams]="{suiteId: suite.id}"
+                    >
+                      <i class="bi bi-file-earmark-check"></i> Casos
+                    </button>
+                    <button 
+                      class="btn btn-sm btn-info me-2"
+                      title="Ejecutar suite"
+                      (click)="startExecution(suite)"
+                      [disabled]="loading"
+                    >
+                      <i class="bi bi-play-circle"></i> Ejecutar
+                    </button>
+                    <button 
+                      class="btn btn-sm btn-outline-warning"
+                      title="Editar"
+                      (click)="openEditForm(suite)"
+                    >
+                      <i class="bi bi-pencil"></i>
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Sin suites -->
+          <div *ngIf="!loading && suites.length === 0" class="alert alert-info text-center py-5">
+            <i class="bi bi-inbox" style="font-size: 3rem; display: block; margin-bottom: 1rem;"></i>
+            <p class="mb-3">No hay suites aún. <strong>Crea una para organizar tus casos de prueba.</strong></p>
+            <button class="btn btn-primary" (click)="openCreateForm()">
+              <i class="bi bi-plus-circle"></i> Crear Primera Suite
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 📝 FORMULARIO MODAL -->
+    <div *ngIf="showForm" class="modal-overlay" (click)="closeForm()">
+      <div class="modal-dialog" (click)="$event.stopPropagation()">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">
+              <i class="bi" [class.bi-plus-circle]="!editingSuiteId" [class.bi-pencil]="editingSuiteId"></i>
+              {{ editingSuiteId ? 'Editar Suite' : 'Nueva Suite' }}
+            </h5>
+            <button type="button" class="btn-close" (click)="closeForm()"></button>
+          </div>
+          <form [formGroup]="suiteForm">
+            <div class="modal-body">
+              <!-- Nombre -->
+              <div class="mb-3">
+                <label for="suiteName" class="form-label">Nombre de la Suite</label>
+                <input 
+                  type="text" 
+                  class="form-control"
+                  id="suiteName"
+                  formControlName="name"
+                  placeholder="Ej: Pruebas de Autenticación"
+                />
+                <div class="invalid-feedback d-block" *ngIf="suiteForm.get('name')?.invalid && suiteForm.get('name')?.touched">
+                  El nombre es requerido y debe tener al menos 3 caracteres
+                </div>
+              </div>
+
+              <!-- Descripción -->
+              <div class="mb-3">
+                <label for="suiteDescription" class="form-label">Descripción</label>
+                <textarea 
+                  class="form-control"
+                  id="suiteDescription"
+                  formControlName="description"
+                  rows="3"
+                  placeholder="Describe el alcance de esta suite..."
+                ></textarea>
+              </div>
+
+              <!-- Estado -->
+              <div class="mb-3">
+                <label for="suiteStatus" class="form-label">Estado</label>
+                <select 
+                  class="form-select"
+                  id="suiteStatus"
+                  formControlName="status"
+                >
+                  <option value="active">Activo</option>
+                  <option value="inactive">Inactivo</option>
+                  <option value="deprecated">Deprecado</option>
+                </select>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" (click)="closeForm()">
+                Cancelar
+              </button>
+              <button 
+                type="button" 
+                class="btn btn-primary"
+                (click)="saveSuite()"
+                [disabled]="suiteForm.invalid"
+              >
+                <i class="bi bi-check-circle"></i> Guardar
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- ⚠️ MODAL DE CONFIRMACIÓN PARA SUITE DUPLICADA -->
+    <div *ngIf="showDuplicateConfirmModal" class="modal-overlay" (click)="closeDuplicateModal()">
+      <div class="modal-dialog" (click)="$event.stopPropagation()">
+        <div class="modal-content">
+          <div class="modal-header bg-warning text-dark">
+            <h5 class="modal-title">
+              <i class="bi bi-exclamation-triangle-fill"></i> Suite Duplicada
+            </h5>
+            <button type="button" class="btn-close" (click)="closeDuplicateModal()"></button>
+          </div>
+          <div class="modal-body">
+            <div class="alert alert-warning mb-3">
+              <i class="bi bi-info-circle-fill me-2"></i>
+              Ya existe una suite con el nombre <strong>"{{ duplicateSuiteName }}"</strong> en este proyecto.
+            </div>
+            <p class="mb-0">¿Deseas crear otra suite con el mismo nombre de todas formas?</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" (click)="closeDuplicateModal()">
+              <i class="bi bi-x-circle"></i> Cancelar
+            </button>
+            <button type="button" class="btn btn-warning" (click)="confirmDuplicateSuite()">
+              <i class="bi bi-check-circle"></i> Sí, Crear Duplicada
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

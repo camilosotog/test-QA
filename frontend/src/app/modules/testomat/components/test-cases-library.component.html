@@ -1,0 +1,675 @@
+<div class="container-fluid mt-4">
+  <!-- Breadcrumb -->
+  <nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb breadcrumb-dark">
+      <li class="breadcrumb-item">
+        <a routerLink="/testomat" class="text-info">Proyectos</a>
+      </li>
+      <li class="breadcrumb-item">
+        <a routerLink="/testomat/suites" class="text-info">Suites</a>
+      </li>
+      <li class="breadcrumb-item active" aria-current="page">{{ currentSuite?.name || 'Casos' }}</li>
+    </ol>
+  </nav>
+
+  <!-- 📌 ENCABEZADO -->
+  <div class="row mb-4">
+    <div class="col-md-8">
+      <h1 class="page-title">
+        <i class="bi bi-folder-check"></i> Casos de Prueba
+      </h1>
+      <p class="text-muted" *ngIf="currentSuite">
+        Suite: <strong>{{ currentSuite.name }}</strong>
+      </p>
+      <p class="text-muted" *ngIf="!currentSuite">
+        Selecciona una suite para crear casos de prueba
+      </p>
+    </div>
+    <div class="col-md-4 text-end">
+      <button 
+        class="btn btn-primary btn-lg me-2"
+        (click)="openCreateForm(currentSuite?.id || 0)"
+        [disabled]="!currentSuite"
+      >
+        <i class="bi bi-plus-circle"></i> Nuevo Caso
+      </button>
+      <button 
+        *ngIf="authService.getCurrentUser()?.role === 'ADMIN' || authService.getCurrentUser()?.role === 'QA'"
+        class="btn btn-success btn-lg"
+        (click)="openImportModal()"
+        [disabled]="!currentSuite"
+        title="Importar casos desde texto plano"
+      >
+        <i class="bi bi-file-earmark-text"></i> Importar Casos
+      </button>
+    </div>
+  </div>
+
+  <!-- 📋 NAVEGACIÓN DE PESTAÑAS -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <ul class="nav nav-tabs">
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/testomat">
+            <i class="bi bi-folder2-open me-1"></i>Proyectos
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link active" href="#" onclick="return false;">
+            <i class="bi bi-file-earmark-check me-1"></i>Casos
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/testomat/ejecuciones">
+            <i class="bi bi-play-circle me-1"></i>Ejecuciones
+          </a>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ⚠️ MENSAJES DE ERROR -->
+  <div *ngIf="error" class="alert alert-danger alert-dismissible fade show" role="alert">
+    <i class="bi bi-exclamation-circle"></i> {{ error }}
+    <button type="button" class="btn-close" (click)="error = null"></button>
+  </div>
+
+  <!-- ⚠️ SIN SUITE SELECCIONADA -->
+  <div *ngIf="!currentSuite && !loading" class="alert alert-info text-center py-5">
+    <i class="bi bi-info-circle" style="font-size: 2.5rem; display: block; margin-bottom: 1rem;"></i>
+    <p class="mb-2"><strong>Selecciona una suite primero</strong></p>
+    <p class="text-muted mb-3">Vuelve atrás y haz click en el botón "Casos" dentro de una suite</p>
+    <a href="javascript:history.back()" class="btn btn-sm btn-outline-info">
+      <i class="bi bi-arrow-left"></i> Volver a Suites
+    </a>
+  </div>
+
+  <!-- 📋 CONTENIDO (cuando hay suite seleccionada) -->
+  <div *ngIf="currentSuite">
+  <!-- 🔍 FILTROS Y BÚSQUEDA -->
+  <div class="filters-section">
+    <div class="row g-3">
+      <div class="col-md-4">
+        <input 
+          type="text" 
+          class="form-control"
+          placeholder="Buscar por nombre o descripción..."
+          [(ngModel)]="searchQuery"
+          (input)="onFilterChange()"
+        />
+      </div>
+      <div class="col-md-3">
+        <select 
+          class="form-select"
+          [(ngModel)]="selectedPriority"
+          (change)="onFilterChange()"
+        >
+          <option *ngFor="let p of priorities" [value]="p.value">{{ p.label }}</option>
+        </select>
+      </div>
+      <div class="col-md-3">
+        <select 
+          class="form-select"
+          [(ngModel)]="selectedAutomation"
+          (change)="onFilterChange()"
+        >
+          <option *ngFor="let a of automationStatuses" [value]="a.value">{{ a.label }}</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <span class="badge bg-primary p-2">{{ filteredTestCases.length }} casos</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 📋 TABLA DE CASOS -->
+  <div class="cases-container">
+    <!-- Cargando -->
+    <div *ngIf="loading" class="text-center py-5">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Cargando...</span>
+      </div>
+      <p class="mt-2 text-muted">Cargando casos de prueba...</p>
+    </div>
+
+    <!-- Tabla -->
+    <div *ngIf="!loading && filteredTestCases.length > 0" class="table-responsive">
+      <table class="table table-hover table-dark">
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Tipo</th>
+            <th>Prioridad</th>
+            <th>Automatización</th>
+            <th>Steps</th>
+            <th class="text-center">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let testCase of filteredTestCases" class="align-middle">
+            <td class="fw-semibold">{{ testCase.name }}</td>
+            <td>
+              <span class="badge bg-info">{{ getTestTypeText(testCase.test_type) }}</span>
+            </td>
+            <td>
+              <span 
+                class="badge" 
+                [style.backgroundColor]="getPriorityColor(testCase.priority) + '40'"
+                [style.color]="getPriorityColor(testCase.priority)"
+              >
+                {{ testCase.priority | uppercase }}
+              </span>
+            </td>
+            <td>
+              <small class="text-muted">{{ getAutomationText(testCase.automation_status) }}</small>
+            </td>
+            <td class="text-center">
+              <span *ngIf="testCase.steps && testCase.steps.length" class="badge bg-secondary">
+                {{ testCase.steps.length }} pasos
+              </span>
+              <span *ngIf="!testCase.steps || !testCase.steps.length" class="text-muted small">-</span>
+            </td>
+            <td class="text-center">
+              <button 
+                class="btn btn-sm btn-outline-info me-2"
+                title="Ver detalles"
+                (click)="viewTestCaseDetails(testCase)"
+              >
+                <i class="bi bi-eye"></i>
+              </button>
+              <button 
+                class="btn btn-sm btn-outline-warning me-2"
+                title="Editar"
+                (click)="openEditForm(testCase)"
+              >
+                <i class="bi bi-pencil"></i>
+              </button>
+              <button 
+                class="btn btn-sm btn-outline-danger"
+                title="Eliminar"
+                (click)="deleteTestCase(testCase)"
+              >
+                <i class="bi bi-trash"></i>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Sin casos -->
+    <div *ngIf="!loading && filteredTestCases.length === 0" class="alert alert-info text-center py-5">
+      <i class="bi bi-inbox" style="font-size: 3rem; display: block; margin-bottom: 1rem;"></i>
+      <p *ngIf="testCases.length === 0">
+        No hay casos aún. <strong>Crea uno para comenzar.</strong>
+      </p>
+      <p *ngIf="testCases.length > 0">
+        No se encontraron casos que coincidan con los filtros.
+      </p>
+    </div>
+  </div>
+  </div>
+
+  <!-- 📝 FORMULARIO MODAL PARA CASOS -->
+  <div *ngIf="showForm" class="modal-overlay" (click)="closeForm()">
+    <div class="modal-dialog modal-lg" (click)="$event.stopPropagation()">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">
+            <i class="bi" [class.bi-plus-circle]="!editingCaseId" [class.bi-pencil]="editingCaseId"></i>
+            {{ editingCaseId ? 'Editar Caso de Prueba' : 'Nuevo Caso de Prueba' }}
+          </h5>
+          <button type="button" class="btn-close" (click)="closeForm()"></button>
+        </div>
+        <form [formGroup]="testCaseForm">
+          <div class="modal-body">
+            <!-- Nombre -->
+            <div class="mb-3">
+              <label for="caseName" class="form-label fw-bold">Nombre del Caso de Prueba</label>
+              <input 
+                type="text" 
+                class="form-control"
+                id="caseName"
+                formControlName="name"
+                placeholder="Ej: Validar login con credenciales correctas"
+              />
+              <div class="invalid-feedback d-block" *ngIf="testCaseForm.get('name')?.invalid && testCaseForm.get('name')?.touched">
+                Mínimo 5 caracteres
+              </div>
+            </div>
+
+            <hr class="my-4">
+
+            <!-- 1. TIPO DE PRUEBA -->
+            <div class="mb-4">
+              <h6 class="mb-3">
+                <i class="bi bi-bookmark-fill text-primary"></i> Tipo de Prueba
+              </h6>
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label for="caseType" class="form-label">Selecciona tipo:</label>
+                    <select 
+                      class="form-select"
+                      id="caseType"
+                      formControlName="test_type"
+                    >
+                      <option *ngFor="let t of testTypes" [value]="t.value">{{ t.label }}</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label for="casePriority" class="form-label">Prioridad:</label>
+                    <select 
+                      class="form-select"
+                      id="casePriority"
+                      formControlName="priority"
+                    >
+                      <option value="low">🟢 Baja</option>
+                      <option value="medium">🟡 Media</option>
+                      <option value="high">🔴 Alta</option>
+                      <option value="critical">🔴 Crítica</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+              <div class="mb-3">
+                <label for="caseAutomation" class="form-label">Automatización:</label>
+                <select 
+                  class="form-select"
+                  id="caseAutomation"
+                  formControlName="automation_status"
+                >
+                  <option value="manual">Manual</option>
+                  <option value="semi-automated">Semi-automatizado</option>
+                  <option value="automated">Automatizado</option>
+                </select>
+              </div>
+            </div>
+
+            <hr class="my-4">
+
+            <!-- 2. PRECONDICIONES -->
+            <div class="mb-4">
+              <h6 class="mb-3">
+                <i class="bi bi-check-circle text-info"></i> Precondiciones
+              </h6>
+              <p class="text-muted small mb-2">¿Qué debe estar listo antes de ejecutar este caso?</p>
+              <textarea 
+                class="form-control"
+                id="casePreconditions"
+                formControlName="preconditions"
+                rows="3"
+                placeholder="Ej: 
+- Usuario debe estar registrado
+- La sesión debe estar activa
+- Los datos de prueba deben estar disponibles"
+              ></textarea>
+              <div class="invalid-feedback d-block" *ngIf="testCaseForm.get('preconditions')?.invalid && testCaseForm.get('preconditions')?.touched">
+                Las precondiciones son requeridas
+              </div>
+            </div>
+
+            <hr class="my-4">
+
+            <!-- 3. DATOS DE ENTRADA -->
+            <div class="mb-4">
+              <h6 class="mb-3">
+                <i class="bi bi-input-cursor-text text-warning"></i> Datos de Entrada
+              </h6>
+              <p class="text-muted small mb-2">¿Cuáles son los datos necesarios para ejecutar este caso?</p>
+              <textarea 
+                class="form-control"
+                id="caseInputData"
+                formControlName="input_data"
+                rows="3"
+                placeholder="Ej:
+- Usuario: admin@example.com
+- Contraseña: Test123!
+- Navegador: Chrome 90+"
+              ></textarea>
+              <div class="invalid-feedback d-block" *ngIf="testCaseForm.get('input_data')?.invalid && testCaseForm.get('input_data')?.touched">
+                Los datos de entrada son requeridos
+              </div>
+            </div>
+
+            <hr class="my-4">
+
+            <!-- 4. PASOS -->
+            <div class="mb-4">
+              <h6 class="mb-3">
+                <i class="bi bi-list-ol text-success"></i> Pasos
+              </h6>
+              <p class="text-muted small mb-3">Detalla cada paso que debe seguirse para ejecutar este caso</p>
+              <div class="steps-section">
+                <div formArrayName="steps" *ngFor="let step of getStepsArray().controls; let i = index">
+                  <div class="step-item" [formGroupName]="i">
+                    <div class="step-number">{{ i + 1 }}</div>
+                    <div class="step-content">
+                      <input 
+                        type="text" 
+                        class="form-control"
+                        formControlName="description"
+                        placeholder="Descripción del paso"
+                      />
+                    </div>
+                    <button 
+                      type="button"
+                      class="btn btn-sm btn-outline-danger"
+                      *ngIf="getStepsArray().length > 1"
+                      (click)="removeStep(i)"
+                      title="Eliminar este paso"
+                    >
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <button 
+                type="button"
+                class="btn btn-sm btn-outline-secondary mt-2"
+                (click)="addStep()"
+              >
+                <i class="bi bi-plus-circle"></i> Agregar Paso
+              </button>
+            </div>
+
+            <hr class="my-4">
+
+            <!-- 5. RESULTADOS ESPERADOS -->
+            <div class="mb-4">
+              <h6 class="mb-3">
+                <i class="bi bi-check2-all text-success"></i> Resultados Esperados
+              </h6>
+              <p class="text-muted small mb-2">¿Cuál es el resultado final esperado de este caso?</p>
+              <textarea 
+                class="form-control"
+                id="caseExpectedResults"
+                formControlName="expected_result"
+                rows="3"
+                placeholder="Ej:
+- Usuario autenticado correctamente
+- Dashboard mostrado
+- No hay mensajes de error"
+              ></textarea>
+              <div class="invalid-feedback d-block" *ngIf="testCaseForm.get('expected_result')?.invalid && testCaseForm.get('expected_result')?.touched">
+                Los resultados esperados son requeridos
+              </div>
+            </div>
+
+            <hr class="my-4">
+
+            <!-- Información adicional -->
+            <div class="row">
+              <div class="col-md-12">
+                <div class="mb-3">
+                  <label for="caseDescription" class="form-label">Notas Adicionales (Opcional)</label>
+                  <textarea 
+                    class="form-control"
+                    id="caseDescription"
+                    formControlName="description"
+                    rows="2"
+                    placeholder="Ej: Información relevante, limitaciones, etc."
+                  ></textarea>
+                </div>
+              </div>
+            </div>
+            <div class="mb-3">
+              <label for="caseStatus" class="form-label">Estado</label>
+              <select 
+                class="form-select"
+                id="caseStatus"
+                formControlName="status"
+              >
+                <option value="ready">Listo</option>
+                <option value="deprecated">Deprecado</option>
+              </select>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" (click)="closeForm()">
+              Cancelar
+            </button>
+            <button 
+              type="button" 
+              class="btn btn-primary"
+              (click)="saveTestCase()"
+              [disabled]="testCaseForm.invalid"
+            >
+              <i class="bi bi-check-circle"></i> Guardar Caso
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DE VISUALIZACIÓN DE DETALLES (Sin edición) -->
+  <div *ngIf="viewingCase" class="modal-overlay" (click)="closeViewModal()">
+    <div class="modal-dialog modal-lg" (click)="$event.stopPropagation()">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">
+            <i class="bi bi-eye"></i> Detalles del Caso - {{ viewingCase.name || 'Sin nombre' }}
+          </h5>
+          <button type="button" class="btn-close" (click)="closeViewModal()"></button>
+        </div>
+        <div class="modal-body">
+          <!-- Información General -->
+          <div class="mb-4">
+            <h6 class="fw-bold text-primary mb-3">📋 Información General</h6>
+            <div class="bg-light p-3 rounded">
+              <div class="row">
+                <div class="col-md-6 mb-2">
+                  <small class="text-muted fw-bold">NOMBRE:</small>
+                  <p class="mb-0">{{ viewingCase.name || '-' }}</p>
+                </div>
+                <div class="col-md-6 mb-2">
+                  <small class="text-muted fw-bold">TIPO:</small>
+                  <p class="mb-0">
+                    <span class="badge bg-info">{{ getTestTypeText(viewingCase.test_type || '') }}</span>
+                  </p>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-md-6 mb-2">
+                  <small class="text-muted fw-bold">PRIORIDAD:</small>
+                  <p class="mb-0">
+                    <span 
+                      class="badge" 
+                      [style.backgroundColor]="getPriorityColor(viewingCase.priority || 'low') + '40'"
+                      [style.color]="getPriorityColor(viewingCase.priority || 'low')"
+                    >
+                      {{ viewingCase.priority | uppercase }}
+                    </span>
+                  </p>
+                </div>
+                <div class="col-md-6 mb-2">
+                  <small class="text-muted fw-bold">AUTOMATIZACIÓN:</small>
+                  <p class="mb-0">
+                    <small class="text-muted">{{ getAutomationText(viewingCase.automation_status || 'manual') }}</small>
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <hr>
+
+          <!-- Descripción -->
+          <div class="mb-4">
+            <h6 class="fw-bold text-primary mb-2">📝 Descripción</h6>
+            <div class="bg-light p-3 rounded">
+              <p class="mb-0">{{ viewingCase.description || 'Sin descripción' }}</p>
+            </div>
+          </div>
+
+          <hr>
+
+          <!-- Precondiciones -->
+          <div class="mb-4">
+            <h6 class="fw-bold text-primary mb-2">✅ Precondiciones</h6>
+            <div class="bg-light p-3 rounded">
+              <p class="mb-0">{{ viewingCase.preconditions || 'Sin precondiciones' }}</p>
+            </div>
+          </div>
+
+          <hr>
+
+          <!-- Datos de Entrada -->
+          <div class="mb-4" *ngIf="viewingCase.input_data">
+            <h6 class="fw-bold text-primary mb-2">📥 Datos de Entrada</h6>
+            <div class="bg-light p-3 rounded">
+              <p class="mb-0">{{ viewingCase.input_data }}</p>
+            </div>
+          </div>
+
+          <!-- Pasos -->
+          <div class="mb-4">
+            <h6 class="fw-bold text-primary mb-2">🔢 Pasos de Ejecución</h6>
+            <div *ngIf="viewingCase.steps && viewingCase.steps.length > 0" class="list-group">
+              <div *ngFor="let step of viewingCase.steps; let i = index" class="list-group-item" style="background-color: #f8f9fa; color: #212529;">
+                <p class="mb-0" style="color: #212529;">{{ step.description }}</p>
+              </div>
+            </div>
+            <div *ngIf="!viewingCase.steps || viewingCase.steps.length === 0" class="alert alert-info mb-0">
+              No hay pasos definidos
+            </div>
+          </div>
+
+          <hr>
+
+          <!-- Resultado Esperado -->
+          <div class="mb-4">
+            <h6 class="fw-bold text-primary mb-2">✔️ Resultado Esperado</h6>
+            <div class="bg-light p-3 rounded">
+              <p class="mb-0">{{ viewingCase.expected_result || 'Sin resultado esperado definido' }}</p>
+            </div>
+          </div>
+
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" (click)="closeViewModal()">
+            Cerrar
+          </button>
+          <button 
+            type="button" 
+            class="btn btn-warning" 
+            (click)="openEditForm(viewingCase); closeViewModal()"
+          >
+            <i class="bi bi-pencil"></i> Editar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DE IMPORTACIÓN DESDE TEXTO PLANO -->
+  <div *ngIf="showImportModal" class="modal-overlay" (click)="closeImportModal()">
+    <div class="modal-dialog modal-lg" (click)="$event.stopPropagation()">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">
+            <i class="bi bi-file-earmark-text"></i> Importar Casos desde Texto Plano
+          </h5>
+          <button type="button" class="btn-close" (click)="closeImportModal()"></button>
+        </div>
+        <div class="modal-body">
+          <!-- Instrucciones -->
+          <div class="alert alert-info mb-4">
+            <h6 class="mb-2"><i class="bi bi-info-circle"></i> Formato esperado:</h6>
+            <pre style="background: #f8f9fa; padding: 10px; border-radius: 4px; color: #212529; font-size: 0.85rem;">NOMBRE: Nombre del caso
+              TIPO: functional
+              PRIORIDAD: medium
+              DESCRIPCIÓN: Descripción del caso
+              DATOS: Datos de entrada requeridos
+              PRECONDICIONES: Descripción
+              PASO: Descripción del paso
+              RESULTADO: Resultado esperado
+
+              NOMBRE: Segundo caso
+              TIPO: regression
+              PRIORIDAD: high
+              DESCRIPCIÓN: Descripción
+              PASO: Primer paso
+              PASO: Segundo paso
+              RESULTADO: Resultado esperado
+            </pre>
+          </div>
+
+          <!-- Textarea para pegar -->
+          <div class="mb-3">
+            <label class="form-label fw-bold">Pega aquí tus casos de prueba:</label>
+            <textarea 
+              class="form-control" 
+              rows="10"
+              [(ngModel)]="importText"
+              placeholder="Copia y pega tus casos aquí..."
+              style="font-family: monospace;"
+            ></textarea>
+          </div>
+
+          <!-- Opciones -->
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="form-label fw-bold">Tipo por defecto:</label>
+              <select 
+                class="form-select"
+                [(ngModel)]="defaultTestType"
+              >
+                <option value="functional">Funcional</option>
+                <option value="regression">Regresión</option>
+                <option value="smoke">Smoke</option>
+                <option value="integration">Integración</option>
+                <option value="performance">Rendimiento</option>
+                <option value="security">Seguridad</option>
+              </select>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label fw-bold">Prioridad por defecto:</label>
+              <select 
+                class="form-select"
+                [(ngModel)]="defaultPriority"
+              >
+                <option value="critical">Crítica</option>
+                <option value="high">Alta</option>
+                <option value="medium" selected>Media</option>
+                <option value="low">Baja</option>
+              </select>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-12 mb-3">
+              <div class="form-check">
+                <input 
+                  class="form-check-input" 
+                  type="checkbox" 
+                  id="autoCreateSteps"
+                  [(ngModel)]="autoCreateSteps"
+                  [checked]="autoCreateSteps"
+                >
+                <label class="form-check-label" for="autoCreateSteps">
+                  Crear pasos automáticamente
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="closeImportModal()">
+            Cancelar
+          </button>
+          <button 
+            type="button" 
+            class="btn btn-success"
+            (click)="importCasesFromText()"
+            [disabled]="!importText || importText.trim() === ''"
+          >
+            <i class="bi bi-check-circle"></i> Importar Casos
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

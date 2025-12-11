@@ -1,0 +1,465 @@
+<div class="execution-runner-page">
+  <!-- 📌 ENCABEZADO CON PROGRESO -->
+  <div class="header-section">
+    <div class="header-content">
+      <h1 class="page-title">
+        <i class="bi bi-play-circle-fill"></i> Ejecutando Pruebas
+      </h1>
+      <p class="text-muted" *ngIf="execution">
+        Suite: <strong>{{ execution.suite_name }}</strong>
+      </p>
+    </div>
+    
+    <!-- Barra de progreso -->
+    <div class="progress-bar-section" *ngIf="cases.length > 0">
+      <div class="progress-info">
+        <span>{{ getCompletedCount() }} de {{ cases.length }} completados</span>
+      </div>
+      <!-- Barra segmentada con colores según estado -->
+      <div class="progress" style="height: 30px; min-width: 300px; display: flex; overflow: hidden; border-radius: 4px;">
+        <!-- Segmento PASADO (Verde) -->
+        <div 
+          *ngIf="getSegmentWidth('pass') !== '0%'"
+          class="progress-segment bg-success" 
+          [style.width]="getSegmentWidth('pass')"
+          title="Casos que pasaron"
+        >
+          <small class="fw-bold text-white" *ngIf="getSegmentWidth('pass') > '10%'">
+            {{ execution?.passed_cases || 0 }}
+          </small>
+        </div>
+
+        <!-- Segmento FALLIDO (Rojo) -->
+        <div 
+          *ngIf="getSegmentWidth('fail') !== '0%'"
+          class="progress-segment bg-danger" 
+          [style.width]="getSegmentWidth('fail')"
+          title="Casos que fallaron"
+        >
+          <small class="fw-bold text-white" *ngIf="getSegmentWidth('fail') > '10%'">
+            {{ execution?.failed_cases || 0 }}
+          </small>
+        </div>
+
+        <!-- Segmento PENDIENTE (Gris) -->
+        <div 
+          *ngIf="getSegmentWidth('skipped') !== '0%'"
+          class="progress-segment bg-secondary" 
+          [style.width]="getSegmentWidth('skipped')"
+          title="Casos pendientes"
+        >
+          <small class="fw-bold text-white" *ngIf="getSegmentWidth('skipped') > '10%'">
+            {{ (execution?.total_cases || 0) - (execution?.passed_cases || 0) - (execution?.failed_cases || 0) }}
+          </small>
+        </div>
+      </div>
+      <!-- Leyenda -->
+      <div class="progress-legend mt-2">
+        <span class="legend-item">
+          <i class="bi bi-square-fill text-success"></i> Pasados: {{ execution?.passed_cases || 0 }}
+        </span>
+        <span class="legend-item">
+          <i class="bi bi-square-fill text-danger"></i> Fallidos: {{ execution?.failed_cases || 0 }}
+        </span>
+        <span class="legend-item">
+          <i class="bi bi-square-fill text-secondary"></i> Pendientes: {{ (execution?.total_cases || 0) - (execution?.passed_cases || 0) - (execution?.failed_cases || 0) }}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ⚠️ MENSAJES DE ERROR -->
+  <div *ngIf="error" class="alert alert-danger alert-dismissible fade show" role="alert">
+    <i class="bi bi-exclamation-circle"></i> {{ error }}
+    <button type="button" class="btn-close" (click)="error = null"></button>
+  </div>
+
+  <!-- 👥 PANEL DE SELECCIÓN DE QA Y DESARROLLADOR (UNA SOLA VEZ PARA TODA LA SUITE) -->
+  <div *ngIf="!loading && cases.length > 0" class="suite-info-panel mb-4">
+    <div class="suite-panel-content">
+      <h5 class="panel-title mb-3">
+        <i class="bi bi-people-fill"></i> Responsables de la Suite
+      </h5>
+      
+      <form [formGroup]="suiteForm" class="row g-3">
+        <!-- Seleccionar QA -->
+        <div class="col-md-6">
+          <label for="suite_qa" class="form-label fw-bold">
+            <i class="bi bi-person-check"></i> Probador QA
+          </label>
+          <select 
+            class="form-control form-control-lg bg-dark text-light"
+            id="suite_qa"
+            formControlName="tester_name"
+          >
+            <option value="">-- Selecciona un QA --</option>
+            <option *ngFor="let user of qaUsers" [value]="user.name">
+              {{ user.name }}
+            </option>
+          </select>
+          <small class="text-danger" *ngIf="suiteForm.get('tester_name')?.invalid && suiteForm.get('tester_name')?.touched">
+            Se requiere seleccionar un QA
+          </small>
+        </div>
+
+        <!-- Seleccionar Desarrollador -->
+        <div class="col-md-6">
+          <label for="suite_dev" class="form-label fw-bold">
+            <i class="bi bi-code-square"></i> Desarrollador
+          </label>
+          <select 
+            class="form-control form-control-lg bg-dark text-light"
+            id="suite_dev"
+            formControlName="developer_name"
+          >
+            <option value="">-- Selecciona un Desarrollador --</option>
+            <option *ngFor="let user of devUsers" [value]="user.name">
+              {{ user.name }}
+            </option>
+          </select>
+          <small class="text-danger" *ngIf="suiteForm.get('developer_name')?.invalid && suiteForm.get('developer_name')?.touched">
+            Se requiere seleccionar un Desarrollador
+          </small>
+        </div>
+      </form>
+
+      <!-- Mostrar selección actual -->
+      <div class="row mt-3 pt-3 border-top" *ngIf="selectedQA || selectedDev">
+        <div class="col-md-6" *ngIf="selectedQA">
+          <small class="text-muted">QA Asignado:</small>
+          <p class="mb-0">
+            <i class="bi bi-check-circle text-success"></i> 
+            <strong>{{ selectedQA }}</strong>
+          </p>
+        </div>
+        <div class="col-md-6" *ngIf="selectedDev">
+          <small class="text-muted">Desarrollador Asignado:</small>
+          <p class="mb-0">
+            <i class="bi bi-check-circle text-success"></i> 
+            <strong>{{ selectedDev }}</strong>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 📋 CONTENEDOR PRINCIPAL -->
+  <div class="runner-container">
+    <div *ngIf="loading" class="text-center py-5">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Cargando...</span>
+      </div>
+      <p class="mt-2 text-muted">Cargando casos de prueba...</p>
+    </div>
+
+    <div *ngIf="!loading && cases.length > 0" class="runner-content">
+      <!-- Panel izquierdo: Lista de casos -->
+      <div class="cases-sidebar">
+        <h5 class="sidebar-title">Casos de Prueba</h5>
+        <div class="cases-list">
+          <button 
+            *ngFor="let testCase of cases; let i = index"
+            class="case-item"
+            [class.active]="currentCaseIndex === i"
+            [class.completed]="testCase.status === 'completed'"
+            [class.passed]="testCase.result_status === 'pass'"
+            [class.failed]="testCase.result_status === 'fail'"
+            [class.blocked]="testCase.result_status === 'blocked'"
+            [class.skipped]="testCase.result_status === 'skip'"
+            (click)="goToCase(i)"
+            type="button"
+          >
+            <span class="case-number">{{ i + 1 }}</span>
+            <span class="case-name">{{ testCase.name | slice: 0:25 }}...</span>
+            <span *ngIf="testCase.status === 'completed'" class="badge badge-success">
+              <i class="bi bi-check-circle"></i>
+            </span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Panel principal: Caso actual -->
+      <div class="case-runner">
+        <div class="case-header" *ngIf="getCurrentCase() as currentCase">
+          <h3 class="case-title">{{ currentCase.name }}</h3>
+          <div class="case-meta">
+            <span class="badge bg-info">
+              <i class="bi bi-hash"></i> {{ currentCaseIndex + 1 }} / {{ cases.length }}
+            </span>
+            <span class="badge bg-secondary" *ngIf="currentCase.priority">
+              Prioridad: {{ currentCase.priority }}
+            </span>
+          </div>
+        </div>
+
+        <div class="case-content" *ngIf="getCurrentCase() as currentCase">
+          <!-- Descripción -->
+          <div class="content-section" *ngIf="currentCase.description">
+            <h6 class="section-title">Descripción</h6>
+            <p class="content-text">{{ currentCase.description }}</p>
+          </div>
+
+          <!-- Precondiciones -->
+          <div class="content-section" *ngIf="currentCase.preconditions">
+            <h6 class="section-title">
+              <i class="bi bi-arrow-repeat"></i> Precondiciones
+            </h6>
+            <p class="content-text">{{ currentCase.preconditions }}</p>
+          </div>
+
+          <!-- Datos de entrada -->
+          <div class="content-section" *ngIf="currentCase.input_data">
+            <h6 class="section-title">
+              <i class="bi bi-box-arrow-right"></i> Datos de Entrada
+            </h6>
+            <p class="content-text">{{ currentCase.input_data }}</p>
+          </div>
+
+          <!-- Pasos -->
+          <div class="content-section" *ngIf="currentCase.steps && currentCase.steps.length > 0">
+            <h6 class="section-title">
+              <i class="bi bi-list-check"></i> Pasos
+            </h6>
+            <ol class="steps-list">
+              <li *ngFor="let step of currentCase.steps" class="step-item">
+                <strong>{{ step.description }}</strong>
+                <p class="step-expected" *ngIf="step.expected_result">
+                  <small><i class="bi bi-arrow-right"></i> <strong>Resultado esperado:</strong> {{ step.expected_result }}</small>
+                </p>
+              </li>
+            </ol>
+          </div>
+
+          <!-- Resultado Esperado - General -->
+          <div class="content-section" *ngIf="getExpectedResults(currentCase) as expectedResults">
+            <h6 class="section-title">
+              <i class="bi bi-target"></i> Resultado Esperado General
+            </h6>
+            <p class="content-text">{{ expectedResults }}</p>
+          </div>
+        </div>
+
+        <!-- Formulario de resultado -->
+        <div class="result-form-section" *ngIf="getCurrentCase()">
+          <form [formGroup]="resultForm" (ngSubmit)="saveResult()">
+            <div class="form-group">
+              <label class="form-label fw-bold">
+                <i class="bi bi-clipboard-check"></i> Estado de la Prueba
+              </label>
+              <div class="status-options">
+                <div class="form-check">
+                  <input 
+                    class="form-check-input" 
+                    type="radio" 
+                    name="status" 
+                    id="status_pass"
+                    value="pass"
+                    formControlName="status"
+                  />
+                  <label class="form-check-label" for="status_pass">
+                    <i class="bi bi-check-circle text-success"></i> Pasó
+                  </label>
+                </div>
+                <div class="form-check">
+                  <input 
+                    class="form-check-input" 
+                    type="radio" 
+                    name="status" 
+                    id="status_fail"
+                    value="fail"
+                    formControlName="status"
+                  />
+                  <label class="form-check-label" for="status_fail">
+                    <i class="bi bi-x-circle text-danger"></i> Falló
+                  </label>
+                </div>
+                <div class="form-check">
+                  <input 
+                    class="form-check-input" 
+                    type="radio" 
+                    name="status" 
+                    id="status_blocked"
+                    value="blocked"
+                    formControlName="status"
+                  />
+                  <label class="form-check-label" for="status_blocked">
+                    <i class="bi bi-lock text-warning"></i> Bloqueado
+                  </label>
+                </div>
+                <div class="form-check">
+                  <input 
+                    class="form-check-input" 
+                    type="radio" 
+                    name="status" 
+                    id="status_skipped"
+                    value="skipped"
+                    formControlName="status"
+                  />
+                  <label class="form-check-label" for="status_skipped">
+                    <i class="bi bi-skip-forward text-secondary"></i> Saltado
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <!-- Notas -->
+            <div class="form-group">
+              <label for="notes" class="form-label fw-bold">
+                <i class="bi bi-chat-dots"></i> Notas
+              </label>
+              <textarea 
+                class="form-control bg-dark text-light"
+                id="notes" 
+                formControlName="notes"
+                rows="3"
+                placeholder="Agregar observaciones, errores o detalles adicionales..."
+              ></textarea>
+            </div>
+
+            <!-- Upload de evidencia -->
+            <div class="form-group">
+              <label class="form-label fw-bold">
+                <i class="bi bi-image"></i> Evidencia (Capturas, logs, etc.)
+              </label>
+              <div class="upload-area" (paste)="onPaste($event)">
+                <input 
+                  type="file" 
+                  #fileInput
+                  (change)="onEvidenceSelected($event)"
+                  multiple
+                  accept="image/*,.pdf,.txt,.log"
+                  class="d-none"
+                />
+                <div class="d-flex flex-column gap-2">
+                  <button 
+                    type="button"
+                    class="btn btn-outline-secondary w-100"
+                    (click)="fileInput.click()"
+                  >
+                    <i class="bi bi-cloud-arrow-up"></i> Seleccionar Archivos
+                  </button>
+                  <div class="text-center text-muted small">
+                    <i class="bi bi-scissors"></i> O pega imágenes del portapapeles aquí
+                  </div>
+                </div>
+              </div>
+
+              <!-- Archivos seleccionados -->
+              <div *ngIf="evidenceFiles.length > 0" class="evidence-list mt-3">
+                <h6>
+                  <i class="bi bi-plus-circle-fill text-primary"></i> 
+                  Archivos a subir: {{ evidenceFiles.length }}
+                </h6>
+                <div *ngFor="let file of evidenceFiles; let i = index" class="evidence-item pending">
+                  <i class="bi bi-file-text"></i> 
+                  <span class="file-name">{{ file.name }}</span>
+                  <span class="file-size text-muted">({{ formatFileSize(file.size) }})</span>
+                  <button 
+                    type="button"
+                    class="btn-remove"
+                    (click)="removeEvidence(i)"
+                    title="Remover archivo"
+                  >
+                    <i class="bi bi-x-circle"></i>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Evidencias guardadas (de resultados anteriores) -->
+              <div *ngIf="getSavedEvidenceUrls().length > 0" class="evidence-list mt-3">
+                <h6>Evidencias guardadas:</h6>
+                <div *ngFor="let url of getSavedEvidenceUrls()" class="evidence-item saved">
+                  <i class="bi bi-cloud-check text-success"></i> 
+                  <a [href]="url" target="_blank" class="evidence-link">
+                    {{ extractFileName(url) }}
+                  </a>
+                  <span class="badge badge-success ms-2">Guardado</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Botones de acción -->
+            <div class="form-actions">
+              <button 
+                type="button" 
+                class="btn btn-outline-secondary"
+                (click)="previousCase()"
+                [disabled]="currentCaseIndex === 0 || saving"
+              >
+                <i class="bi bi-arrow-left"></i> Anterior
+              </button>
+              <button 
+                type="submit" 
+                class="btn btn-success"
+                [disabled]="!resultForm.valid || saving"
+              >
+                <i class="bi bi-check-circle"></i> Guardar Resultado
+                <span *ngIf="saving" class="spinner-border spinner-border-sm ms-2"></span>
+              </button>
+              <button 
+                type="button" 
+                class="btn btn-outline-secondary"
+                (click)="nextCase()"
+                [disabled]="isLastCase() || saving"
+              >
+                Siguiente <i class="bi bi-arrow-right"></i>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sin casos -->
+    <div *ngIf="!loading && cases.length === 0" class="alert alert-info text-center py-5">
+      <i class="bi bi-inbox" style="font-size: 3rem; display: block; margin-bottom: 1rem;"></i>
+      <p>No hay casos de prueba en esta ejecución.</p>
+    </div>
+  </div>
+
+  <!-- 📊 FOOTER CON ESTADÍSTICAS -->
+  <div class="execution-footer" *ngIf="execution && !loading">
+    <div class="stats">
+      <div class="stat-item">
+        <i class="bi bi-check-circle text-success"></i>
+        <div>
+          <small>Pasados</small>
+          <strong>{{ execution.passed_cases || 0 }}</strong>
+        </div>
+      </div>
+      <div class="stat-item">
+        <i class="bi bi-x-circle text-danger"></i>
+        <div>
+          <small>Fallidos</small>
+          <strong>{{ execution.failed_cases || 0 }}</strong>
+        </div>
+      </div>
+      <div class="stat-item">
+        <i class="bi bi-question-circle"></i>
+        <div>
+          <small>Pendientes</small>
+          <strong>{{ (execution.total_cases || 0) - (execution.passed_cases || 0) - (execution.failed_cases || 0) }}</strong>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-actions">
+      <button 
+        class="btn btn-outline-primary"
+        (click)="exportToPDF()"
+        [disabled]="saving || !execution"
+        title="Descargar reporte en PDF con todos los detalles"
+      >
+        <i class="bi bi-file-earmark-pdf"></i> Descargar PDF
+      </button>
+      <button 
+        class="btn btn-outline-success"
+        (click)="completeExecution()"
+        [disabled]="saving"
+        title="Finalizar esta ejecución y volver a la lista de ejecuciones"
+      >
+        <i class="bi bi-flag-fill"></i> Finalizar Ejecución
+      </button>
+    </div>
+  </div>
+</div>
