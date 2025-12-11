@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.S3_BUCKET = exports.s3 = void 0;
 exports.uploadToS3 = uploadToS3;
 exports.deleteFromS3 = deleteFromS3;
+// s3
 const aws_sdk_1 = __importDefault(require("aws-sdk"));
 const s3Config = {
     accessKeyId: process.env.AWS_ACCESS_KEY_ID,
