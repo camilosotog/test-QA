@@ -434,6 +434,7 @@ export class TestCasesLibraryComponent implements OnInit, OnDestroy {
 
   /**
    * Parsea un bloque de texto a TestCase
+   * Soporta múltiples PRECONDICIONES, PASO y RESULTADO acumulándolos
    */
   private parseTestCaseBlock(block: string): TestCase | null {
     const lines = block.split('\n').map(line => line.trim()).filter(line => line);
@@ -452,6 +453,10 @@ export class TestCasesLibraryComponent implements OnInit, OnDestroy {
       description: ''
     };
 
+    // Arrays temporales para acumular valores múltiples
+    const preconditionsList: string[] = [];
+    const resultList: string[] = [];
+
     for (const line of lines) {
       // Detectar campos especiales (case-insensitive)
       const lineUpper = line.toUpperCase();
@@ -461,7 +466,11 @@ export class TestCasesLibraryComponent implements OnInit, OnDestroy {
       } else if (lineUpper.startsWith('DESCRIPCIÓN:') || lineUpper.startsWith('DESCRIPCION:')) {
         testCase.description = line.split(':').slice(1).join(':').trim();
       } else if (lineUpper.startsWith('PRECONDICIONES:') || lineUpper.startsWith('PRECONDICION:')) {
-        testCase.preconditions = line.split(':').slice(1).join(':').trim();
+        // ✅ ACUMULAR precondiciones múltiples
+        const precondition = line.split(':').slice(1).join(':').trim();
+        if (precondition) {
+          preconditionsList.push(precondition);
+        }
       } else if (lineUpper.startsWith('DATOS:') || lineUpper.startsWith('DATOS DE ENTRADA:')) {
         testCase.input_data = line.split(':').slice(1).join(':').trim();
       } else if (lineUpper.startsWith('PASO:')) {
@@ -475,7 +484,11 @@ export class TestCasesLibraryComponent implements OnInit, OnDestroy {
           testCase.steps = steps;
         }
       } else if (lineUpper.startsWith('RESULTADO:') || lineUpper.startsWith('RESULTADO ESPERADO:')) {
-        testCase.expected_result = line.split(':').slice(1).join(':').trim();
+        // ✅ ACUMULAR resultados múltiples
+        const result = line.split(':').slice(1).join(':').trim();
+        if (result) {
+          resultList.push(result);
+        }
       } else if (lineUpper.startsWith('PRIORIDAD:')) {
         const priority = line.substring('PRIORIDAD:'.length).trim().toLowerCase();
         if (['critical', 'high', 'medium', 'low'].includes(priority)) {
@@ -486,6 +499,23 @@ export class TestCasesLibraryComponent implements OnInit, OnDestroy {
         if (['functional', 'regression', 'smoke', 'integration', 'performance', 'security'].includes(type)) {
           testCase.test_type = type as 'functional' | 'regression' | 'smoke' | 'integration' | 'performance' | 'security';
         }
+      }
+    }
+
+    // ✅ Unir todos los valores acumulados
+    if (preconditionsList.length > 0) {
+      testCase.preconditions = preconditionsList.join('\n• ');
+      // Si la primera línea no empieza con •, agrégalo
+      if (testCase.preconditions && !testCase.preconditions.startsWith('•')) {
+        testCase.preconditions = '• ' + testCase.preconditions;
+      }
+    }
+
+    if (resultList.length > 0) {
+      testCase.expected_result = resultList.join('\n• ');
+      // Si la primera línea no empieza con •, agrégalo
+      if (testCase.expected_result && !testCase.expected_result.startsWith('•')) {
+        testCase.expected_result = '• ' + testCase.expected_result;
       }
     }
 

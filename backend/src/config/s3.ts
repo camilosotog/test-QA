@@ -33,8 +33,6 @@ export async function uploadToS3(
     Key: key,
     Body: fileBuffer,
     ContentType: mimeType
-    // Nota: No usamos ACL porque el bucket tiene Block Public Access habilitado
-    // Los permisos se manejan a través de la política del bucket
   };
 
   try {

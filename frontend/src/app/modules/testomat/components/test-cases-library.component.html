@@ -579,22 +579,29 @@
           <!-- Instrucciones -->
           <div class="alert alert-info mb-4">
             <h6 class="mb-2"><i class="bi bi-info-circle"></i> Formato esperado:</h6>
-            <pre style="background: #f8f9fa; padding: 10px; border-radius: 4px; color: #212529; font-size: 0.85rem;">NOMBRE: Nombre del caso
-              TIPO: functional
-              PRIORIDAD: medium
-              DESCRIPCIÓN: Descripción del caso
-              DATOS: Datos de entrada requeridos
-              PRECONDICIONES: Descripción
-              PASO: Descripción del paso
-              RESULTADO: Resultado esperado
+            <p class="small mb-2"><strong>✅ Puedes repetir PRECONDICIONES, PASO y RESULTADO múltiples veces - se acumularán:</strong></p>
+            <pre style="background: #f8f9fa; padding: 10px; border-radius: 4px; color: #212529; font-size: 0.85rem;">NOMBRE: Liquidar seguro de vida de ajuste
+TIPO: functional
+PRIORIDAD: high
+DESCRIPCIÓN: Validar cálculo del seguro
+PRECONDICIONES: Existe un crédito con período de ajuste
+PRECONDICIONES: El plan de pagos incluye el concepto de Seguro de vida ajuste
+PASO: Generar el plan de pagos del crédito
+PASO: Validar el cálculo del renglón Seguro de vida ajuste
+RESULTADO: El seguro se liquida usando 30 días como base
+RESULTADO: No se usan los días reales del mes calendario
+RESULTADO: El valor calculado se muestra correctamente en el plan
 
-              NOMBRE: Segundo caso
-              TIPO: regression
-              PRIORIDAD: high
-              DESCRIPCIÓN: Descripción
-              PASO: Primer paso
-              PASO: Segundo paso
-              RESULTADO: Resultado esperado
+NOMBRE: Segundo caso
+TIPO: regression
+PRIORIDAD: high
+DESCRIPCIÓN: Otra prueba
+PRECONDICIONES: Precondición 1
+PRECONDICIONES: Precondición 2
+PASO: Paso uno
+PASO: Paso dos
+RESULTADO: Resultado 1
+RESULTADO: Resultado 2
             </pre>
           </div>
 
