@@ -3,7 +3,10 @@
 ## Descripción General
 **Manager QA** es una aplicación web fullstack para ejecutar, monitorear y reportear pruebas de software (Postman/Newman, Playwright, TestOmat). Gestiona proyectos, casos de prueba, ejecuciones y evidencias con visualización en tiempo real.
 
-**Stack**: Angular 17 (frontend) → Node.js/Express (backend) → MySQL + S3 (datos/archivos)
+**Stack**: Angular 17 (frontend, puerto 4200) → Node.js/Express (backend, puerto 4000) → MySQL + AWS S3 (datos/archivos)
+
+**Repo**: GitHub (camilosotog/test-QA, rama `manager`)  
+**Última actualización**: 16 de diciembre de 2025
 
 ---
 
@@ -13,11 +16,19 @@
 ```
 Manager/
 ├── frontend/           # Angular 17 SPA (puerto 4200)
-│   └── src/app/modules/testomat/    # Gestor de casos de prueba (reemplaza TestOmat.io)
+│   ├── src/app/modules/testomat/    # Gestor de casos de prueba (reemplaza TestOmat.io)
+│   ├── src/app/pages/               # Páginas: automated-tasks, bugs, estadísticas, 
+│   │                                  returns, dibujo-colaborativo, requirement-returns
+│   ├── src/app/core/                # Guards, interceptors, servicios core
+│   └── src/app/shared/              # Componentes reutilizables
 ├── backend/            # Node.js/Express API (puerto 4000)
-│   ├── src/routes/     # 11 módulos: auth, testomat, postman, playwright, bugs, etc.
+│   ├── src/routes/     # 14 módulos: auth, testomat, postman, playwright, bugs, 
+│   │                     drawing, return, requirementReturn, boards, items, etc.
+│   ├── src/controllers/              # Lógica de negocio por módulo
+│   ├── src/middlewares/              # auth, manejo de errores
+│   ├── src/utils/                    # migrations, DB queries, utilidades
 │   └── migrations/     # Schema MySQL auto-ejecutado al iniciar
-└── Documentación: 40+ archivos en MD con arquitectura, flujos e implementaciones
+└── Documentación: 70+ archivos en MD con arquitectura, flujos, guías de uso
 ```
 
 ### Flujo de Datos Crítico
@@ -85,19 +96,21 @@ export const methodName = async (req: Request, res: Response) => {
 cd backend
 npm install
 npm run dev              # Nodemon con ts-node, escucha puerto 4000
+npm run dev:debug        # Debug en puerto 9229 para VSCode/Chrome DevTools
 
 # Frontend (terminal 2)
 cd frontend
 npm install
 npm start                # Sirve en 4200, proxy a localhost:4000
-# O para acceso externo (requerido para Ngrok):
+npm start-dev            # Alias para npm start con proxy en desarrollo
+
+# Para acceso externo (requerido para testing en dispositivos reales):
 npm start -- --host 0.0.0.0 --disable-host-check
 ```
 
 ### Ngrok (Acceso Público)
 ```powershell
 # Expone frontend en URL pública para pruebas en dispositivos
-# Comando ya en package.json:
 npm run ngrok            # Usa URL estática: https://flying-pleasing-stag.ngrok-free.app
 ```
 
@@ -109,69 +122,124 @@ npm start                # Corre dist/server.js en producción
 
 # Frontend
 npm run build            # Genera `dist/frontend/` optimizado
+npm run watch            # Build en modo watch para desarrollo
 ```
 
 ---
 
 ## Puntos de Integración Críticos
 
-### Module Testomat (Gestor de Casos de Prueba)
+### Module Testomat (Gestor de Casos de Prueba - Principal)
 - **Ubicación:** `frontend/src/app/modules/testomat/`
-- **Ruta:** `/testomat/*`
+- **Ruta:** `/testomat/*` (projects, suites, cases, executions, results)
 - **Endpoints backend:** `/api/testomat` (GET projects, POST suites, GET cases, POST results, etc.)
 - **Responsabilidad:** CRUD completo de proyectos → suites → casos → ejecuciones → resultados
-- **Base de datos:** Reemplaza TestOmat.io; todo está en BD local (`test_projects`, `test_cases`, `test_executions`, `test_results`)
+- **Base de datos:** Reemplaza TestOmat.io; todo en BD local (`test_projects`, `test_suites`, `test_cases`, `test_executions`, `test_results`)
+- **Flujo crítico:** Seleccionar proyecto → crear ejecución → llenar estados + evidencias → exportar PDF con base64 de imágenes
 
 ### Postman/Newman Integration
-- **Controllers:** `backend/postman.controller.ts`
+- **Ubicación backend:** `backend/src/controllers/postman.controller.ts` + `backend/src/routes/postman.routes.ts`
 - **Rutas:** `/api/postman/{contract|controlled-response|response}-results`
-- **Flujo:** Lee JSON de colección Postman en `backend/src/files/yamahaAPI.json` → ejecuta con Newman → parsea resultados → guarda en BD con assertions/response bodies
-- **Datos:** Tabla `test_results` contiene `response_body` (JSON) + lista de evidencias URL
+- **Flujo:** Lee JSON de colección Postman en `backend/src/files/yamahaAPI.json` → ejecuta con Newman → parsea resultados → guarda en BD
+- **Datos:** Tabla `test_results` contiene `response_body` (JSON) + lista de evidencias URL en S3
 
-### Playwright Integration
-- **Controllers:** `backend/playwright.controller.ts`
+### Playwright Integration (Análisis Multi-Proyecto)
+- **Ubicación:** `backend/src/controllers/playwright.controller.ts` + `backend/src/routes/playwright.routes.ts`
 - **Rutas:** `/api/playwright/{summary|daily|top-failures|results|contract-results|...}`
 - **Modelos:** Dinámicos por proyecto (`playwright_results_[projectName]`)
 - **Patrón:** Controllers filtran por `projectName` en request body para análisis multi-proyecto
+- **Dashboards:** Gráficas de tendencias, top failures, estadísticas diarias
+
+### Returns Module (Devoluciones)
+- **Ubicación frontend:** `frontend/src/app/pages/returns/`
+- **Endpoints:** `/api/return/*` y `/api/requirementReturn/*`
+- **Responsabilidad:** Gestión de devoluciones y devoluciones por requerimiento con evidencias
+- **Especial:** Flujo completo de devoluciones con archivos, notas, asignación y seguimiento
 
 ### Bugs & Tracking
-- **Módulo:** `backend/bugs.controller.ts`
-- **DB:** Tabla `bugs` con `project_id`, `status`, `severity`, `description`
-- **Flujo:** Usuarios reportan bugs → listados en `/bugs` con filtros → asignables a usuarios
+- **Módulo:** `backend/src/controllers/bugs.controller.ts` + `backend/src/routes/bugs.routes.ts`
+- **BD:** Tabla `bugs` con `project_id`, `status`, `severity`, `description`
+- **Frontend:** `frontend/src/app/pages/bugs/` y `bug-detail/`
+- **Flujo:** Usuarios reportan bugs → listados con filtros → asignables a usuarios → seguimiento de estado
 
-### Dibujo Colaborativo (Nuevo)
-- **Backend:** `backend/drawing.controller.ts` + Socket.io events en `server.ts`
-- **Frontend:** `pages/dibujo-colaborativo/` componente con Canvas HTML5
-- **Funcionalidades:** Dibujo en tiempo real, múltiples usuarios, colores/grosores, limpiar canvas, descarga
+### Dibujo Colaborativo (Socket.io Real-Time)
+- **Backend:** `backend/src/controllers/drawing.controller.ts` + Socket.io en `server.ts`
+- **Frontend:** `frontend/src/app/pages/dibujo-colaborativo/` componente con Canvas HTML5
 - **Socket events:** `drawing`, `drawing-cleared`, `user-joined`, `user-left`
-- **Ruta:** `/dibujo-colaborativo` (disponible para todos los usuarios autenticados)
+- **Funcionalidades:** Colores, grosores, borrador, limpiar, descarga PNG, responsive (touch)
+- **Persistencia:** En memoria durante sesión del servidor
+
+### Automated Tasks (Ejecuciones Automáticas)
+- **Frontend:** `frontend/src/app/pages/automated-tasks/`
+- **Backend:** `backend/src/routes/automatedTasks.routes.ts`
+- **Propósito:** Programar y monitorear ejecuciones automáticas de tests
+
+### Boards & Items (Kanban-like)
+- **Rutas:** `/api/boards/*`, `/api/items/*`, `/api/qaItems/*`, `/api/sprints/*`
+- **Propósito:** Organización de trabajo en sprints y seguimiento de ítems QA
+
+### Users & Auth (Sistema de Usuarios)
+- **Rutas:** `/api/auth/*`, `/api/users/*`
+- **Autenticación:** JWT en header `Authorization`
+- **Middleware:** `auth.middleware.ts` valida token en todas las rutas protegidas
+- **Almacenamiento:** Usuarios con roles y permisos por proyecto
+
+### Pictionary Game (Bonus Feature)
+- **Socket.io game:** Completamente implementado en `server.ts`
+- **Características:** Multi-jugador, turnos de dibujante, adivinanzas, sistema de puntos
+- **Palabras:** 1000+ palabras en `src/gameWords-extended.ts`
+- **Estado:** Juego activo con estados de ronda, timer, pistas gradualmente reveladas
 
 ---
 
 ## Decisiones de Diseño Importante
 
 ### 1. PDF Export: Base64 Conversion (No URLs Directas)
-**Por qué:** pdfMake no soporta URLs directas en navegadores por CORS. 
-**Solución:** `urlToBase64()` convierte imágenes S3 a DataURL antes de insertarlas.
-**Fallback:** Si conversion falla, inserta URL como texto clickeable.
+**Por qué:** pdfMake no soporta URLs directas en navegadores por CORS y restricciones de seguridad.
+**Solución:** `urlToBase64()` en componente convertidor convierte imágenes S3 a DataURL antes de insertarlas en PDF.
+**Implementación:** Usa `fetch()` + `Canvas API` para conversión en el cliente.
+**Fallback:** Si conversion falla, inserta URL como texto clickeable; videos se mantienen como enlaces HTTP.
+**Ubicación:** `frontend/src/app/modules/testomat/components/test-execution-runner.component.ts`
 
 ### 2. Evidencias como Arrays JSON
-**Por qué:** Permite acumular múltiples evidencias sin sobrescribir.
+**Por qué:** Permite acumular múltiples evidencias sin sobrescribir durante múltiples ejecuciones.
 **Patrón:**
 ```typescript
 // BD: JSON.stringify([url1, url2, url3...])
 // Frontend: JSON.parse() → *ngFor para mostrar
-// Agregar evidencia: combine array anterior + URLs nuevas → stringify de nuevo
+// Agregar: combine array anterior + URLs nuevas → stringify de nuevo
 ```
+**Almacenamiento:** Campo `evidence` en tablas de resultados como JSON serializado.
 
 ### 3. Ngrok + CORS Abierto
-**Por qué:** Necesario para pruebas en dispositivos reales, ngrok asigna URLs dinámicas.
-**Configuración:** CORS permite `*.ngrok-free.app` regex + localhost, `ngrok-skip-browser-warning` header.
+**Por qué:** Necesario para pruebas en dispositivos reales; ngrok asigna URLs dinámicas.
+**Configuración en `backend/src/app.ts`:** CORS permite:
+- `localhost:4200`, `localhost:4000`
+- `https://flying-pleasing-stag.ngrok-free.app` (URL estática)
+- Regex `/\.ngrok-free\.app$/` y `/\.ngrok\.io$/` (cualquier subdominio)
+- Header especial: `ngrok-skip-browser-warning`
 
-### 4. Socket.io Implementación Activa
-**Estado:** Totalmente implementado para dibujo colaborativo en tiempo real.
-**Uso actual:** Sistema de dibujo colaborativo con eventos: `drawing`, `drawing-cleared`, `user-joined`, `user-left`.
-**Patrón:** Cada trazo se almacena en memoria del backend y se retransmite a todos los usuarios conectados.
+### 4. Socket.io Arquitectura Multi-Feature
+**Estado:** Completamente implementado en `server.ts` con múltiples canales independientes.
+**Canales activos:**
+- **Dibujo Colaborativo:** `drawing`, `drawing-cleared`, `user-joined`, `user-left`
+- **Chat:** Mensajes en tiempo real (almacenado en memoria, mejora futura: BD)
+- **Pictionary Game:** Estados completos del juego, turnos, puntos, adivinanzas
+- **Notificaciones:** Ejecuciones finalizadas, cambios de estado
+
+**Patrón:** Cada trazo/evento se retransmite a todos los usuarios conectados.
+**CORS Socket.io:** Abierto a cualquier origen (`origin: '*'`).
+
+### 5. Migraciones Auto-Ejecutadas
+**Por qué:** Garantiza consistencia de esquema sin steps manuales.
+**Implementación:** `runMigrations()` en `server.ts` lee `/migrations/*.sql` al iniciar.
+**Idempotencia:** Scripts usan `IF NOT EXISTS` para evitar errores.
+**Developer Experience:** Nuevo dev = `npm install && npm run dev` → DB lista automáticamente.
+
+### 6. Proxy Local en Desarrollo
+**Frontend proxy.conf.json:** Redirige `/api/*` → `localhost:4000`.
+**Ventaja:** Evita CORS en desarrollo, simula ambiente real de producción.
+**Configuración:** Script `npm start` incluye `--proxy-config proxy.conf.json` automáticamente.
 
 ---
 
@@ -207,11 +275,17 @@ npm run build            # Genera `dist/frontend/` optimizado
 
 ## Convenciones de Código
 
-- **TS/JS:** Async/await (no callbacks), tipos explícitos, camelCase
-- **Nombres:** Controllers `[feature].controller.ts`, Routes `[feature].routes.ts`, Services `[feature].service.ts`
-- **Errores:** Siempre incluir `message` en respuestas, logs con contexto (qué operación, qué data)
-- **Git:** Branches por feature (`feature/pdf-export`), PRs con descripción, commits atómicos
-- **Documentación:** Cada cambio mayor → .md file con "Cambios", "Arquitectura", "Testing" sections
+- **TS/JS:** Async/await (no callbacks), tipos explícitos, camelCase para variables/funciones
+- **Nombres de archivos:** Controllers `[feature].controller.ts`, Routes `[feature].routes.ts`, Services `[feature].service.ts`
+- **Respuestas API:** SIEMPRE incluir objeto con `{ success: boolean, data?: T, message: string, error?: string }`
+- **Errores:** Status HTTP apropiados (400 validación, 401 auth, 403 forbidden, 404 not found, 500 server error)
+- **Logs:** Context detallado - qué operación, parámetros de entrada, resultado
+- **BD Queries:** Usar connection pool de mysql2, placeholders `?` para evitar SQL injection
+- **Autenticación:** JWT en header `Authorization: Bearer <token>`, middleware `authMiddleware` en todas rutas protegidas
+- **CORS:** Configurado en `app.ts` con lista blanca de orígenes (localhost, ngrok)
+- **S3 Upload:** Multer para archivos, generar filename único + timestamp, devolver URL pública
+- **Git:** Branches por feature (`feature/nombre`), PRs con descripción, commits atómicos descriptivos
+- **Documentación:** Major features → .md file con secciones: "Descripción", "Flujo", "Testing", "API Endpoints"
 
 ---
 
@@ -219,43 +293,35 @@ npm run build            # Genera `dist/frontend/` optimizado
 
 | Ruta | Propósito |
 |------|-----------|
-| `frontend/src/app/modules/testomat/components/test-execution-runner.component.ts` | PDF export, evidencias, UI test cases |
-| `backend/src/app.ts` | Configuración Express, rutas, CORS |
-| `backend/src/server.ts` | Punto entrada, Socket.io, migraciones |
-| `backend/src/routes/testomat.routes.ts` | Endpoints CRUD projects/suites/cases/executions |
-| `backend/src/controllers/testomat.controller.ts` | Lógica negocio, S3 upload, BD queries |
-| `backend/migrations/*.sql` | Schema MySQL (autoreferencia para queries) |
-| `frontend/src/app/modules/testomat/services/testomat.service.ts` | Wrapper HTTP, transformaciones |
-| `frontend/src/app/core/auth.interceptor.ts` | JWT injection en headers |
+| `frontend/src/app/modules/testomat/components/test-execution-runner.component.ts` | PDF export con base64, manejo evidencias, UI casos prueba |
+| `frontend/src/app/modules/testomat/services/testomat.service.ts` | HTTP wrapper, transformaciones datos testomat |
+| `backend/src/app.ts` | Configuración Express, imports rutas, CORS whitelist |
+| `backend/src/server.ts` | Entry point, Socket.io listeners, migraciones, Pictionary game |
+| `backend/src/routes/testomat.routes.ts` | Endpoints CRUD proyectos/suites/casos/ejecuciones |
+| `backend/src/controllers/testomat.controller.ts` | Lógica negocio testomat, S3 upload, queries BD |
+| `backend/src/controllers/drawing.controller.ts` | API dibujo colaborativo, manejo estado canvas |
+| `backend/src/routes/drawing.routes.ts` | Endpoints `/api/drawing/data`, `/clear` |
+| `backend/src/controllers/postman.controller.ts` | Ejecución Newman, parseo resultados Postman |
+| `backend/src/controllers/playwright.controller.ts` | Análisis multi-proyecto, dashboards tendencias |
+| `backend/src/middlewares/auth.middleware.ts` | Validación JWT, inyección usuario en request |
+| `backend/migrations/*.sql` | Schema MySQL (referencia para queries, `IF NOT EXISTS` required) |
+| `backend/src/gameWords-extended.ts` | 1000+ palabras para Pictionary game |
+| `frontend/src/app/core/auth.interceptor.ts` | JWT injection automático en headers |
+| `frontend/proxy.conf.json` | Redirección `/api/*` → localhost:4000 |
 
 ---
 
 ## Próximos Desarrollos (Roadmap)
 
-- Implementar Socket.io listeners para notificaciones en tiempo real
 - Integración con TestOmat.io API para importación/exportación
 - Reportes avanzados (gráficas de tendencia, burndown)
 - Integración con CI/CD (Jenkins, GitHub Actions)
 - Sistema de permisos granular (roles por proyecto)
+- Persistencia Socket.io en BD (chat, Pictionary history)
+- Métricas de calidad en tiempo real
 
 ---
 
-**Última actualización:** 23 de noviembre de 2025  
+**Última actualización:** 16 de diciembre de 2025  
+**Rama actual:** manager  
 **Contacto:** Equipo QA
-
-## Módulo de Dibujo Colaborativo (Nuevo)
-
-### Funcionalidades Implementadas
-- **Canvas HTML5** con herramientas de dibujo (colores, grosores, borrador)
-- **Tiempo real** via Socket.io - todos los usuarios ven trazos instantáneamente  
-- **Persistencia en memoria** - dibujos se mantienen durante la sesión del servidor
-- **Multi-usuario** - lista de usuarios conectados en tiempo real
-- **Descarga** - exportar canvas como imagen PNG
-- **Responsive** - funciona en desktop y móvil (touch events)
-
-### Archivos Clave
-- `backend/src/controllers/drawing.controller.ts` - API REST + lógica de estado
-- `backend/src/routes/drawing.routes.ts` - Endpoints `/api/drawing/data` y `/clear`
-- `frontend/src/app/core/drawing.service.ts` - Socket.io client + manejo de estado
-- `frontend/src/app/pages/dibujo-colaborativo/` - Componente Angular completo
-- `backend/src/server.ts` - Eventos Socket.io: drawing, drawing-cleared, user-joined, user-left
