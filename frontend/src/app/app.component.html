@@ -109,18 +109,22 @@
 				   <li class="nav-item mb-2">
 					   <a class="nav-link" routerLink="/grafica-pruebas" routerLinkActive="active"><i class="bi bi-bar-chart me-1"></i>Pruebas</a>
 				   </li>
-				   <li class="nav-item mb-2">
-					   <a class="nav-link" routerLink="/returns" routerLinkActive="active"><i class="bi bi-arrow-counterclockwise me-1"></i>Analisis de requerimientos</a>
-				   </li>
+				   
 				   <li class="nav-item mb-2">
 					   <a class="nav-link" routerLink="/dibujo-colaborativo" routerLinkActive="active"><i class="bi bi-controller me-1"></i>Juegos</a>
 				   </li>
 				   <li class="nav-item mb-2" *ngIf="userRole === 'ADMIN' || userRole === 'QA'">
 					   <a class="nav-link" routerLink="/testomat" routerLinkActive="active"><i class="bi bi-folder-check me-1"></i>Casos de prueba</a>
 				   </li>
-						<li class="nav-item mb-2" *ngIf="userRole === 'ADMIN'">
-							<a class="nav-link" routerLink="/bugs" routerLinkActive="active"><i class="bi bi-bug me-1"></i>Bugs</a>
-						</li>
+					<li class="nav-item mb-2" *ngIf="userRole === 'ADMIN'">
+						<a class="nav-link" routerLink="/bugs" routerLinkActive="active"><i class="bi bi-bug me-1"></i>Bugs</a>
+					</li>
+					<li class="nav-item mb-2">
+						   <a class="nav-link" routerLink="/returns" routerLinkActive="active"><i class="bi bi-arrow-counterclockwise me-1"></i>Análisis de requerimientos</a>
+				   </li>
+					 <li class="nav-item mb-2">
+						   <a class="nav-link" routerLink="/analisis-requerimientos" routerLinkActive="active"><i class="bi bi-arrow-counterclockwise me-1"></i>MCP Historias de Usuario</a>
+				   </li>
 			</ul>
 		</nav>
 		<button *ngIf="!sidebarOpen" class="btn btn-sm btn-outline-secondary position-fixed m-2" style="z-index:1000;" (click)="toggleSidebar()" title="Mostrar menú">

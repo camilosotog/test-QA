@@ -14,3 +14,6 @@ export function auth(req: Request, res: Response, next: NextFunction) {
     return res.status(401).json({ error: "Invalid token" });
   }
 }
+
+// Backwards-compatible export name used across routes
+export const authMiddleware = auth;

@@ -21,6 +21,7 @@ import { TestExecutionRunnerComponent } from './modules/testomat/components/test
 import { DibujoColaborativoComponent } from './pages/dibujo-colaborativo/dibujo-colaborativo.component';
 import { DibujoGameGuard } from './core/dibujo-game.guard';
 import { ReturnsComponent } from './pages/returns/returns.component';
+import { RequirementAnalysisComponent } from './modules/requirement-analysis/components/requirement-analysis.component';
 
 const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -38,6 +39,7 @@ const routes: Routes = [
   { path: 'testomat/casos', component: TestCasesLibraryComponent, canActivate: [QaAdminGuard] },
   { path: 'testomat/ejecuciones', component: TestExecutionsComponent, canActivate: [QaAdminGuard] },
   { path: 'testomat/ejecucion/:executionId', component: TestExecutionRunnerComponent, canActivate: [QaAdminGuard] },
+  { path: 'analisis-requerimientos', component: RequirementAnalysisComponent, canActivate: [AuthGuard] },
   { path: '', redirectTo: '/qa-items', pathMatch: 'full' }
 ];
 

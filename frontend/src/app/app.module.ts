@@ -22,6 +22,7 @@ import { GraficaPruebasComponent } from './pages/grafica-pruebas/grafica-pruebas
 import { TestomatModule } from './modules/testomat/testomat.module';
 import { DibujoColaborativoComponent } from './pages/dibujo-colaborativo/dibujo-colaborativo.component';
 import { ReturnsComponent } from './pages/returns/returns.component';
+import { RequirementAnalysisModule } from './modules/requirement-analysis/requirement-analysis.module';
 
 @NgModule({
   declarations: [
@@ -46,7 +47,8 @@ import { ReturnsComponent } from './pages/returns/returns.component';
     FormsModule,
     ReactiveFormsModule,
     CommonModule,
-    TestomatModule
+    TestomatModule,
+    RequirementAnalysisModule
   ],
   providers: [
     { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },

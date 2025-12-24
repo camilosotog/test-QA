@@ -17,6 +17,7 @@ import postmanRoutes from "./routes/postman.routes";
 import testomatRoutes from "./routes/testomat.routes";
 import drawingRoutes from "./routes/drawing.routes";
 import returnRoutes from "./routes/return.routes";
+import requirementAnalysisRoutes from "./routes/requirementAnalysis.routes";
 
 const app = express();
 
@@ -50,5 +51,6 @@ app.use("/api/postman", postmanRoutes);
 app.use("/api/testomat", testomatRoutes);
 app.use("/api/drawing", drawingRoutes);
 app.use("/api/returns", returnRoutes);
+app.use("/api/requirement-analysis", requirementAnalysisRoutes);
 
 export default app;
