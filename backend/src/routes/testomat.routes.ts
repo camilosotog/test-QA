@@ -37,7 +37,9 @@ import {
   completeTestExecution,
   reopenTestExecution,
   recalculateAllExecutionStatuses,
-  getTestResult
+  getTestResult,
+  deleteEvidence,
+  deleteTestExecution
 } from '../controllers/testExecution.controller';
 
 // Configurar multer para upload de archivos
@@ -362,6 +364,19 @@ router.post('/results', auth, upload.array('evidence'), saveTestResult);
  * Obtener resultado de un caso específico
  */
 router.get('/results/:test_case_id/:execution_id', auth, getTestResult);
+
+/**
+ * DELETE /api/testomat/executions/:executionId/cases/:caseId/evidence
+ * Eliminar una evidencia específica de un resultado
+ * Body: { evidenceUrl: string }
+ */
+router.delete('/executions/:executionId/cases/:caseId/evidence', auth, deleteEvidence);
+
+/**
+ * DELETE /api/testomat/executions/:executionId
+ * Eliminar una ejecución completa con todos sus resultados y evidencias
+ */
+router.delete('/executions/:executionId', auth, deleteTestExecution);
 
 // ========== ANALYTICS ==========
 /**

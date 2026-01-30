@@ -232,4 +232,35 @@ export class TestExecutionsComponent implements OnInit, OnDestroy {
     if (total === 0) return 0;
     return Math.round((passed / total) * 100);
   }
+
+  /**
+   * Elimina una ejecución después de confirmación del usuario
+   */
+  deleteExecution(execution: TestExecution, event: Event): void {
+    event.stopPropagation(); // Evitar que se abra la ejecución al hacer clic en el botón
+
+    if (!execution?.id) return;
+
+    const confirmMessage = `¿Estás seguro de que deseas eliminar la ejecución "${execution.suite_name || 'Sin nombre'}"?\n\nEsto eliminará también todos los resultados y evidencias asociadas. Esta acción no se puede deshacer.`;
+    
+    if (!confirm(confirmMessage)) {
+      return;
+    }
+
+    this.loading = true;
+    this.testomatService.deleteTestExecution(execution.id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response: any) => {
+          console.log('✅ Ejecución eliminada:', response);
+          // Recargar la lista de ejecuciones
+          this.loadExecutions();
+        },
+        error: (err) => {
+          console.error('❌ Error al eliminar ejecución:', err);
+          this.error = 'No se pudo eliminar la ejecución. Intenta de nuevo.';
+          this.loading = false;
+        }
+      });
+  }
 }

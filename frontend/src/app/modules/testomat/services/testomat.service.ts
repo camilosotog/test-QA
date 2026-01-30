@@ -394,6 +394,15 @@ export class TestomatService {
   }
 
   /**
+   * Elimina una evidencia específica de un resultado de prueba
+   */
+  deleteEvidence(executionId: number, caseId: number, evidenceUrl: string): Observable<any> {
+    return this.http.delete<any>(`${this.apiUrl}/executions/${executionId}/cases/${caseId}/evidence`, {
+      body: { evidenceUrl }
+    });
+  }
+
+  /**
    * Marca una ejecución como completada
    */
   completeTestExecution(executionId: number): Observable<any> {
@@ -405,6 +414,13 @@ export class TestomatService {
    */
   reopenTestExecution(executionId: number): Observable<any> {
     return this.http.put<any>(`${this.apiUrl}/executions/${executionId}/reopen`, {});
+  }
+
+  /**
+   * Elimina una ejecución completa con todos sus resultados y evidencias
+   */
+  deleteTestExecution(executionId: number): Observable<any> {
+    return this.http.delete<any>(`${this.apiUrl}/executions/${executionId}`);
   }
 
   /**

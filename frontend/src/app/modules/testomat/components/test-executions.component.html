@@ -122,12 +122,19 @@
                 </div>
               </div>
 
-              <div class="card-footer">
+              <div class="card-footer d-flex gap-2">
                 <button 
-                  class="btn btn-sm btn-primary w-100"
+                  class="btn btn-sm btn-primary flex-grow-1"
                   (click)="continueExecution(execution)"
                 >
-                  <i class="bi bi-arrow-right-circle"></i> Continuar Ejecución
+                  <i class="bi bi-arrow-right-circle"></i> Continuar
+                </button>
+                <button 
+                  class="btn btn-sm btn-outline-danger"
+                  (click)="deleteExecution(execution, $event)"
+                  title="Eliminar ejecución"
+                >
+                  <i class="bi bi-trash"></i>
                 </button>
               </div>
             </div>

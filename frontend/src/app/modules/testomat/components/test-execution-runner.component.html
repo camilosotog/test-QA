@@ -368,12 +368,21 @@
               <!-- Evidencias guardadas (de resultados anteriores) -->
               <div *ngIf="getSavedEvidenceUrls().length > 0" class="evidence-list mt-3">
                 <h6>Evidencias guardadas:</h6>
-                <div *ngFor="let url of getSavedEvidenceUrls()" class="evidence-item saved">
+                <div *ngFor="let url of getSavedEvidenceUrls(); let i = index" class="evidence-item saved">
                   <i class="bi bi-cloud-check text-success"></i> 
                   <a [href]="url" target="_blank" class="evidence-link">
                     {{ extractFileName(url) }}
                   </a>
                   <span class="badge badge-success ms-2">Guardado</span>
+                  <button 
+                    type="button"
+                    class="btn-remove ms-2"
+                    (click)="deleteSavedEvidence(url)"
+                    [disabled]="deletingEvidence"
+                    title="Eliminar evidencia guardada"
+                  >
+                    <i class="bi bi-trash text-danger"></i>
+                  </button>
                 </div>
               </div>
             </div>

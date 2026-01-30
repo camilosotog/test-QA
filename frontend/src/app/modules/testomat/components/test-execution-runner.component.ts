@@ -16,6 +16,7 @@ export class TestExecutionRunnerComponent implements OnInit, OnDestroy {
   currentCaseIndex = 0;
   loading = false;
   saving = false;
+  deletingEvidence = false; // Flag para indicar que se está eliminando una evidencia
   error: string | null = null;
   
   resultForm: FormGroup;
@@ -661,6 +662,54 @@ export class TestExecutionRunnerComponent implements OnInit, OnDestroy {
       console.error('Error parsing evidence URLs:', currentCase.evidence_urls, e);
       return [];
     }
+  }
+
+  /**
+   * Elimina una evidencia guardada del caso actual
+   */
+  deleteSavedEvidence(url: string): void {
+    const currentCase = this.getCurrentCase();
+    if (!currentCase || !this.execution) {
+      return;
+    }
+
+    // Confirmar eliminación
+    if (!confirm('¿Estás seguro de eliminar esta evidencia? Esta acción no se puede deshacer.')) {
+      return;
+    }
+
+    this.deletingEvidence = true;
+
+    this.testomatService.deleteEvidence(this.execution.id!, currentCase.id!, url)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          console.log('✅ Evidencia eliminada:', response);
+          
+          // Actualizar las URLs localmente sin recargar toda la ejecución
+          if (currentCase.evidence_urls) {
+            try {
+              let urls = typeof currentCase.evidence_urls === 'string' 
+                ? JSON.parse(currentCase.evidence_urls) 
+                : currentCase.evidence_urls;
+              
+              if (Array.isArray(urls)) {
+                urls = urls.filter((u: string) => u !== url);
+                currentCase.evidence_urls = urls.length > 0 ? JSON.stringify(urls) : '';
+              }
+            } catch (e) {
+              console.error('Error actualizando URLs localmente:', e);
+            }
+          }
+
+          this.deletingEvidence = false;
+        },
+        error: (err) => {
+          console.error('❌ Error al eliminar evidencia:', err);
+          this.error = 'No se pudo eliminar la evidencia.';
+          this.deletingEvidence = false;
+        }
+      });
   }
 
   /**

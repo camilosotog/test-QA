@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { db } from '../config/db';
-import { uploadToS3 } from '../config/s3';
+import { uploadToS3, deleteFromS3 } from '../config/s3';
 
 // ============================================
 // 🎬 TEST EXECUTIONS CONTROLLER
@@ -704,6 +704,184 @@ export const recalculateAllExecutionStatuses = async (req: Request, res: Respons
   }
 };
 
+
+/**
+ * Elimina una evidencia específica de un resultado de prueba
+ */
+export const deleteEvidence = async (req: Request, res: Response) => {
+  const { executionId, caseId } = req.params;
+  const { evidenceUrl } = req.body;
+
+  if (!executionId || !caseId || !evidenceUrl) {
+    return res.status(400).json({ 
+      error: 'executionId, caseId and evidenceUrl are required' 
+    });
+  }
+
+  try {
+    // Obtener el resultado actual
+    const [results] = await db.query(
+      'SELECT id, evidence_urls FROM test_results WHERE test_execution_id = ? AND test_case_id = ?',
+      [executionId, caseId]
+    ) as any;
+
+    if (!results || results.length === 0) {
+      return res.status(404).json({ error: 'Test result not found' });
+    }
+
+    const result = results[0];
+    let evidenceUrls: string[] = [];
+
+    // Parsear las URLs existentes
+    if (result.evidence_urls) {
+      try {
+        if (typeof result.evidence_urls === 'string') {
+          evidenceUrls = JSON.parse(result.evidence_urls);
+        } else if (Array.isArray(result.evidence_urls)) {
+          evidenceUrls = result.evidence_urls;
+        }
+      } catch (e) {
+        console.error('Error parsing evidence URLs:', e);
+        evidenceUrls = [];
+      }
+    }
+
+    // Filtrar la URL a eliminar
+    const updatedUrls = evidenceUrls.filter(url => url !== evidenceUrl);
+
+    // Eliminar el archivo de S3
+    try {
+      await deleteFromS3(evidenceUrl);
+      console.log(`🗑️ Archivo eliminado de S3: ${evidenceUrl}`);
+    } catch (s3Error) {
+      console.warn('⚠️ No se pudo eliminar de S3 (continuando con BD):', s3Error);
+      // Continuamos con la eliminación de la BD aunque falle S3
+    }
+
+    // Actualizar en la base de datos
+    await db.query(
+      'UPDATE test_results SET evidence_urls = ? WHERE test_execution_id = ? AND test_case_id = ?',
+      [updatedUrls.length > 0 ? JSON.stringify(updatedUrls) : null, executionId, caseId]
+    );
+
+    console.log(`✅ Evidencia eliminada: ${evidenceUrl}`);
+
+    res.json({
+      success: true,
+      message: 'Evidencia eliminada correctamente',
+      remaining_urls: updatedUrls
+    });
+  } catch (error) {
+    console.error('❌ Error deleting evidence:', error);
+    res.status(500).json({ 
+      error: 'Error deleting evidence', 
+      details: (error as any).message 
+    });
+  }
+};
+
+/**
+ * Elimina una ejecución de prueba y todos sus resultados asociados
+ */
+export const deleteTestExecution = async (req: Request, res: Response) => {
+  const { executionId } = req.params;
+
+  if (!executionId) {
+    return res.status(400).json({ error: 'executionId is required' });
+  }
+
+  try {
+    // Verificar que la ejecución existe
+    const [executions] = await db.query(
+      'SELECT id, test_suite_id FROM test_executions WHERE id = ?',
+      [executionId]
+    ) as any;
+
+    if (!executions || executions.length === 0) {
+      return res.status(404).json({ error: 'Execution not found' });
+    }
+
+    const execution = executions[0];
+
+    // Obtener todas las evidencias para eliminarlas de S3
+    const [results] = await db.query(
+      'SELECT evidence_urls FROM test_results WHERE test_execution_id = ?',
+      [executionId]
+    ) as any;
+
+    // Eliminar evidencias de S3
+    if (results && results.length > 0) {
+      for (const result of results) {
+        if (result.evidence_urls) {
+          try {
+            let urls: string[] = [];
+            if (typeof result.evidence_urls === 'string') {
+              urls = JSON.parse(result.evidence_urls);
+            } else if (Array.isArray(result.evidence_urls)) {
+              urls = result.evidence_urls;
+            }
+
+            for (const url of urls) {
+              try {
+                await deleteFromS3(url);
+                console.log(`🗑️ Evidencia eliminada de S3: ${url}`);
+              } catch (s3Error) {
+                console.warn(`⚠️ No se pudo eliminar de S3: ${url}`, s3Error);
+              }
+            }
+          } catch (parseError) {
+            console.warn('⚠️ Error parsing evidence URLs:', parseError);
+          }
+        }
+      }
+    }
+
+    // Eliminar resultados asociados
+    await db.query(
+      'DELETE FROM test_results WHERE test_execution_id = ?',
+      [executionId]
+    );
+    console.log(`✅ Resultados eliminados para ejecución ${executionId}`);
+
+    // Eliminar la ejecución
+    await db.query(
+      'DELETE FROM test_executions WHERE id = ?',
+      [executionId]
+    );
+    console.log(`✅ Ejecución ${executionId} eliminada`);
+
+    // Intentar eliminar el board asociado (si existe)
+    try {
+      const [suiteInfo] = await db.query(
+        'SELECT name FROM test_suites WHERE id = ?',
+        [execution.test_suite_id]
+      ) as any;
+
+      if (suiteInfo && suiteInfo.length > 0) {
+        const suiteName = suiteInfo[0].name;
+        await db.query(
+          'DELETE FROM boards WHERE name = ? ORDER BY created_at DESC LIMIT 1',
+          [suiteName]
+        );
+        console.log(`✅ Board asociado eliminado: ${suiteName}`);
+      }
+    } catch (boardError) {
+      console.warn('⚠️ No se pudo eliminar el board asociado:', boardError);
+    }
+
+    res.json({
+      success: true,
+      message: 'Ejecución eliminada correctamente',
+      deletedId: executionId
+    });
+  } catch (error) {
+    console.error('❌ Error deleting test execution:', error);
+    res.status(500).json({ 
+      error: 'Error deleting test execution', 
+      details: (error as any).message 
+    });
+  }
+};
 
 export const getTestResult = async (req: Request, res: Response) => {
   const { test_case_id, execution_id } = req.params;
