@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { db } from '../config/db';
 import { TestCase, TestExecution, TestResult } from '../models/testomat.model';
+import { uploadToS3 } from '../config/s3';
 
 // ============================================
 // 🧪 TESTOMAT CONTROLLER
@@ -175,6 +176,37 @@ export const createTestSuite = async (req: Request, res: Response) => {
   }
 };
 
+export const deleteTestSuite = async (req: Request, res: Response) => {
+  const suiteId = parseInt(req.params.suiteId || '0');
+
+  if (!suiteId || isNaN(suiteId)) {
+    return res.status(400).json({ error: 'Invalid suite ID' });
+  }
+
+  try {
+    // Primero eliminar todos los resultados de los casos de esta suite
+    await db.query(
+      'DELETE FROM test_results WHERE test_case_id IN (SELECT id FROM test_cases WHERE test_suite_id = ?)',
+      [suiteId]
+    );
+
+    // Luego eliminar todos los casos de prueba de esta suite
+    await db.query('DELETE FROM test_cases WHERE test_suite_id = ?', [suiteId]);
+
+    // Finalmente eliminar la suite
+    const [result] = await db.query('DELETE FROM test_suites WHERE id = ?', [suiteId]) as any;
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Test suite not found' });
+    }
+
+    res.json({ message: 'Test suite deleted successfully' });
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(500).json({ error: 'Error deleting test suite' });
+  }
+};
+
 // ========== TEST CASES ==========
 
 export const getTestCases = async (req: Request, res: Response) => {
@@ -250,6 +282,7 @@ export const createTestCase = async (req: Request, res: Response) => {
     test_type,
     requirement_id,
     tags,
+    attachments,
     created_by,
   } = req.body;
 
@@ -271,14 +304,16 @@ export const createTestCase = async (req: Request, res: Response) => {
       `INSERT INTO test_cases (
         test_suite_id, test_project_id, name, description, preconditions, input_data, steps, 
         expected_result, priority, status, automation_status, automation_tool, 
-        test_type, requirement_id, tags, created_by
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        test_type, requirement_id, tags, attachments, created_by
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         test_suite_id, test_project_id, name, description || null, preconditions || null,
         input_data || null, steps ? JSON.stringify(steps) : null, expected_result || null,
         priority || 'medium', status || 'draft', automation_status || 'manual',
         automation_tool || null, test_type || 'functional', requirement_id || null,
-        tags ? JSON.stringify(tags) : null, created_by || null,
+        tags ? JSON.stringify(tags) : null, 
+        attachments ? JSON.stringify(attachments) : null,
+        created_by || null,
       ]
     ) as any;
 
@@ -289,6 +324,7 @@ export const createTestCase = async (req: Request, res: Response) => {
       name,
       description,
       status: status || 'draft',
+      attachments: attachments || [],
     });
   } catch (error) {
     console.error('Error:', error);
@@ -311,6 +347,7 @@ export const updateTestCase = async (req: Request, res: Response) => {
     automation_tool,
     test_type,
     tags,
+    attachments,
     updated_by
   } = req.body;
 
@@ -335,6 +372,7 @@ export const updateTestCase = async (req: Request, res: Response) => {
     if (automation_tool !== undefined) { updates.push('automation_tool = ?'); params.push(automation_tool); }
     if (test_type !== undefined) { updates.push('test_type = ?'); params.push(test_type); }
     if (tags !== undefined) { updates.push('tags = ?'); params.push(tags ? JSON.stringify(tags) : null); }
+    if (attachments !== undefined) { updates.push('attachments = ?'); params.push(attachments ? JSON.stringify(attachments) : null); }
 
     if (updates.length === 0) {
       return res.status(400).json({ error: 'No fields to update' });
@@ -417,6 +455,7 @@ export const getTestExecutionById = async (req: Request, res: Response) => {
         tc.input_data,
         tc.steps,
         tc.expected_result,
+        tc.attachments,
         tc.priority,
         tc.test_type,
         tc.automation_status,
@@ -469,6 +508,7 @@ export const getTestExecutionById = async (req: Request, res: Response) => {
       input_data: row.input_data,
       steps: row.steps,
       expected_result: row.expected_result,
+      attachments: row.attachments,
       priority: row.priority,
       test_type: row.test_type,
       automation_status: row.automation_status,
@@ -661,12 +701,44 @@ export const importFromTestomat = async (req: Request, res: Response) => {
   }
 };
 
+/**
+ * Sube un archivo adjunto a S3
+ */
+export const uploadAttachment = async (req: Request, res: Response) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No se ha proporcionado ningún archivo' });
+    }
+
+    const file = req.file;
+    const fileName = `${Date.now()}-${file.originalname}`;
+    
+    // Subir archivo a S3
+    const fileUrl = await uploadToS3(file.buffer, fileName, file.mimetype);
+
+    res.status(200).json({
+      success: true,
+      url: fileUrl,
+      fileName: file.originalname,
+      message: 'Archivo subido correctamente'
+    });
+  } catch (error) {
+    console.error('Error al subir archivo:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Error al subir el archivo',
+      details: (error as any).message 
+    });
+  }
+};
+
 export default {
   getTestProjects,
   getTestProjectById,
   createTestProject,
   getTestSuites,
   createTestSuite,
+  deleteTestSuite,
   getTestCases,
   getTestCaseById,
   createTestCase,
@@ -677,4 +749,5 @@ export default {
   createTestResult,
   getProjectAnalytics,
   importFromTestomat,
+  uploadAttachment,
 };

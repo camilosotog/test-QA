@@ -21,6 +21,27 @@ export class QaItemsListComponent implements OnInit {
     const arr: Board[] = this.boardsBySprint && this.boardsBySprint[sprintId] ? this.boardsBySprint[sprintId] : [];
     return arr.filter((x: Board | null | undefined): x is Board => !!x);
   }
+
+  // Contadores de estado por sprint
+  getFinalizadasCount(sprintId: number): number {
+    return this.getBoardsSafe(sprintId).filter(b => b.state === 'Listo').length;
+  }
+
+  getDevueltasCount(sprintId: number): number {
+    return this.getBoardsSafe(sprintId).filter(b => b.state === 'Devuelta').length;
+  }
+
+  getBloqueadasCount(sprintId: number): number {
+    return this.getBoardsSafe(sprintId).filter(b => b.state === 'Bloqueado').length;
+  }
+
+  getEnCursoCount(sprintId: number): number {
+    return this.getBoardsSafe(sprintId).filter(b => b.state === 'En pruebas').length;
+  }
+
+  getTotalCount(sprintId: number): number {
+    return this.getBoardsSafe(sprintId).length;
+  }
   // Trigger para forzar actualización de la animación
   testingAnimTrigger: { [id: number]: number } = {};
   /** Calcula el porcentaje de tiempo en pruebas respecto a la estimación (0-100+) */

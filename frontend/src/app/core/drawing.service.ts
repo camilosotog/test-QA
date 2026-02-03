@@ -90,7 +90,7 @@ export class DrawingService {
 
   constructor(private http: HttpClient) {
     // Inicializar Socket.io
-    this.socket = io('http://192.168.56.1:4000', {
+    this.socket = io('http://192.168.56.1:4100', {
       autoConnect: false
     });
     this.setupSocketListeners();

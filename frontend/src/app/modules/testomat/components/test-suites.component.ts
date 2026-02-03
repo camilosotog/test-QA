@@ -103,6 +103,39 @@ export class TestSuitesComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Elimina una suite
+   */
+  deleteSuite(suite: TestSuite): void {
+    if (!suite.id) {
+      this.error = 'No se puede eliminar: ID de suite no válido';
+      return;
+    }
+
+    const confirmMessage = `¿Estás seguro de que deseas eliminar la suite "${suite.name}"?\n\nEsto eliminará también todos los casos de prueba asociados y sus resultados.`;
+    
+    if (!confirm(confirmMessage)) {
+      return;
+    }
+
+    this.loading = true;
+    this.testomatService.deleteTestSuite(suite.id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.suites = this.suites.filter(s => s.id !== suite.id);
+          this.loading = false;
+          // Mostrar mensaje de éxito (opcional)
+          this.error = null;
+        },
+        error: (err) => {
+          console.error('Error al eliminar suite:', err);
+          this.error = 'No se pudo eliminar la suite. Intenta de nuevo.';
+          this.loading = false;
+        }
+      });
+  }
+
+  /**
    * Guarda una nueva suite o actualiza una existente
    */
   saveSuite(): void {

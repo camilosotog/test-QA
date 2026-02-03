@@ -6,7 +6,7 @@ require('dotenv').config();
 const { runPostmanWithRetry, getPostmanResultsWithAssertions } = require('./dist/controllers/postman.controller.js');
 
 const app = express();
-const PORT = 4000;
+const PORT = 4100;
 
 app.use(cors());
 app.use(express.json());

@@ -237,6 +237,35 @@
             </h6>
             <p class="content-text">{{ expectedResults }}</p>
           </div>
+
+          <!-- Archivos adjuntos del caso -->
+          <div class="content-section" *ngIf="currentCase.attachments && currentCase.attachments.length > 0">
+            <h6 class="section-title">
+              <i class="bi bi-paperclip"></i> Archivos Adjuntos
+            </h6>
+            <div class="attachments-grid">
+              <a
+                *ngFor="let att of currentCase.attachments"
+                class="attachment-card"
+                [href]="att.url"
+                target="_blank"
+                rel="noopener"
+              >
+                <div class="attachment-preview" *ngIf="isImageAttachment(att.url); else fileIcon">
+                  <img [src]="att.url" [alt]="att.name || extractFileName(att.url)" loading="lazy" />
+                </div>
+                <ng-template #fileIcon>
+                  <div class="attachment-icon">
+                    <i class="bi bi-file-earmark-text"></i>
+                  </div>
+                </ng-template>
+                <div class="attachment-meta">
+                  <span class="attachment-name">{{ att.name || extractFileName(att.url) }}</span>
+                  <small class="attachment-date" *ngIf="att.uploadedAt">{{ att.uploadedAt | date:'short' }}</small>
+                </div>
+              </a>
+            </div>
+          </div>
         </div>
 
         <!-- Formulario de resultado -->

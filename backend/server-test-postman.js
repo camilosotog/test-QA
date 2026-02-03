@@ -6,7 +6,7 @@ require('dotenv').config();
 const { runPostmanWithRetry } = require('./dist/controllers/postman.controller.js');
 
 const app = express();
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT || 4100;
 
 // Middleware
 app.use(cors());

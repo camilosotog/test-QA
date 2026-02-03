@@ -24,11 +24,11 @@ const app = express();
 // Configuración de CORS para permitir ngrok, localhost e IPs locales
 app.use(cors({
   origin: [
-    'http://localhost:4200',
-    'http://localhost:4000',
+    'http://localhost:4300',
+    'http://localhost:4100',
     'https://flying-pleasing-stag.ngrok-free.app',
-    /^http:\/\/192\.168\.\d+\.\d+:4200$/,  // Permite cualquier IP 192.168.x.x:4200
-    /^http:\/\/10\.\d+\.\d+\.\d+:4200$/,   // Permite cualquier IP 10.x.x.x:4200
+    /^http:\/\/192\.168\.\d+\.\d+:4300$/,  // Permite cualquier IP 192.168.x.x:4300
+    /^http:\/\/10\.\d+\.\d+\.\d+:4300$/,   // Permite cualquier IP 10.x.x.x:4300
     /\.ngrok-free\.app$/,  // Permite cualquier subdominio de ngrok-free.app
     /\.ngrok\.io$/         // Permite cualquier subdominio de ngrok.io
   ],

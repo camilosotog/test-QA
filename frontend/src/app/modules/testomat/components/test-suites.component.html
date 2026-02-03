@@ -100,11 +100,19 @@
                       <i class="bi bi-play-circle"></i> Ejecutar
                     </button>
                     <button 
-                      class="btn btn-sm btn-outline-warning"
+                      class="btn btn-sm btn-outline-warning me-2"
                       title="Editar"
                       (click)="openEditForm(suite)"
                     >
                       <i class="bi bi-pencil"></i>
+                    </button>
+                    <button 
+                      class="btn btn-sm btn-outline-danger"
+                      title="Eliminar suite"
+                      (click)="deleteSuite(suite)"
+                      [disabled]="loading"
+                    >
+                      <i class="bi bi-trash"></i>
                     </button>
                   </td>
                 </tr>

@@ -733,6 +733,14 @@ export class TestExecutionRunnerComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Determina si una URL corresponde a una imagen
+   */
+  isImageAttachment(url: string): boolean {
+    if (!url) return false;
+    return /\.(png|jpe?g|gif|webp|bmp|svg)(\?.*)?$/i.test(url);
+  }
+
+  /**
    * Convierte URL de imagen a base64 para incrustación en PDF
    */
   private async urlToBase64(url: string, retries = 3): Promise<string> {

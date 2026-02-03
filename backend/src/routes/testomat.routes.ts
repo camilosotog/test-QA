@@ -11,6 +11,7 @@ import {
   // Suites
   getTestSuites,
   createTestSuite,
+  deleteTestSuite,
   // Cases
   getTestCases,
   getTestCaseById,
@@ -27,6 +28,8 @@ import {
   getProjectAnalytics,
   // Import
   importFromTestomat,
+  // Upload
+  uploadAttachment,
 } from '../controllers/testomat.controller';
 
 import {
@@ -214,6 +217,12 @@ router.put('/suites/:suiteId', auth, async (req, res) => {
   }
 });
 
+/**
+ * DELETE /api/testomat/suites/:suiteId
+ * Eliminar una suite y todos sus casos asociados
+ */
+router.delete('/suites/:suiteId', auth, deleteTestSuite);
+
 // ========== TEST CASES ==========
 /**
  * GET /api/test-suites/:suiteId/cases
@@ -392,5 +401,13 @@ router.get('/projects/:projectId/analytics', auth, getProjectAnalytics);
  * Body: { projectName, apiKey, workspaceId, suiteIds? }
  */
 router.post('/import/testomat', auth, importFromTestomat);
+
+// ========== FILE UPLOAD ==========
+/**
+ * POST /api/testomat/upload
+ * Subir archivos adjuntos a S3
+ * Form-data: file (required)
+ */
+router.post('/upload', auth, upload.single('file'), uploadAttachment);
 
 export default router;

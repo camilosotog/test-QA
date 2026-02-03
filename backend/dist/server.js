@@ -10,7 +10,7 @@ const socket_io_1 = require("socket.io");
 const migrations_1 = __importDefault(require("./utils/migrations"));
 const drawing_controller_1 = require("./controllers/drawing.controller");
 const gameWords_extended_1 = require("./gameWords-extended");
-const port = process.env.PORT || 4000;
+const port = process.env.PORT || 4100;
 const httpServer = (0, http_1.createServer)(app_1.default);
 exports.io = new socket_io_1.Server(httpServer, {
     cors: {

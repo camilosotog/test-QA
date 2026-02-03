@@ -44,6 +44,7 @@ export interface TestCase {
   test_type: 'functional' | 'regression' | 'smoke' | 'integration' | 'performance' | 'security';
   requirement_id?: string;
   tags?: string[];
+  attachments?: Array<{name: string; url: string; uploadedAt?: string}>;
   created_by?: number;
   created_at?: Date;
   updated_at?: Date;

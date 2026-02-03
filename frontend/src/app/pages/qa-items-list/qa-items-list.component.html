@@ -169,17 +169,7 @@
         <div>Cargando...</div>
       </div>
       <div *ngIf="!loading">
-        <div class="row mb-3 g-2 align-items-end">
-          <div class="col-md-6">
-            <input type="text" class="form-control form-control-lg" placeholder="Filtrar tareas por nombre..." [(ngModel)]="taskFilter" style="max-width:400px;">
-          </div>
-          <div class="col-md-6" *ngIf="authService.getCurrentUser()?.role === 'ADMIN'">
-            <select class="form-select form-select-lg" [(ngModel)]="developerFilter" style="max-width:400px;">
-              <option value="">Filtrar por desarrollador</option>
-              <option *ngFor="let dev of devUsers" [value]="dev.id">{{ dev.name }}</option>
-            </select>
-          </div>
-        </div>
+        
         <ng-container *ngFor="let sprintData of sprints">
           <div *ngIf="sprintData.name !== 'Tareas que no se han podido probar' || authService.getCurrentUser()?.role === 'ADMIN'" class="mb-4">
             <div class="d-flex justify-content-between align-items-center bg-light p-2 rounded">
@@ -189,6 +179,29 @@
                   <span *ngIf="sprintData.start_date"> Inicio: {{ sprintData.start_date | date:'shortDate' }}</span>
                   <span *ngIf="sprintData.finish_date" class="ms-2">Fin: {{ sprintData.finish_date | date:'shortDate' }}</span>
                 </small>
+                <!-- Contadores de estado -->
+                <div class="mt-2 d-flex gap-3 flex-wrap">
+                  <span class="badge bg-primary" title="Total de tareas">
+                    <i class="fa fa-tasks me-1"></i>
+                    Total: {{ getTotalCount(sprintData.id!) }}
+                  </span>
+                  <span class="badge bg-success" title="Finalizadas">
+                    <i class="fa fa-check-circle me-1"></i>
+                    Finalizadas: {{ getFinalizadasCount(sprintData.id!) }}
+                  </span>
+                  <span class="badge bg-danger" title="Devueltas">
+                    <i class="fa fa-undo me-1"></i>
+                    Devueltas: {{ getDevueltasCount(sprintData.id!) }}
+                  </span>
+                  <span class="badge bg-secondary" title="Bloqueadas">
+                    <i class="fa fa-ban me-1"></i>
+                    Bloqueadas: {{ getBloqueadasCount(sprintData.id!) }}
+                  </span>
+                  <span class="badge bg-warning text-dark" title="En curso">
+                    <i class="fa fa-spinner me-1"></i>
+                    En curso: {{ getEnCursoCount(sprintData.id!) }}
+                  </span>
+                </div>
               </div>
             <i class="bi" [ngClass]="sprintCollapse[sprintData.id!] !== false ? 'bi-chevron-up' : 'bi-chevron-down'" (click)="toggleSprintCollapse(sprintData.id!)" style="cursor:pointer;"></i>
           </div>

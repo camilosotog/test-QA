@@ -49,6 +49,8 @@ export interface TestCase {
   input_data: string;
   steps: TestStep[];
   expected_result: string;
+  // Archivos adjuntos
+  attachments?: Array<{name: string; url: string; uploadedAt?: string}>;
   // Adicionales
   tags?: string[];
   created_by?: number;
@@ -241,6 +243,13 @@ export class TestomatService {
     return this.http.put<TestSuite>(`${this.apiUrl}/suites/${suiteId}`, suite);
   }
 
+  /**
+   * Elimina una suite
+   */
+  deleteTestSuite(suiteId: number): Observable<{message: string}> {
+    return this.http.delete<{message: string}>(`${this.apiUrl}/suites/${suiteId}`);
+  }
+
   // ============================================
   // 📝 CASOS DE PRUEBA
   // ============================================
@@ -283,6 +292,24 @@ export class TestomatService {
         return Array.isArray(parsed) ? parsed : [];
       } catch (e) {
         console.warn('Error parsing steps:', e);
+        return [];
+      }
+    }
+    return [];
+  }
+
+  /**
+   * Parsea el campo attachments de manera segura
+   */
+  private parseAttachments(attachments: any): Array<{name: string; url: string; uploadedAt?: string}> {
+    if (!attachments) return [];
+    if (Array.isArray(attachments)) return attachments;
+    if (typeof attachments === 'string') {
+      try {
+        const parsed = JSON.parse(attachments);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch (e) {
+        console.warn('Error parsing attachments:', e);
         return [];
       }
     }
@@ -343,7 +370,17 @@ export class TestomatService {
    * Obtiene una ejecución específica con sus resultados
    */
   getTestExecutionById(executionId: number): Observable<TestExecution> {
-    return this.http.get<TestExecution>(`${this.apiUrl}/executions/${executionId}`);
+    return this.http.get<any>(`${this.apiUrl}/executions/${executionId}`)
+      .pipe(
+        map((execution: any) => ({
+          ...execution,
+          cases: (execution?.cases || []).map((c: any) => ({
+            ...c,
+            steps: this.parseSteps(c.steps),
+            attachments: this.parseAttachments(c.attachments)
+          }))
+        }))
+      );
   }
 
   /**
@@ -525,3 +562,6 @@ export class TestomatService {
     this.testCases$.next([]);
   }
 }
+
+
+

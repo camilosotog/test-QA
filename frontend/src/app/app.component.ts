@@ -49,7 +49,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
     this.loadOnlineUsers();
 
-    this.socket = io('http://localhost:4000', {
+    this.socket = io('http://localhost:4100', {
       transports: ['websocket']
     });
 

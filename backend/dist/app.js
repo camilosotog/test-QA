@@ -24,8 +24,8 @@ const app = (0, express_1.default)();
 // Configuración de CORS para permitir ngrok y localhost
 app.use((0, cors_1.default)({
     origin: [
-        'http://localhost:4200',
-        'http://localhost:4000',
+        'http://localhost:4300',
+        'http://localhost:4100',
         'https://flying-pleasing-stag.ngrok-free.app',
         /\.ngrok-free\.app$/, // Permite cualquier subdominio de ngrok-free.app
         /\.ngrok\.io$/ // Permite cualquier subdominio de ngrok.io

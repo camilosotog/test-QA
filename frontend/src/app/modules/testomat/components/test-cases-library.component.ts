@@ -5,6 +5,7 @@ import { TestomatService, TestSuite, TestCase, TestStep } from '../services/test
 import { AuthService } from '../../../core/auth.service';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import { HttpClient } from '@angular/common/http';
 
 @Component({
   selector: 'app-test-cases-library',
@@ -31,6 +32,11 @@ export class TestCasesLibraryComponent implements OnInit, OnDestroy {
   setDefaultPriority = true;
   defaultTestType: 'functional' | 'regression' | 'smoke' | 'integration' | 'performance' | 'security' = 'functional';
   defaultPriority: 'critical' | 'high' | 'medium' | 'low' = 'medium';
+
+  // Archivos adjuntos
+  selectedFiles: File[] = [];
+  uploadingFiles = false;
+  attachments: Array<{name: string; url: string; uploadedAt?: string}> = [];
 
   testCaseForm: FormGroup;
   private destroy$ = new Subject<void>();
@@ -63,7 +69,8 @@ export class TestCasesLibraryComponent implements OnInit, OnDestroy {
     private testomatService: TestomatService,
     private route: ActivatedRoute,
     private fb: FormBuilder,
-    public authService: AuthService
+    public authService: AuthService,
+    private http: HttpClient
   ) {
     this.testCaseForm = this.fb.group({
       name: ['', [Validators.required, Validators.minLength(5)]],
@@ -197,6 +204,8 @@ export class TestCasesLibraryComponent implements OnInit, OnDestroy {
   openCreateForm(suiteId: number): void {
     this.showForm = true;
     this.editingCaseId = null;
+    this.selectedFiles = [];
+    this.attachments = [];
     this.testCaseForm.reset({
       priority: 'medium',
       automation_status: 'manual',
@@ -212,6 +221,8 @@ export class TestCasesLibraryComponent implements OnInit, OnDestroy {
   openEditForm(testCase: TestCase): void {
     this.showForm = true;
     this.editingCaseId = testCase.id || null;
+    this.selectedFiles = [];
+    this.attachments = testCase.attachments ? [...testCase.attachments] : [];
     
     const stepsArray = this.getStepsArray();
     stepsArray.clear();
@@ -246,6 +257,8 @@ export class TestCasesLibraryComponent implements OnInit, OnDestroy {
    */
   closeForm(): void {
     this.showForm = false;
+    this.selectedFiles = [];
+    this.attachments = [];
   }
 
   /**
@@ -278,7 +291,7 @@ export class TestCasesLibraryComponent implements OnInit, OnDestroy {
   /**
    * Guarda un nuevo caso o actualiza uno existente
    */
-  saveTestCase(): void {
+  async saveTestCase(): Promise<void> {
     if (this.testCaseForm.invalid) {
       return;
     }
@@ -289,10 +302,16 @@ export class TestCasesLibraryComponent implements OnInit, OnDestroy {
       return;
     }
 
+    // Subir archivos pendientes si los hay
+    if (this.selectedFiles.length > 0) {
+      await this.uploadFiles();
+    }
+
     const caseData: TestCase = {
       test_suite_id: this.currentSuite.id,
       test_project_id: this.currentSuite.test_project_id,
-      ...this.testCaseForm.value
+      ...this.testCaseForm.value,
+      attachments: this.attachments
     };
 
     if (this.editingCaseId) {
@@ -583,5 +602,66 @@ export class TestCasesLibraryComponent implements OnInit, OnDestroy {
       'low': '#28a745'
     };
     return colorMap[priority] || '#6c757d';
+  }
+
+  /**
+   * Maneja la selección de archivos
+   */
+  onFileSelected(event: any): void {
+    const files: FileList = event.target.files;
+    if (files && files.length > 0) {
+      this.selectedFiles = Array.from(files);
+    }
+  }
+
+  /**
+   * Elimina un archivo seleccionado de la lista temporal
+   */
+  removeSelectedFile(index: number): void {
+    this.selectedFiles.splice(index, 1);
+  }
+
+  /**
+   * Elimina un archivo ya subido
+   */
+  removeAttachment(index: number): void {
+    this.attachments.splice(index, 1);
+  }
+
+  /**
+   * Sube los archivos seleccionados a S3
+   */
+  async uploadFiles(): Promise<void> {
+    if (this.selectedFiles.length === 0) {
+      return;
+    }
+
+    this.uploadingFiles = true;
+
+    try {
+      for (const file of this.selectedFiles) {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('type', 'test-case-attachment');
+
+        const response: any = await this.http.post('/api/testomat/upload', formData).toPromise();
+        
+        if (response && response.url) {
+          this.attachments.push({
+            name: file.name,
+            url: response.url,
+            uploadedAt: new Date().toISOString()
+          });
+        }
+      }
+
+      // Limpiar archivos seleccionados después de subir
+      this.selectedFiles = [];
+      this.uploadingFiles = false;
+    } catch (error) {
+      console.error('Error al subir archivos:', error);
+      this.error = 'Error al subir algunos archivos. Intenta de nuevo.';
+      this.uploadingFiles = false;
+    }
   }
 }

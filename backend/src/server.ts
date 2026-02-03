@@ -6,7 +6,7 @@ import runMigrations from "./utils/migrations";
 import { saveDrawingPoint, getCurrentDrawingData } from "./controllers/drawing.controller";
 import { gameWords } from "./gameWords-extended";
 
-const port = process.env.PORT || 4000;
+const port = process.env.PORT || 4100;
 const httpServer = createServer(app);
 export const io = new Server(httpServer, {
   cors: {

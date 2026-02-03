@@ -400,6 +400,88 @@
 
             <hr class="my-4">
 
+            <!-- 6. ARCHIVOS ADJUNTOS -->
+            <div class="mb-4">
+              <h6 class="mb-3">
+                <i class="bi bi-paperclip text-secondary"></i> Archivos Adjuntos (Opcional)
+              </h6>
+              <p class="text-muted small mb-2">Adjunta archivos relacionados con este caso de prueba (imágenes, documentos, etc.)</p>
+              
+              <!-- Input de archivos -->
+              <div class="mb-3">
+                <input 
+                  type="file" 
+                  class="form-control"
+                  id="caseAttachments"
+                  (change)="onFileSelected($event)"
+                  multiple
+                  accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt"
+                />
+                <small class="form-text text-muted">
+                  Formatos permitidos: Imágenes, PDF, Word, Excel, TXT
+                </small>
+              </div>
+
+              <!-- Lista de archivos seleccionados para subir -->
+              <div *ngIf="selectedFiles.length > 0" class="mb-3">
+                <h6 class="small fw-bold">Archivos seleccionados:</h6>
+                <ul class="list-group list-group-flush">
+                  <li *ngFor="let file of selectedFiles; let i = index" class="list-group-item d-flex justify-content-between align-items-center">
+                    <span>
+                      <i class="bi bi-file-earmark"></i> {{ file.name }}
+                      <small class="text-muted">({{ (file.size / 1024).toFixed(2) }} KB)</small>
+                    </span>
+                    <button 
+                      type="button" 
+                      class="btn btn-sm btn-outline-danger"
+                      (click)="removeSelectedFile(i)"
+                      title="Eliminar"
+                    >
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </li>
+                </ul>
+                <button 
+                  type="button" 
+                  class="btn btn-sm btn-primary mt-2"
+                  (click)="uploadFiles()"
+                  [disabled]="uploadingFiles"
+                >
+                  <span *ngIf="uploadingFiles" class="spinner-border spinner-border-sm me-1"></span>
+                  <i *ngIf="!uploadingFiles" class="bi bi-cloud-upload me-1"></i>
+                  {{ uploadingFiles ? 'Subiendo...' : 'Subir Archivos' }}
+                </button>
+              </div>
+
+              <!-- Lista de archivos ya subidos -->
+              <div *ngIf="attachments.length > 0" class="mb-3">
+                <h6 class="small fw-bold text-success">Archivos adjuntados:</h6>
+                <ul class="list-group list-group-flush">
+                  <li *ngFor="let att of attachments; let i = index" class="list-group-item d-flex justify-content-between align-items-center">
+                    <span>
+                      <i class="bi bi-check-circle text-success"></i>
+                      <a [href]="att.url" target="_blank" class="text-decoration-none">
+                        {{ att.name }}
+                      </a>
+                      <small class="text-muted ms-2" *ngIf="att.uploadedAt">
+                        {{ att.uploadedAt | date:'short' }}
+                      </small>
+                    </span>
+                    <button 
+                      type="button" 
+                      class="btn btn-sm btn-outline-danger"
+                      (click)="removeAttachment(i)"
+                      title="Eliminar"
+                    >
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <hr class="my-4">
+
             <!-- Información adicional -->
             <div class="row">
               <div class="col-md-12">
@@ -545,6 +627,25 @@
             <h6 class="fw-bold text-primary mb-2">✔️ Resultado Esperado</h6>
             <div class="bg-light p-3 rounded">
               <p class="mb-0">{{ viewingCase.expected_result || 'Sin resultado esperado definido' }}</p>
+            </div>
+          </div>
+
+          <!-- Archivos Adjuntos -->
+          <div class="mb-4" *ngIf="viewingCase.attachments && viewingCase.attachments.length > 0">
+            <h6 class="fw-bold text-primary mb-2">📎 Archivos Adjuntos</h6>
+            <div class="list-group">
+              <a 
+                *ngFor="let att of viewingCase.attachments" 
+                [href]="att.url" 
+                target="_blank"
+                class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+              >
+                <span>
+                  <i class="bi bi-file-earmark-arrow-down me-2"></i>
+                  {{ att.name }}
+                </span>
+                <i class="bi bi-box-arrow-up-right text-muted"></i>
+              </a>
             </div>
           </div>
 
