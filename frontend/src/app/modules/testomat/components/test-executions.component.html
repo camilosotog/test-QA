@@ -62,14 +62,25 @@
           <div class="month-header-left">
             <i class="bi" [class.bi-folder-fill]="monthGroup.isExpanded" [class.bi-folder]="!monthGroup.isExpanded"></i>
             <span class="month-name">{{ monthGroup.displayName }}</span>
-            <span class="executions-count">{{ monthGroup.executions.length }}</span>
+            <span class="executions-count">{{ monthGroup.totalCount }}</span>
           </div>
           <i class="bi toggle-arrow" [class.bi-chevron-down]="monthGroup.isExpanded" [class.bi-chevron-right]="!monthGroup.isExpanded"></i>
         </div>
 
         <!-- Contenido de ejecuciones del mes -->
         <div class="month-content" *ngIf="monthGroup.isExpanded">
-          <div class="executions-grid">
+          <div *ngIf="monthGroup.isLoading" class="text-center py-4">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Cargando...</span>
+            </div>
+            <p class="mt-2 text-muted">Cargando ejecuciones del mes...</p>
+          </div>
+
+          <div *ngIf="!monthGroup.isLoading && monthGroup.executions.length === 0" class="alert alert-info text-center py-3">
+            <i class="bi bi-inbox"></i> No hay ejecuciones en este mes.
+          </div>
+
+          <div class="executions-grid" *ngIf="!monthGroup.isLoading && monthGroup.executions.length > 0">
             <div *ngFor="let execution of monthGroup.executions" class="execution-card" (click)="openExecution(execution)">
               <div class="card-header">
               <div class="d-flex justify-content-between align-items-start">

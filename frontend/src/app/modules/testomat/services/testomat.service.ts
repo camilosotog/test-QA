@@ -118,6 +118,12 @@ export interface ProjectAnalytics {
   total_executions: number;
 }
 
+export interface ExecutionMonthGroup {
+  year: number;
+  month: number;
+  total: number;
+}
+
 // ============================================
 // 📋 DTOs (Data Transfer Objects)
 // ============================================
@@ -364,6 +370,23 @@ export class TestomatService {
    */
   getTestExecutions(): Observable<TestExecution[]> {
     return this.http.get<TestExecution[]>(`${this.apiUrl}/executions`);
+  }
+
+  /**
+   * Obtiene meses disponibles con conteo de ejecuciones
+   */
+  getExecutionMonths(): Observable<ExecutionMonthGroup[]> {
+    return this.http.get<ExecutionMonthGroup[]>(`${this.apiUrl}/executions/months`);
+  }
+
+  /**
+   * Obtiene ejecuciones por mes/año
+   */
+  getExecutionsByMonth(year: number, month: number): Observable<TestExecution[]> {
+    const params = new HttpParams()
+      .set('year', year.toString())
+      .set('month', month.toString());
+    return this.http.get<TestExecution[]>(`${this.apiUrl}/executions`, { params });
   }
 
   /**

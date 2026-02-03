@@ -267,7 +267,18 @@ export const createTestExecution = async (req: Request, res: Response) => {
  */
 export const getTestExecutions = async (req: Request, res: Response) => {
   try {
-    const [executions] = await db.query(`
+    const { year, month } = req.query as { year?: string; month?: string };
+
+    let whereClause = '';
+    const params: any[] = [];
+
+    if (year && month) {
+      whereClause = 'WHERE YEAR(COALESCE(te.start_date, te.created_at)) = ? AND MONTH(COALESCE(te.start_date, te.created_at)) = ?';
+      params.push(parseInt(year, 10), parseInt(month, 10));
+    }
+
+    const [executions] = await db.query(
+      `
       SELECT 
         te.*,
         ts.name as suite_name,
@@ -275,13 +286,38 @@ export const getTestExecutions = async (req: Request, res: Response) => {
       FROM test_executions te
       LEFT JOIN test_suites ts ON te.test_suite_id = ts.id
       LEFT JOIN users u ON te.executed_by = u.id
+      ${whereClause}
       ORDER BY te.created_at DESC
-    `) as any;
+      `,
+      params
+    ) as any;
 
     res.json(Array.isArray(executions) ? executions : []);
   } catch (error) {
     console.error('Error fetching executions:', error);
     res.status(500).json({ error: 'Error fetching test executions' });
+  }
+};
+
+/**
+ * Obtiene los meses disponibles con conteo de ejecuciones
+ */
+export const getTestExecutionMonths = async (req: Request, res: Response) => {
+  try {
+    const [rows] = await db.query(`
+      SELECT 
+        YEAR(COALESCE(te.start_date, te.created_at)) as year,
+        MONTH(COALESCE(te.start_date, te.created_at)) as month,
+        COUNT(*) as total
+      FROM test_executions te
+      GROUP BY year, month
+      ORDER BY year DESC, month DESC
+    `) as any;
+
+    res.json(Array.isArray(rows) ? rows : []);
+  } catch (error) {
+    console.error('Error fetching execution months:', error);
+    res.status(500).json({ error: 'Error fetching execution months' });
   }
 };
 

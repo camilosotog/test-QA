@@ -35,6 +35,7 @@ import {
 import {
   createTestExecution as createExecution,
   getTestExecutions as getExecutions,
+  getTestExecutionMonths,
   getTestExecution,
   saveTestResult,
   completeTestExecution,
@@ -263,6 +264,12 @@ router.delete('/cases/:caseId', auth, deleteTestCase);
  * Obtener todas las ejecuciones
  */
 router.get('/executions', auth, getExecutions);
+
+/**
+ * GET /api/testomat/executions/months
+ * Obtener meses con conteo de ejecuciones
+ */
+router.get('/executions/months', auth, getTestExecutionMonths);
 
 /**
  * GET /api/testomat/executions/:executionId

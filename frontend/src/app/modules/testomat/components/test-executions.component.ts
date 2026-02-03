@@ -12,6 +12,9 @@ interface MonthGroup {
   displayName: string;
   isExpanded: boolean;
   executions: TestExecution[];
+  totalCount: number;
+  isLoading: boolean;
+  isLoaded: boolean;
 }
 
 @Component({
@@ -38,8 +41,8 @@ export class TestExecutionsComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    // Cargar todas las ejecuciones sin filtrar por suite
-    this.loadExecutions();
+    // Cargar solo los meses disponibles
+    this.loadExecutionMonths();
   }
 
   ngOnDestroy(): void {
@@ -64,6 +67,41 @@ export class TestExecutionsComponent implements OnInit, OnDestroy {
         },
         error: (err) => {
           console.error('Error al cargar ejecuciones:', err);
+          this.error = 'No se pudieron cargar las ejecuciones. Intenta de nuevo.';
+          this.loading = false;
+        }
+      });
+  }
+
+  /**
+   * Carga los meses disponibles con conteo
+   */
+  loadExecutionMonths(): void {
+    this.loading = true;
+    this.error = null;
+
+    this.testomatService.getExecutionMonths()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (months) => {
+          this.monthGroups = (months || []).map((m: any) => {
+            const monthIndex = Math.max(1, Math.min(12, m.month || 1));
+            return {
+              monthNumber: monthIndex,
+              monthName: this.monthNames[monthIndex - 1],
+              year: m.year,
+              displayName: `${this.monthNames[monthIndex - 1]} ${m.year}`,
+              isExpanded: false,
+              executions: [],
+              totalCount: m.total || 0,
+              isLoading: false,
+              isLoaded: false
+            };
+          });
+          this.loading = false;
+        },
+        error: (err) => {
+          console.error('Error al cargar meses de ejecuciones:', err);
           this.error = 'No se pudieron cargar las ejecuciones. Intenta de nuevo.';
           this.loading = false;
         }
@@ -105,7 +143,10 @@ export class TestExecutionsComponent implements OnInit, OnDestroy {
             const dateA = new Date(a.started_at || a.created_at || 0).getTime();
             const dateB = new Date(b.started_at || b.created_at || 0).getTime();
             return dateB - dateA; // Descendente (más reciente primero)
-          })
+          }),
+          totalCount: execs.length,
+          isLoading: false,
+          isLoaded: true
         };
       })
       .sort((a, b) => {
@@ -119,6 +160,34 @@ export class TestExecutionsComponent implements OnInit, OnDestroy {
    */
   toggleMonthGroup(monthGroup: MonthGroup): void {
     monthGroup.isExpanded = !monthGroup.isExpanded;
+    if (monthGroup.isExpanded && !monthGroup.isLoaded && !monthGroup.isLoading) {
+      this.loadMonthExecutions(monthGroup);
+    }
+  }
+
+  /**
+   * Carga las ejecuciones de un mes en espec�fico
+   */
+  private loadMonthExecutions(monthGroup: MonthGroup): void {
+    monthGroup.isLoading = true;
+    this.testomatService.getExecutionsByMonth(monthGroup.year, monthGroup.monthNumber)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (executions) => {
+          monthGroup.executions = (executions || []).sort((a, b) => {
+            const dateA = new Date(a.started_at || a.created_at || 0).getTime();
+            const dateB = new Date(b.started_at || b.created_at || 0).getTime();
+            return dateB - dateA;
+          });
+          monthGroup.isLoaded = true;
+          monthGroup.isLoading = false;
+        },
+        error: (err) => {
+          console.error('Error al cargar ejecuciones del mes:', err);
+          this.error = 'No se pudieron cargar las ejecuciones del mes.';
+          monthGroup.isLoading = false;
+        }
+      });
   }
 
   /**
@@ -254,7 +323,7 @@ export class TestExecutionsComponent implements OnInit, OnDestroy {
         next: (response: any) => {
           console.log('✅ Ejecución eliminada:', response);
           // Recargar la lista de ejecuciones
-          this.loadExecutions();
+          this.loadExecutionMonths();
         },
         error: (err) => {
           console.error('❌ Error al eliminar ejecución:', err);
@@ -264,3 +333,4 @@ export class TestExecutionsComponent implements OnInit, OnDestroy {
       });
   }
 }
+
