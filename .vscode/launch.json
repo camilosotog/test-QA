@@ -2,6 +2,17 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "type": "karate",
+      "request": "launch",
+      "name": "Karate: Debug",
+      "feature": "${file}",
+      "enableJavaDebugging": true,
+      "enableJsDebugging": true,
+      "skipJdkClasses": true,
+      "skipKarateFramework": true,
+      "skipKarateDependencies": true
+    },
+    {
       "type": "node",
       "request": "launch",
       "name": "Launch Backend (ts-node)",
@@ -12,7 +23,10 @@
       "program": "${workspaceFolder}/backend/src/server.ts",
       "cwd": "${workspaceFolder}/backend",
       "envFile": "${workspaceFolder}/backend/.env",
-      "skipFiles": ["<node_internals>/**", "**/node_modules/**"],
+      "skipFiles": [
+        "<node_internals>/**",
+        "**/node_modules/**"
+      ],
       "sourceMaps": true,
       "outFiles": [
         "${workspaceFolder}/backend/dist/**/*.js"
@@ -24,7 +38,10 @@
       "name": "Attach to Nodemon (9229)",
       "port": 9229,
       "restart": true,
-      "skipFiles": ["<node_internals>/**", "**/node_modules/**"],
+      "skipFiles": [
+        "<node_internals>/**",
+        "**/node_modules/**"
+      ],
       "cwd": "${workspaceFolder}/backend"
     }
   ]

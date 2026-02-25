@@ -70,3 +70,15 @@ tbody tr.severity-critical {
 
 .icon-btn:focus { outline: 2px solid rgba(0,0,0,0.08); }
 
+/* Estilos para el collapse de meses */
+.month-collapse-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease-out;
+}
+
+.month-collapse-content.show {
+  max-height: 2000px;
+  transition: max-height 0.4s ease-in;
+}
+

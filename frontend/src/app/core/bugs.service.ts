@@ -30,6 +30,11 @@ export class BugsService {
     return this.http.get<Bug[]>(this.apiUrl + q);
   }
 
+  listByMonth(filters?: any): Observable<any[]> {
+    const q = filters ? `?${new URLSearchParams(filters).toString()}` : '';
+    return this.http.get<any[]>(this.apiUrl + '/by-month' + q);
+  }
+
   get(id: number) { return this.http.get<Bug>(`${this.apiUrl}/${id}`); }
   create(payload: Partial<Bug>) { return this.http.post(this.apiUrl, payload); }
   update(id: number, patch: Partial<Bug>) { return this.http.put(`${this.apiUrl}/${id}`, patch); }

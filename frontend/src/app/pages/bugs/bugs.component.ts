@@ -11,10 +11,12 @@ import { QaItemsService, Sprint } from '../../core/qa-items.service';
 })
 export class BugsComponent implements OnInit {
   bugs: Bug[] = [];
+  bugsByMonth: any[] = [];
   users: User[] = [];
   sprints: Sprint[] = [];
   form: Partial<Bug> = { title: '', description: '', type: '', priority: '', severity: '' };
   editingId: number | null = null;
+  monthCollapse: { [key: string]: boolean } = {};
 
   constructor(private bugsService: BugsService, private authService: AuthService, private usersService: UsersService, private qaItemsService: QaItemsService) {}
   
@@ -41,7 +43,44 @@ export class BugsComponent implements OnInit {
   }
 
   load() {
-    this.bugsService.list().subscribe(b => this.bugs = b);
+    this.bugsService.listByMonth().subscribe(
+      (data: any[]) => {
+        this.bugsByMonth = data;
+        // Inicializar collapse - todos abiertos por defecto
+        this.bugsByMonth.forEach((month) => {
+          if (!this.monthCollapse.hasOwnProperty(month.monthKey)) {
+            this.monthCollapse[month.monthKey] = true;
+          }
+        });
+      },
+      (err: any) => console.error('Error loading bugs', err)
+    );
+    this.loadUsers();
+    this.loadSprints();
+  }
+
+  toggleMonthCollapse(monthKey: string): void {
+    this.monthCollapse[monthKey] = !this.monthCollapse[monthKey];
+  }
+
+  loadAndScroll() {
+    this.bugsService.listByMonth().subscribe(
+      (data: any[]) => {
+        this.bugsByMonth = data;
+        // Inicializar collapse - todos abiertos por defecto
+        this.bugsByMonth.forEach((month) => {
+          if (!this.monthCollapse.hasOwnProperty(month.monthKey)) {
+            this.monthCollapse[month.monthKey] = true;
+          }
+        });
+        // Scroll después de que la tabla se actualice
+        setTimeout(() => {
+          const element = document.querySelector('.card-header');
+          if (element) element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100);
+      },
+      (err: any) => console.error('Error loading bugs', err)
+    );
     this.loadUsers();
     this.loadSprints();
   }
@@ -71,9 +110,23 @@ export class BugsComponent implements OnInit {
   // debug: mostrar payload antes de enviar
   console.debug('Bugs payload:', payload);
     if (this.editingId) {
-      this.bugsService.update(this.editingId, payload).subscribe(() => { this.cancel(); this.load(); }, (err: any) => this.showError(err));
+      this.bugsService.update(this.editingId, payload).subscribe(
+        () => { 
+          alert('✅ Bug actualizado exitosamente');
+          this.cancel(); 
+          this.loadAndScroll();
+        }, 
+        (err: any) => this.showError(err)
+      );
     } else {
-      this.bugsService.create(payload).subscribe(() => { this.cancel(); this.load(); }, (err: any) => this.showError(err));
+      this.bugsService.create(payload).subscribe(
+        () => { 
+          alert('✅ Bug creado exitosamente');
+          this.cancel(); 
+          this.loadAndScroll();
+        }, 
+        (err: any) => this.showError(err)
+      );
     }
   }
 

@@ -15,6 +15,52 @@ export const listBugs = async (req: Request, res: Response) => {
   }
 };
 
+export const listBugsByMonth = async (req: Request, res: Response) => {
+  try {
+    const filters: any = {};
+    if (req.query.reporter_id) filters.reporter_id = Number(req.query.reporter_id);
+    if (req.query.assignee_id) filters.assignee_id = Number(req.query.assignee_id);
+    if (req.query.status) filters.status = String(req.query.status);
+    if (req.query.sprint_id) filters.sprint_id = Number(req.query.sprint_id);
+    const bugs = await BugModel.list(filters);
+
+    // Agrupar por mes
+    const bugsByMonth: { [key: string]: any[] } = {};
+    const monthOrder: string[] = [];
+
+    bugs.forEach((bug) => {
+      const date = new Date(bug.created_at || new Date());
+      const monthKey = date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0');
+      const months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+      const monthName = months[date.getMonth()];
+      const monthDisplay = `${monthName} ${date.getFullYear()}`;
+
+      if (!bugsByMonth[monthKey]) {
+        bugsByMonth[monthKey] = [];
+        monthOrder.push(monthKey);
+      }
+      bugsByMonth[monthKey].push({ ...bug, monthDisplay });
+    });
+
+    // Ordenar meses de más reciente a más antiguo
+    monthOrder.sort().reverse();
+
+    const result = monthOrder.map((monthKey) => {
+      const monthBugs = bugsByMonth[monthKey] || [];
+      return {
+        monthKey,
+        monthDisplay: monthBugs[0]?.monthDisplay || '',
+        bugs: monthBugs,
+        count: monthBugs.length
+      };
+    });
+
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Error al listar bugs por mes' });
+  }
+};
+
 export const getBugById = async (req: Request, res: Response) => {
   try {
     const id = Number(req.params.id);

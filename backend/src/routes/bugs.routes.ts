@@ -1,8 +1,9 @@
 import { Router } from 'express';
-import { listBugs, getBugById, createBug, updateBug, deleteBug } from '../controllers/bugs.controller';
+import { listBugs, listBugsByMonth, getBugById, createBug, updateBug, deleteBug } from '../controllers/bugs.controller';
 
 const router = Router();
 
+router.get('/by-month', listBugsByMonth);
 router.get('/', listBugs);
 router.get('/:id', getBugById);
 router.post('/', createBug);

@@ -8,7 +8,7 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "ngrok": "ngrok http --url=flying-pleasing-stag.ngrok-free.app 4200"
+    "ngrok": "ngrok http --url=flying-pleasing-stag.ngrok-free.app 4300"
   },
   "private": true,
   "dependencies": {
