@@ -17,6 +17,7 @@ export class BugsComponent implements OnInit {
   form: Partial<Bug> = { title: '', description: '', type: '', priority: '', severity: '' };
   editingId: number | null = null;
   monthCollapse: { [key: string]: boolean } = {};
+  monthLoading: { [key: string]: boolean } = {}; // Para indicador de carga
 
   constructor(private bugsService: BugsService, private authService: AuthService, private usersService: UsersService, private qaItemsService: QaItemsService) {}
   
@@ -43,43 +44,81 @@ export class BugsComponent implements OnInit {
   }
 
   load() {
-    this.bugsService.listByMonth().subscribe(
+    // Cargar solo resumen de meses (sin bugs) - lazy loading
+    this.bugsService.getMonthsSummary().subscribe(
       (data: any[]) => {
         this.bugsByMonth = data;
-        // Inicializar collapse - todos abiertos por defecto
+        // Inicializar collapse - todos CERRADOS por defecto
         this.bugsByMonth.forEach((month) => {
           if (!this.monthCollapse.hasOwnProperty(month.monthKey)) {
-            this.monthCollapse[month.monthKey] = true;
+            this.monthCollapse[month.monthKey] = false; // cerrado
           }
         });
       },
-      (err: any) => console.error('Error loading bugs', err)
+      (err: any) => console.error('Error loading months summary', err)
     );
     this.loadUsers();
     this.loadSprints();
   }
 
   toggleMonthCollapse(monthKey: string): void {
-    this.monthCollapse[monthKey] = !this.monthCollapse[monthKey];
+    const isCurrentlyOpen = this.monthCollapse[monthKey];
+    
+    if (!isCurrentlyOpen) {
+      // Va a abrir - cargar bugs si no están cargados
+      const monthData = this.bugsByMonth.find(m => m.monthKey === monthKey);
+      if (monthData && !monthData.loaded) {
+        this.monthLoading[monthKey] = true; // Mostrar indicador de carga
+        this.bugsService.getBugsByMonth(monthKey).subscribe(
+          (bugs: any[]) => {
+            monthData.bugs = bugs;
+            monthData.loaded = true;
+            this.monthLoading[monthKey] = false;
+            this.monthCollapse[monthKey] = true; // abrir después de cargar
+          },
+          (err: any) => {
+            console.error('Error loading bugs for month', monthKey, err);
+            this.monthLoading[monthKey] = false;
+          }
+        );
+        return; // No cambiar estado hasta que cargue
+      }
+    }
+    
+    this.monthCollapse[monthKey] = !isCurrentlyOpen;
   }
 
   loadAndScroll() {
-    this.bugsService.listByMonth().subscribe(
+    // Obtener el mes actual para abrirlo después de crear bug
+    const now = new Date();
+    const currentMonthKey = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+    
+    this.bugsService.getMonthsSummary().subscribe(
       (data: any[]) => {
         this.bugsByMonth = data;
-        // Inicializar collapse - todos abiertos por defecto
+        // Inicializar todos cerrados
         this.bugsByMonth.forEach((month) => {
-          if (!this.monthCollapse.hasOwnProperty(month.monthKey)) {
-            this.monthCollapse[month.monthKey] = true;
-          }
+          this.monthCollapse[month.monthKey] = false;
         });
-        // Scroll después de que la tabla se actualice
-        setTimeout(() => {
-          const element = document.querySelector('.card-header');
-          if (element) element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }, 100);
+        
+        // Abrir y cargar el mes actual
+        const currentMonth = this.bugsByMonth.find(m => m.monthKey === currentMonthKey);
+        if (currentMonth) {
+          this.bugsService.getBugsByMonth(currentMonthKey).subscribe(
+            (bugs: any[]) => {
+              currentMonth.bugs = bugs;
+              currentMonth.loaded = true;
+              this.monthCollapse[currentMonthKey] = true;
+              // Scroll después de cargar
+              setTimeout(() => {
+                const element = document.querySelector('.card-header');
+                if (element) element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }, 100);
+            }
+          );
+        }
       },
-      (err: any) => console.error('Error loading bugs', err)
+      (err: any) => console.error('Error loading months summary', err)
     );
     this.loadUsers();
     this.loadSprints();

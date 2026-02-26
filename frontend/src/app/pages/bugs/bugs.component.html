@@ -75,12 +75,16 @@
           <div style="flex: 1;">
             <h5 class="mb-0">{{ monthData.monthDisplay }}</h5>
             <small class="text-muted">Total: {{ monthData.count }} bugs</small>
+            <span *ngIf="monthLoading[monthData.monthKey]" class="ms-2">
+              <span class="spinner-border spinner-border-sm text-primary" role="status"></span>
+              <small class="text-primary ms-1">Cargando...</small>
+            </span>
           </div>
-          <i class="bi" [ngClass]="monthCollapse[monthData.monthKey] !== false ? 'bi-chevron-up' : 'bi-chevron-down'" style="cursor: pointer;"></i>
+          <i class="bi" [ngClass]="monthCollapse[monthData.monthKey] ? 'bi-chevron-up' : 'bi-chevron-down'" style="cursor: pointer;"></i>
         </div>
         
-        <div [class.show]="monthCollapse[monthData.monthKey] !== false" class="month-collapse-content">
-          <table class="table mb-0" *ngIf="monthCollapse[monthData.monthKey] !== false">
+        <div [class.show]="monthCollapse[monthData.monthKey]" class="month-collapse-content">
+          <table class="table mb-0" *ngIf="monthCollapse[monthData.monthKey]">
             <thead *ngIf="monthData.bugs.length > 0">
               <tr>
                 <th>Título</th>

@@ -35,6 +35,16 @@ export class BugsService {
     return this.http.get<any[]>(this.apiUrl + '/by-month' + q);
   }
 
+  // Solo resumen de meses (sin bugs) para lazy loading
+  getMonthsSummary(): Observable<any[]> {
+    return this.http.get<any[]>(this.apiUrl + '/months-summary');
+  }
+
+  // Bugs de un mes específico
+  getBugsByMonth(monthKey: string): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/by-month/${monthKey}`);
+  }
+
   get(id: number) { return this.http.get<Bug>(`${this.apiUrl}/${id}`); }
   create(payload: Partial<Bug>) { return this.http.post(this.apiUrl, payload); }
   update(id: number, patch: Partial<Bug>) { return this.http.put(`${this.apiUrl}/${id}`, patch); }

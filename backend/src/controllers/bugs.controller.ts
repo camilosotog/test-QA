@@ -15,6 +15,63 @@ export const listBugs = async (req: Request, res: Response) => {
   }
 };
 
+// Devuelve solo el resumen de meses (sin bugs) para lazy loading
+export const listMonthsSummary = async (req: Request, res: Response) => {
+  try {
+    const bugs = await BugModel.list({});
+    const monthsData: { [key: string]: { count: number; display: string } } = {};
+    const months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+
+    bugs.forEach((bug) => {
+      const date = new Date(bug.created_at || new Date());
+      const monthKey = date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0');
+      const monthName = months[date.getMonth()];
+      const monthDisplay = `${monthName} ${date.getFullYear()}`;
+
+      if (!monthsData[monthKey]) {
+        monthsData[monthKey] = { count: 0, display: monthDisplay };
+      }
+      monthsData[monthKey].count++;
+    });
+
+    const result = Object.keys(monthsData)
+      .sort().reverse()
+      .map((monthKey) => ({
+        monthKey,
+        monthDisplay: monthsData[monthKey].display,
+        count: monthsData[monthKey].count,
+        bugs: [], // Vacío inicialmente - se carga bajo demanda
+        loaded: false
+      }));
+
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Error al listar resumen de meses' });
+  }
+};
+
+// Devuelve los bugs de un mes específico
+export const listBugsBySpecificMonth = async (req: Request, res: Response) => {
+  try {
+    const { monthKey } = req.params; // formato: YYYY-MM
+    if (!monthKey || !/^\d{4}-\d{2}$/.test(monthKey)) {
+      return res.status(400).json({ error: 'Formato de mes inválido. Usar YYYY-MM' });
+    }
+
+    const [year, month] = monthKey.split('-').map(Number);
+    const bugs = await BugModel.list({});
+
+    const filteredBugs = bugs.filter((bug) => {
+      const date = new Date(bug.created_at || new Date());
+      return date.getFullYear() === year && (date.getMonth() + 1) === month;
+    });
+
+    res.json(filteredBugs);
+  } catch (error) {
+    res.status(500).json({ error: 'Error al listar bugs del mes' });
+  }
+};
+
 export const listBugsByMonth = async (req: Request, res: Response) => {
   try {
     const filters: any = {};
