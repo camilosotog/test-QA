@@ -38,9 +38,9 @@ export const listMonthsSummary = async (req: Request, res: Response) => {
       .sort().reverse()
       .map((monthKey) => ({
         monthKey,
-        monthDisplay: monthsData[monthKey].display,
-        count: monthsData[monthKey].count,
-        bugs: [], // Vacío inicialmente - se carga bajo demanda
+        monthDisplay: monthsData[monthKey]!.display,
+        count: monthsData[monthKey]!.count,
+        bugs: [], 
         loaded: false
       }));
 
