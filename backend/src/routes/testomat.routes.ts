@@ -30,6 +30,8 @@ import {
   importFromTestomat,
   // Upload
   uploadAttachment,
+  // Duplicate
+  duplicateSuiteCases,
 } from '../controllers/testomat.controller';
 
 import {
@@ -223,6 +225,13 @@ router.put('/suites/:suiteId', auth, async (req, res) => {
  * Eliminar una suite y todos sus casos asociados
  */
 router.delete('/suites/:suiteId', auth, deleteTestSuite);
+
+/**
+ * POST /api/testomat/suites/:sourceSuiteId/duplicate
+ * Duplicar todos los casos de una suite a otra suite destino
+ * Body: { targetSuiteId: number }
+ */
+router.post('/suites/:sourceSuiteId/duplicate', auth, duplicateSuiteCases);
 
 // ========== TEST CASES ==========
 /**

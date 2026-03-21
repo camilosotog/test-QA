@@ -23,6 +23,20 @@ export class TestSuitesComponent implements OnInit, OnDestroy {
   duplicateSuiteName: string = '';
   pendingSuiteData: TestSuite | null = null;
 
+  // ============================================
+  // 📋 VARIABLES PARA DUPLICAR SUITE A OTRA CARPETA
+  // ============================================
+  showDuplicateToModal = false;
+  duplicateLoading = false;
+  duplicateError: string | null = null;
+  selectedSuiteToDuplicate: TestSuite | null = null;
+  availableProjects: TestProject[] = [];
+  availableSuitesForDuplicate: TestSuite[] = [];
+  selectedTargetProjectId: number | null = null;
+  selectedTargetSuiteId: number | null = null;
+  loadingProjects = false;
+  loadingSuitesForDuplicate = false;
+
   suiteForm: FormGroup;
   private destroy$ = new Subject<void>();
 
@@ -289,5 +303,135 @@ export class TestSuitesComponent implements OnInit, OnDestroy {
    */
   hasProjectSelected(): boolean {
     return !!this.currentProject?.id;
+  }
+
+  // ============================================
+  // 📋 MÉTODOS PARA DUPLICAR SUITE A OTRA CARPETA
+  // ============================================
+
+  /**
+   * Abre el modal para duplicar suite a otra carpeta
+   */
+  openDuplicateToModal(suite: TestSuite): void {
+    if (!suite.id) return;
+
+    this.selectedSuiteToDuplicate = suite;
+    this.showDuplicateToModal = true;
+    this.duplicateError = null;
+    this.selectedTargetProjectId = null;
+    this.selectedTargetSuiteId = null;
+    this.availableSuitesForDuplicate = [];
+    
+    // Cargar proyectos disponibles
+    this.loadAvailableProjects();
+  }
+
+  /**
+   * Cierra el modal de duplicar suite
+   */
+  closeDuplicateToModal(): void {
+    this.showDuplicateToModal = false;
+    this.selectedSuiteToDuplicate = null;
+    this.duplicateError = null;
+    this.selectedTargetProjectId = null;
+    this.selectedTargetSuiteId = null;
+    this.availableProjects = [];
+    this.availableSuitesForDuplicate = [];
+  }
+
+  /**
+   * Carga todos los proyectos disponibles
+   */
+  loadAvailableProjects(): void {
+    this.loadingProjects = true;
+    this.testomatService.getTestProjects()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response: any) => {
+          // La respuesta puede venir con paginación o como array directo
+          this.availableProjects = response.projects || response || [];
+          this.loadingProjects = false;
+        },
+        error: (err) => {
+          console.error('❌ Error cargando proyectos:', err);
+          this.duplicateError = 'No se pudieron cargar los proyectos.';
+          this.loadingProjects = false;
+        }
+      });
+  }
+
+  /**
+   * Carga las suites del proyecto seleccionado
+   */
+  onTargetProjectSelected(): void {
+    if (!this.selectedTargetProjectId) {
+      this.availableSuitesForDuplicate = [];
+      this.selectedTargetSuiteId = null;
+      return;
+    }
+
+    this.loadingSuitesForDuplicate = true;
+    this.selectedTargetSuiteId = null;
+    this.testomatService.getTestSuites(this.selectedTargetProjectId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (suites) => {
+          // Filtrar la suite actual si es el mismo proyecto
+          this.availableSuitesForDuplicate = suites.filter(
+            s => s.id !== this.selectedSuiteToDuplicate?.id
+          );
+          this.loadingSuitesForDuplicate = false;
+        },
+        error: (err) => {
+          console.error('❌ Error cargando suites:', err);
+          this.duplicateError = 'No se pudieron cargar las suites del proyecto.';
+          this.loadingSuitesForDuplicate = false;
+        }
+      });
+  }
+
+  /**
+   * Ejecuta la duplicación de los casos de la suite
+   */
+  executeDuplicateTo(): void {
+    if (!this.selectedSuiteToDuplicate?.id || !this.selectedTargetSuiteId) {
+      this.duplicateError = 'Selecciona un proyecto y una suite destino.';
+      return;
+    }
+
+    this.duplicateLoading = true;
+    this.duplicateError = null;
+
+    this.testomatService.duplicateSuiteCases(
+      this.selectedSuiteToDuplicate.id,
+      this.selectedTargetSuiteId
+    )
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          console.log('✅ Suite duplicada:', response);
+          
+          // Cerrar modal
+          this.closeDuplicateToModal();
+          this.duplicateLoading = false;
+          
+          // Mostrar mensaje de éxito
+          alert(
+            `✅ Suite duplicada exitosamente!\n\n` +
+            `Se copiaron ${response.copiedCases} casos de prueba de:\n` +
+            `"${response.source.suiteName}" → "${response.target.suiteName}"`
+          );
+
+          // Recargar suites si estamos en el mismo proyecto
+          if (this.currentProject?.id) {
+            this.loadSuites(this.currentProject.id);
+          }
+        },
+        error: (err) => {
+          console.error('❌ Error al duplicar suite:', err);
+          this.duplicateError = err.error?.error || 'No se pudo duplicar la suite. Intenta de nuevo.';
+          this.duplicateLoading = false;
+        }
+      });
   }
 }

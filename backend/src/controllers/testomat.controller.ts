@@ -732,6 +732,123 @@ export const uploadAttachment = async (req: Request, res: Response) => {
   }
 };
 
+/**
+ * 📋 Duplica todos los casos de una suite a otra suite destino
+ * Los casos se copian sin evidencias ni resultados (ejecución limpia)
+ */
+export const duplicateSuiteCases = async (req: Request, res: Response) => {
+  const { sourceSuiteId } = req.params;
+  const { targetSuiteId } = req.body;
+
+  if (!sourceSuiteId || !targetSuiteId) {
+    return res.status(400).json({ 
+      error: 'sourceSuiteId y targetSuiteId son requeridos' 
+    });
+  }
+
+  try {
+    // 1. Verificar que la suite origen existe
+    const [sourceSuite] = await db.query(
+      'SELECT id, name, test_project_id FROM test_suites WHERE id = ?',
+      [sourceSuiteId]
+    ) as any;
+
+    if (!sourceSuite || sourceSuite.length === 0) {
+      return res.status(404).json({ error: 'Suite origen no encontrada' });
+    }
+
+    // 2. Verificar que la suite destino existe
+    const [targetSuite] = await db.query(
+      'SELECT id, name, test_project_id FROM test_suites WHERE id = ?',
+      [targetSuiteId]
+    ) as any;
+
+    if (!targetSuite || targetSuite.length === 0) {
+      return res.status(404).json({ error: 'Suite destino no encontrada' });
+    }
+
+    const targetProjectId = targetSuite[0].test_project_id;
+
+    // 3. Obtener todos los casos de la suite origen
+    const [sourceCases] = await db.query(
+      'SELECT * FROM test_cases WHERE test_suite_id = ?',
+      [sourceSuiteId]
+    ) as any;
+
+    if (!sourceCases || sourceCases.length === 0) {
+      return res.status(400).json({ 
+        error: 'La suite origen no tiene casos de prueba para duplicar' 
+      });
+    }
+
+    console.log(`📋 Duplicando ${sourceCases.length} casos de "${sourceSuite[0].name}" a "${targetSuite[0].name}"`);
+
+    // Helper para serializar campos JSON (mysql2 los parsea automáticamente al leer)
+    const toJsonString = (value: any): string | null => {
+      if (value === null || value === undefined) return null;
+      if (typeof value === 'string') return value;
+      return JSON.stringify(value);
+    };
+
+    // 4. Copiar cada caso de prueba a la suite destino
+    const copiedCaseIds: number[] = [];
+    for (const sourceCase of sourceCases) {
+      const [result] = await db.query(
+        `INSERT INTO test_cases (
+          test_suite_id, test_project_id, name, description, preconditions, 
+          input_data, steps, expected_result, priority, status, 
+          automation_status, automation_tool, test_type, requirement_id, 
+          tags, attachments, created_by, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
+        [
+          targetSuiteId,
+          targetProjectId,
+          sourceCase.name,
+          sourceCase.description,
+          sourceCase.preconditions,
+          toJsonString(sourceCase.input_data),
+          toJsonString(sourceCase.steps),
+          sourceCase.expected_result,
+          sourceCase.priority || 'medium',
+          'draft', // Siempre draft para la copia
+          sourceCase.automation_status || 'manual',
+          sourceCase.automation_tool,
+          sourceCase.test_type || 'functional',
+          sourceCase.requirement_id,
+          toJsonString(sourceCase.tags),
+          toJsonString(sourceCase.attachments), // Mantener adjuntos del caso (no evidencias de ejecución)
+          null // Sin usuario asignado
+        ]
+      ) as any;
+
+      copiedCaseIds.push(result.insertId);
+    }
+
+    console.log(`✅ ${copiedCaseIds.length} casos copiados exitosamente`);
+
+    res.status(201).json({
+      success: true,
+      message: `${copiedCaseIds.length} casos de prueba duplicados exitosamente`,
+      source: {
+        suiteId: parseInt(sourceSuiteId),
+        suiteName: sourceSuite[0].name
+      },
+      target: {
+        suiteId: parseInt(targetSuiteId as string),
+        suiteName: targetSuite[0].name
+      },
+      copiedCases: copiedCaseIds.length,
+      copiedCaseIds
+    });
+  } catch (error) {
+    console.error('❌ Error duplicando casos de suite:', error);
+    res.status(500).json({ 
+      error: 'Error al duplicar los casos de prueba', 
+      details: (error as any).message 
+    });
+  }
+};
+
 export default {
   getTestProjects,
   getTestProjectById,
@@ -750,4 +867,5 @@ export default {
   getProjectAnalytics,
   importFromTestomat,
   uploadAttachment,
+  duplicateSuiteCases,
 };

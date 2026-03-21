@@ -107,12 +107,20 @@
                       <i class="bi bi-pencil"></i>
                     </button>
                     <button 
-                      class="btn btn-sm btn-outline-danger"
+                      class="btn btn-sm btn-outline-danger me-2"
                       title="Eliminar suite"
                       (click)="deleteSuite(suite)"
                       [disabled]="loading"
                     >
                       <i class="bi bi-trash"></i>
+                    </button>
+                    <button 
+                      class="btn btn-sm btn-outline-secondary"
+                      title="Duplicar casos a otra suite"
+                      (click)="openDuplicateToModal(suite)"
+                      [disabled]="loading"
+                    >
+                      <i class="bi bi-files"></i>
                     </button>
                   </td>
                 </tr>
@@ -227,6 +235,99 @@
             </button>
             <button type="button" class="btn btn-warning" (click)="confirmDuplicateSuite()">
               <i class="bi bi-check-circle"></i> Sí, Crear Duplicada
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 📋 MODAL PARA DUPLICAR SUITE A OTRA CARPETA -->
+    <div *ngIf="showDuplicateToModal" class="modal-overlay" (click)="closeDuplicateToModal()">
+      <div class="modal-dialog modal-lg" (click)="$event.stopPropagation()">
+        <div class="modal-content">
+          <div class="modal-header bg-info">
+            <h5 class="modal-title">
+              <i class="bi bi-files"></i> Duplicar Casos de "{{ selectedSuiteToDuplicate?.name }}"
+            </h5>
+            <button type="button" class="btn-close" (click)="closeDuplicateToModal()" [disabled]="duplicateLoading"></button>
+          </div>
+          <div class="modal-body">
+            <!-- Error -->
+            <div *ngIf="duplicateError" class="alert alert-danger alert-dismissible fade show mb-3">
+              <i class="bi bi-exclamation-circle"></i> {{ duplicateError }}
+              <button type="button" class="btn-close" (click)="duplicateError = null"></button>
+            </div>
+
+            <div class="alert alert-info mb-4">
+              <i class="bi bi-info-circle-fill me-2"></i>
+              Esta acción copiará <strong>todos los casos de prueba</strong> de esta suite a la suite destino.
+              Los casos copiados estarán en estado <strong>"Borrador"</strong> sin evidencias.
+            </div>
+
+            <div class="row">
+              <!-- Proyecto destino -->
+              <div class="col-md-6 mb-3">
+                <label for="targetProject" class="form-label">Proyecto Destino *</label>
+                <select 
+                  id="targetProject" 
+                  class="form-select"
+                  [(ngModel)]="selectedTargetProjectId"
+                  (ngModelChange)="onTargetProjectSelected()"
+                  [disabled]="loadingProjects || duplicateLoading"
+                >
+                  <option [ngValue]="null">-- Selecciona un proyecto --</option>
+                  <option *ngFor="let project of availableProjects" [ngValue]="project.id">
+                    {{ project.name }}
+                  </option>
+                </select>
+                <div *ngIf="loadingProjects" class="text-muted small mt-1">
+                  <span class="spinner-border spinner-border-sm me-1"></span> Cargando proyectos...
+                </div>
+              </div>
+
+              <!-- Suite destino -->
+              <div class="col-md-6 mb-3">
+                <label for="targetSuite" class="form-label">Suite Destino *</label>
+                <select 
+                  id="targetSuite" 
+                  class="form-select"
+                  [(ngModel)]="selectedTargetSuiteId"
+                  [disabled]="!selectedTargetProjectId || loadingSuitesForDuplicate || duplicateLoading"
+                >
+                  <option [ngValue]="null">-- Selecciona una suite --</option>
+                  <option *ngFor="let suite of availableSuitesForDuplicate" [ngValue]="suite.id">
+                    {{ suite.name }}
+                  </option>
+                </select>
+                <div *ngIf="loadingSuitesForDuplicate" class="text-muted small mt-1">
+                  <span class="spinner-border spinner-border-sm me-1"></span> Cargando suites...
+                </div>
+                <div *ngIf="selectedTargetProjectId && !loadingSuitesForDuplicate && availableSuitesForDuplicate.length === 0" class="text-warning small mt-1">
+                  <i class="bi bi-exclamation-triangle"></i> No hay suites disponibles en este proyecto
+                </div>
+              </div>
+            </div>
+
+            <!-- Resumen -->
+            <div *ngIf="selectedTargetSuiteId" class="alert alert-success mt-3">
+              <i class="bi bi-arrow-right-circle me-2"></i>
+              Los casos se copiarán de <strong>{{ selectedSuiteToDuplicate?.name }}</strong>
+              a la suite destino seleccionada.
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" (click)="closeDuplicateToModal()" [disabled]="duplicateLoading">
+              <i class="bi bi-x-circle"></i> Cancelar
+            </button>
+            <button 
+              type="button" 
+              class="btn btn-info"
+              (click)="executeDuplicateTo()"
+              [disabled]="!selectedTargetSuiteId || duplicateLoading"
+            >
+              <span *ngIf="duplicateLoading" class="spinner-border spinner-border-sm me-1"></span>
+              <i *ngIf="!duplicateLoading" class="bi bi-files me-1"></i>
+              {{ duplicateLoading ? 'Duplicando...' : 'Duplicar Casos' }}
             </button>
           </div>
         </div>

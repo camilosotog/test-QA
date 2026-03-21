@@ -22,7 +22,8 @@ export class ReturnsComponent implements OnInit {
     'Sebastian Chaves',
     'Jonnatan Torres',
     'Adalberto Salas',
-    'Daniel Rojas'
+    'Daniel Rojas',
+    'Angelica Escobar'
   ];
 
   filterPoName: string = '';

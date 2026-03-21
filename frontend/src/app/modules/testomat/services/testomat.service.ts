@@ -256,6 +256,23 @@ export class TestomatService {
     return this.http.delete<{message: string}>(`${this.apiUrl}/suites/${suiteId}`);
   }
 
+  /**
+   * 📋 Duplica todos los casos de una suite a otra suite destino
+   * @param sourceSuiteId ID de la suite origen
+   * @param targetSuiteId ID de la suite destino
+   */
+  duplicateSuiteCases(sourceSuiteId: number, targetSuiteId: number): Observable<{
+    success: boolean;
+    message: string;
+    source: { suiteId: number; suiteName: string };
+    target: { suiteId: number; suiteName: string };
+    copiedCases: number;
+  }> {
+    return this.http.post<any>(`${this.apiUrl}/suites/${sourceSuiteId}/duplicate`, {
+      targetSuiteId
+    });
+  }
+
   // ============================================
   // 📝 CASOS DE PRUEBA
   // ============================================
