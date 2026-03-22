@@ -94,6 +94,12 @@ pdfMake.vfs = (pdfFonts as any).pdfMake?.vfs || (pdfFonts as any).vfs;
                   {{ isPublishing ? "Publicando..." : "Publicar PDF en Jira" }}
                 </button>
               </div>
+
+              <!-- Indicador permanente de comentario publicado -->
+              <div *ngIf="commentPostedKey" class="mt-3 p-2 rounded border border-success bg-success bg-opacity-10 small text-success">
+                <i class="bi bi-chat-quote-fill me-1"></i>
+                Comentario publicado automaticamente en <strong>{{ commentPostedKey }}</strong>
+              </div>
             </div>
           </div>
         </div>
@@ -212,6 +218,8 @@ export class RequirementAnalysisComponent implements OnInit {
   isPublishing: boolean = false;
   toastMessage: string = "";
   toastType: string = "";
+  commentPostedKey: string = "";   // issueKey del último comentario publicado
+  private toastTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor(private service: RequirementAnalysisService) {}
 
@@ -234,11 +242,30 @@ export class RequirementAnalysisComponent implements OnInit {
           `✓ Análisis completado: ${response.data.analysis.ambiguities.length} ambigüedades detectadas`,
           "success"
         );
+
+        // Publicar comentario en Jira automáticamente (en segundo plano)
+        this.service.commentOnJira(this.jiraUrl, this.analysisResult!).subscribe({
+          next: (commentResponse) => {
+            if (!commentResponse.data.simulated) {
+              this.commentPostedKey = commentResponse.data.issueKey;
+              this.showToast(
+                `✓ Comentario publicado en Jira: ${commentResponse.data.issueKey}`,
+                "success"
+              );
+            }
+          },
+          error: (err) => {
+            const msg = err.error?.message || err.error?.error || "No se pudo publicar el comentario en Jira";
+            console.warn("[Jira Comment]", err);
+            this.showToast(`⚠ ${msg}`, "warning");
+          },
+        });
       },
       error: (error) => {
         this.isLoading = false;
+        this.isLoading = false;
         this.showToast(
-          error.error?.error || "Error al analizar la HU",
+          error.error?.message || error.error?.error || "Error al analizar la HU",
           "danger"
         );
       },
@@ -271,6 +298,25 @@ export class RequirementAnalysisComponent implements OnInit {
                 pdfMake.createPdf(pdfDocDefinition),
                 `analisis-${response.data.issueKey}.pdf`
               );
+
+              // También publicar como comentario en Jira
+              this.service
+                .commentOnJira(this.jiraUrl, this.analysisResult!)
+                .subscribe({
+                  next: (commentResponse) => {
+                    if (!commentResponse.data.simulated) {
+                      this.showToast(
+                        `✓ Comentario publicado en ${response.data.issueKey}`,
+                        "success"
+                      );
+                    }
+                  },
+                  error: (err) => {
+                    const msg = err.error?.error || "No se pudo publicar el comentario en Jira";
+                    console.warn("[Jira Comment]", msg);
+                    this.showToast(`⚠ ${msg}`, "warning");
+                  },
+                });
             },
             error: (error) => {
               this.isPublishing = false;
@@ -420,10 +466,14 @@ export class RequirementAnalysisComponent implements OnInit {
   }
 
   private showToast(message: string, type: string = "info"): void {
+    if (this.toastTimer) {
+      clearTimeout(this.toastTimer);
+    }
     this.toastMessage = message;
     this.toastType = type;
-    setTimeout(() => {
+    this.toastTimer = setTimeout(() => {
       this.toastMessage = "";
+      this.toastTimer = null;
     }, 5000);
   }
 

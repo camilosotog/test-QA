@@ -94,6 +94,7 @@ export class RequirementAnalyzer {
 
   /**
    * Valida la estructura Gherkin (Given/When/Then)
+   * Detecta múltiples escenarios y los etiqueta
    */
   private validateGherkinStructure(huText: string): AmbiguityFinding[] {
     const findings: AmbiguityFinding[] = [];
@@ -106,202 +107,291 @@ export class RequirementAnalyzer {
       return findings; // No hay Gherkin, no validar
     }
 
-    // Procesar líneas Gherkin
-    let currentKeyword: "given" | "when" | "then" | null = null;
-    const gherkinSections: {
-      given: string[];
-      when: string[];
-      then: string[];
-    } = { given: [], when: [], then: [] };
+    // Detectar escenarios (por "Escenario:", "Scenario:", o simplemente agrupar por bloques Given/When/Then)
+    const scenarios = this.parseScenarios(lines);
 
-    lines.forEach((line, lineIndex) => {
-      const lowerLine = line.toLowerCase().trim();
+    scenarios.forEach((scenario, scenarioIndex) => {
+      // Usar el nombre del escenario si existe, si no usar número
+      let scenarioLabel: string;
+      if (scenario.name) {
+        // Extraer nombre corto del escenario (ej: "Escenario 1 – Validación exitosa" -> "Esc.1: Validación exitosa")
+        const nameMatch = scenario.name.match(/escenario\s*(\d+)\s*[-–:]\s*(.+)/i) || 
+                          scenario.name.match(/scenario\s*(\d+)\s*[-–:]\s*(.+)/i);
+        if (nameMatch && nameMatch[1] && nameMatch[2]) {
+          scenarioLabel = `Esc.${nameMatch[1]}: ${this.getWordsContext(nameMatch[2], 3)}`;
+        } else {
+          scenarioLabel = this.getWordsContext(scenario.name, 4);
+        }
+      } else {
+        scenarioLabel = scenarios.length > 1 ? `Escenario ${scenarioIndex + 1}` : "Escenario";
+      }
+      
+      // Validar Given
+      if (scenario.given.length === 0) {
+        findings.push({
+          type: "gherkin",
+          text: `${scenarioLabel} - DADO: (vacío)`,
+          issue: "Sección DADO/GIVEN vacía o ausente",
+          suggestion:
+            'El DADO debe describir el contexto inicial: "Dado que [precondición del sistema]"',
+          severity: "high",
+          lineNumber: scenario.startLine,
+        });
+      } else {
+        const givenText = scenario.given.join(" ").toLowerCase();
+        const givenPreview = this.getWordsContext(scenario.given.join(" "), 6);
+        if (givenText.length < 10) {
+          findings.push({
+            type: "gherkin",
+            text: `${scenarioLabel} - DADO: ${givenPreview}`,
+            issue: "Sección DADO/GIVEN muy corta o vaga",
+            suggestion:
+              'El DADO debe incluir contexto detallado: "Dado que el usuario está logueado Y tiene permisos de administrador"',
+            severity: "medium",
+            lineNumber: scenario.startLine,
+          });
+        }
+        // Validar que el GIVEN no sea acción
+        const actionVerbs = ["hago", "ingreso", "selecciono", "presiono", "click"];
+        const foundActionVerb = actionVerbs.find((v) => givenText.includes(v));
+        if (foundActionVerb) {
+          const contextWithVerb = this.getWordsAroundKeyword(scenario.given.join(" "), foundActionVerb, 6);
+          findings.push({
+            type: "gherkin",
+            text: `${scenarioLabel} - DADO: ${contextWithVerb}`,
+            issue: "El DADO contiene acciones (debe ser contexto/precondiciones)",
+            suggestion:
+              'Mover acciones al CUANDO: DADO: precondiciones, CUANDO: acciones del usuario',
+            severity: "high",
+            lineNumber: scenario.startLine,
+          });
+        }
+      }
 
-      // Detectar palabras clave Gherkin
-      if (lowerLine.startsWith("dado") || lowerLine.startsWith("given")) {
-        currentKeyword = "given";
-        gherkinSections.given.push(line.substring(5).trim());
-      } else if (lowerLine.startsWith("cuando") || lowerLine.startsWith("when")) {
-        currentKeyword = "when";
-        gherkinSections.when.push(line.substring(6).trim());
-      } else if (lowerLine.startsWith("entonces") || lowerLine.startsWith("then")) {
-        currentKeyword = "then";
-        gherkinSections.then.push(line.substring(8).trim());
-      } else if (
-        currentKeyword &&
-        line.trim() &&
-        !lowerLine.startsWith("y ") &&
-        !lowerLine.startsWith("and ")
-      ) {
-        // Línea de continuación con "Y" / "And"
-        if (lowerLine.startsWith("y ") || lowerLine.startsWith("and ")) {
-          const content = line.substring(2).trim();
-          if (currentKeyword === "given") gherkinSections.given.push(content);
-          else if (currentKeyword === "when") gherkinSections.when.push(content);
-          else if (currentKeyword === "then") gherkinSections.then.push(content);
+      // Validar When
+      if (scenario.when.length === 0) {
+        findings.push({
+          type: "gherkin",
+          text: `${scenarioLabel} - CUANDO: (vacío)`,
+          issue: "Sección CUANDO/WHEN vacía o ausente",
+          suggestion:
+            'El CUANDO debe describir la acción del usuario: "Cuando [acción específica]"',
+          severity: "high",
+          lineNumber: scenario.startLine,
+        });
+      } else {
+        const whenText = scenario.when.join(" ").toLowerCase();
+        const whenPreview = this.getWordsContext(scenario.when.join(" "), 6);
+        if (whenText.length < 10) {
+          findings.push({
+            type: "gherkin",
+            text: `${scenarioLabel} - CUANDO: ${whenPreview}`,
+            issue: "Sección CUANDO/WHEN muy corta o vaga",
+            suggestion:
+              'El CUANDO debe describir acciones claras: "Cuando presiono el botón guardar AND completo el formulario"',
+            severity: "medium",
+            lineNumber: scenario.startLine,
+          });
+        }
+        // Validar que el WHEN tenga verbos de acción (usuario o sistema)
+        const actionVerbs = [
+          // Acciones de usuario
+          "hago", "ingreso", "ingresa", "selecciono", "selecciona",
+          "presiono", "presiona", "click", "navego", "navega",
+          "completo", "completa", "confirmo", "confirma", "cancelo", "cancela",
+          "abro", "abre", "cierro", "cierra", "envío", "envía", "envio", "envia",
+          // Acciones de sistema / API
+          "consuma", "consume", "valide", "valida", "ejecuta", "ejecute",
+          "procesa", "procese", "genera", "genere", "verifica", "verifique",
+          "consulta", "consulte", "actualiza", "actualice", "guarda", "guarde",
+          "retorna", "retorne", "recibe", "reciba", "obtiene", "obtenga",
+          "envía", "envíe", "realiza", "realice", "conecta", "conecte",
+        ];
+        if (!actionVerbs.some((v) => whenText.includes(v))) {
+          findings.push({
+            type: "gherkin",
+            text: `${scenarioLabel} - CUANDO: ${whenPreview}`,
+            issue: "El CUANDO no describe una acción clara (de usuario o sistema)",
+            suggestion:
+              'Debe contener verbo de acción: "Cuando el sistema ejecuta...", "Cuando presiono...", "Cuando el usuario selecciona..."',
+            severity: "medium",
+            lineNumber: scenario.startLine,
+          });
+        }
+      }
+
+      // Validar Then
+      if (scenario.then.length === 0) {
+        findings.push({
+          type: "gherkin",
+          text: `${scenarioLabel} - ENTONCES: (vacío)`,
+          issue: "Sección ENTONCES/THEN vacía o ausente",
+          suggestion:
+            'El ENTONCES debe describir el resultado esperado: "Entonces [verificación/resultado observable]"',
+          severity: "high",
+          lineNumber: scenario.startLine,
+        });
+      } else {
+        const thenText = scenario.then.join(" ").toLowerCase();
+        const thenPreview = this.getWordsContext(scenario.then.join(" "), 6);
+        if (thenText.length < 10) {
+          findings.push({
+            type: "gherkin",
+            text: `${scenarioLabel} - ENTONCES: ${thenPreview}`,
+            issue: "Sección ENTONCES/THEN muy corta o vaga",
+            suggestion:
+              'El ENTONCES debe detallar verificaciones: "Entonces veo el mensaje de éxito Y el registro se guarda en BD"',
+            severity: "medium",
+            lineNumber: scenario.startLine,
+          });
+        }
+        // Validar que el THEN no contenga acciones
+        const actionVerbs = ["presiono", "hago", "ingreso", "selecciono", "click", "navego"];
+        const foundActionVerb = actionVerbs.find((v) => thenText.includes(v));
+        if (foundActionVerb) {
+          const contextWithVerb = this.getWordsAroundKeyword(scenario.then.join(" "), foundActionVerb, 6);
+          findings.push({
+            type: "gherkin",
+            text: `${scenarioLabel} - ENTONCES: ${contextWithVerb}`,
+            issue: "El ENTONCES contiene acciones (debe ser verificación del resultado)",
+            suggestion:
+              'El ENTONCES debe verificar estado/resultados, no ejecutar acciones: "Entonces veo...", "Entonces se guarda..."',
+            severity: "high",
+            lineNumber: scenario.startLine,
+          });
+        }
+        // Validar que el THEN tenga verificaciones observables
+        const verifyKeywords = [
+          "veo", "aparece", "muestra", "devuelve", "recibe",
+          "contiene", "existe", "se guarda", "mensaje",
+        ];
+        if (!verifyKeywords.some((v) => thenText.includes(v))) {
+          findings.push({
+            type: "gherkin",
+            text: `${scenarioLabel} - ENTONCES: ${thenPreview}`,
+            issue: "El ENTONCES no tiene verificaciones observables claras",
+            suggestion:
+              'Debe describir qué se ve/verifica: "Entonces veo el mensaje...", "Entonces aparece...", "Entonces se guarda en..."',
+            severity: "medium",
+            lineNumber: scenario.startLine,
+          });
         }
       }
     });
 
-    // Validar Given
-    if (gherkinSections.given.length === 0) {
-      findings.push({
-        type: "gherkin",
-        text: "GIVEN",
-        issue: "Sección DADO/GIVEN vacía o ausente",
-        suggestion:
-          'El DADO debe describir el contexto inicial: "Dado que [precondición del sistema]"',
-        severity: "high",
-        lineNumber: 1,
-      });
-    } else {
-      const givenText = gherkinSections.given.join(" ").toLowerCase();
-      if (givenText.length < 10) {
-        findings.push({
-          type: "gherkin",
-          text: "GIVEN",
-          issue: "Sección DADO/GIVEN muy corta o vaga",
-          suggestion:
-            'El DADO debe incluir contexto detallado: "Dado que el usuario está logueado Y tiene permisos de administrador"',
-          severity: "medium",
-          lineNumber: 1,
-        });
-      }
-      // Validar que el GIVEN no sea acción
-      const actionVerbs = ["hago", "ingreso", "selecciono", "presiono", "click"];
-      if (actionVerbs.some((v) => givenText.includes(v))) {
-        findings.push({
-          type: "gherkin",
-          text: "GIVEN",
-          issue: "El DADO contiene acciones (debe ser contexto/precondiciones)",
-          suggestion:
-            'Mover acciones al CUANDO: DADO: precondiciones, CUANDO: acciones del usuario',
-          severity: "high",
-          lineNumber: 1,
-        });
-      }
-    }
-
-    // Validar When
-    if (gherkinSections.when.length === 0) {
-      findings.push({
-        type: "gherkin",
-        text: "WHEN",
-        issue: "Sección CUANDO/WHEN vacía o ausente",
-        suggestion:
-          'El CUANDO debe describir la acción del usuario: "Cuando [acción específica]"',
-        severity: "high",
-        lineNumber: 1,
-      });
-    } else {
-      const whenText = gherkinSections.when.join(" ").toLowerCase();
-      if (whenText.length < 10) {
-        findings.push({
-          type: "gherkin",
-          text: "WHEN",
-          issue: "Sección CUANDO/WHEN muy corta o vaga",
-          suggestion:
-            'El CUANDO debe describir acciones claras: "Cuando presiono el botón guardar AND completo el formulario"',
-          severity: "medium",
-          lineNumber: 1,
-        });
-      }
-      // Validar que el WHEN tenga verbos de acción
-      const actionVerbs = [
-        "hago",
-        "ingreso",
-        "selecciono",
-        "presiono",
-        "click",
-        "navego",
-        "completo",
-        "confirmo",
-        "cancelo",
-      ];
-      if (!actionVerbs.some((v) => whenText.includes(v))) {
-        findings.push({
-          type: "gherkin",
-          text: "WHEN",
-          issue:
-            "El CUANDO no describe una acción clara del usuario",
-          suggestion:
-            'Debe contener verbo de acción: "Cuando presiono...", "Cuando ingreso...", "Cuando selecciono..."',
-          severity: "high",
-          lineNumber: 1,
-        });
-      }
-    }
-
-    // Validar Then
-    if (gherkinSections.then.length === 0) {
-      findings.push({
-        type: "gherkin",
-        text: "THEN",
-        issue: "Sección ENTONCES/THEN vacía o ausente",
-        suggestion:
-          'El ENTONCES debe describir el resultado esperado: "Entonces [verificación/resultado observable]"',
-        severity: "high",
-        lineNumber: 1,
-      });
-    } else {
-      const thenText = gherkinSections.then.join(" ").toLowerCase();
-      if (thenText.length < 10) {
-        findings.push({
-          type: "gherkin",
-          text: "THEN",
-          issue: "Sección ENTONCES/THEN muy corta o vaga",
-          suggestion:
-            'El ENTONCES debe detallar verificaciones: "Entonces veo el mensaje de éxito Y el registro se guarda en BD"',
-          severity: "medium",
-          lineNumber: 1,
-        });
-      }
-      // Validar que el THEN no contenga acciones
-      const actionVerbs = [
-        "presiono",
-        "hago",
-        "ingreso",
-        "selecciono",
-        "click",
-        "navego",
-      ];
-      if (actionVerbs.some((v) => thenText.includes(v))) {
-        findings.push({
-          type: "gherkin",
-          text: "THEN",
-          issue: "El ENTONCES contiene acciones (debe ser verificación del resultado)",
-          suggestion:
-            'El ENTONCES debe verificar estado/resultados, no ejecutar acciones: "Entonces veo...", "Entonces se guarda..."',
-          severity: "high",
-          lineNumber: 1,
-        });
-      }
-      // Validar que el THEN tenga verificaciones observables
-      const verifyKeywords = [
-        "veo",
-        "aparece",
-        "muestra",
-        "devuelve",
-        "recibe",
-        "contiene",
-        "existe",
-        "se guarda",
-        "mensaje",
-      ];
-      if (!verifyKeywords.some((v) => thenText.includes(v))) {
-        findings.push({
-          type: "gherkin",
-          text: "THEN",
-          issue: "El ENTONCES no tiene verificaciones observables claras",
-          suggestion:
-            'Debe describir qué se ve/verifica: "Entonces veo el mensaje...", "Entonces aparece...", "Entonces se guarda en..."',
-          severity: "medium",
-          lineNumber: 1,
-        });
-      }
-    }
-
     return findings;
+  }
+
+  /**
+   * Parsea los escenarios Gherkin del texto
+   */
+  private parseScenarios(lines: string[]): Array<{
+    given: string[];
+    when: string[];
+    then: string[];
+    startLine: number;
+    name?: string;
+  }> {
+    const scenarios: Array<{
+      given: string[];
+      when: string[];
+      then: string[];
+      startLine: number;
+      name?: string;
+    }> = [];
+
+    let currentScenario: { given: string[]; when: string[]; then: string[]; startLine: number; name?: string } | null = null;
+    let currentKeyword: "given" | "when" | "then" | null = null;
+
+    lines.forEach((line, lineIndex) => {
+      // Normalizar línea: eliminar prefijos de lista/markdown de Confluence/Jira
+      const normalizedLine = line
+        .trim()
+        .replace(/^\s*[-*•]\s+/, '')         // bullet: - item, * item, • item
+        .replace(/^\s*\d+[\.)\-]\s+/, '')    // numerado: 1. item, 1) item
+        .replace(/^#+\s*/, '')               // heading markdown: ## Texto
+        .replace(/\*\*/g, '')               // bold markdown: **texto**
+        .replace(/^_{1,2}|_{1,2}$/g, '')    // underscore bold/italic
+        .trim();
+      const lowerLine = normalizedLine.toLowerCase();
+      const trimmedLine = normalizedLine;
+
+      // Detectar inicio de escenario
+      if (lowerLine.startsWith("escenario:") || lowerLine.startsWith("scenario:") ||
+          lowerLine.startsWith("escenario ") || lowerLine.startsWith("scenario ")) {
+        // Guardar escenario anterior si existe
+        if (currentScenario) {
+          scenarios.push(currentScenario);
+        }
+        currentScenario = { given: [], when: [], then: [], startLine: lineIndex + 1, name: trimmedLine };
+        currentKeyword = null;
+      }
+      // Detectar palabras clave Gherkin
+      else if (lowerLine.startsWith("dado que") || lowerLine.startsWith("dado ") || lowerLine.startsWith("given")) {
+        if (!currentScenario) {
+          currentScenario = { given: [], when: [], then: [], startLine: lineIndex + 1 };
+        }
+        currentKeyword = "given";
+        const content = trimmedLine.replace(/^(dado que|dado|given)\s*/i, "").trim();
+        if (content) currentScenario.given.push(content);
+      } else if (lowerLine.startsWith("cuando") || lowerLine.startsWith("when")) {
+        if (!currentScenario) {
+          currentScenario = { given: [], when: [], then: [], startLine: lineIndex + 1 };
+        }
+        currentKeyword = "when";
+        const content = trimmedLine.replace(/^(cuando|when)\s*/i, "").trim();
+        if (content) currentScenario.when.push(content);
+      } else if (lowerLine.startsWith("entonces") || lowerLine.startsWith("then")) {
+        if (!currentScenario) {
+          currentScenario = { given: [], when: [], then: [], startLine: lineIndex + 1 };
+        }
+        currentKeyword = "then";
+        const content = trimmedLine.replace(/^(entonces|then)\s*/i, "").trim();
+        if (content) currentScenario.then.push(content);
+      } else if (lowerLine.startsWith("y ") || lowerLine.startsWith("and ") || 
+                 lowerLine.startsWith("e ") || lowerLine.startsWith("pero ") || lowerLine.startsWith("but ")) {
+        if (currentScenario && currentKeyword) {
+          const content = trimmedLine.replace(/^(y|and|e|pero|but)\s*/i, "").trim();
+          if (content) currentScenario[currentKeyword].push(content);
+        }
+      }
+    });
+
+    // Agregar último escenario
+    if (currentScenario) {
+      scenarios.push(currentScenario);
+    }
+
+    return scenarios;
+  }
+
+  /**
+   * Obtiene las primeras N palabras de un texto
+   */
+  private getWordsContext(text: string, wordCount: number): string {
+    const words = text.trim().split(/\s+/);
+    if (words.length <= wordCount) return text.trim();
+    return words.slice(0, wordCount).join(" ") + "...";
+  }
+
+  /**
+   * Obtiene N palabras alrededor de una palabra clave
+   */
+  private getWordsAroundKeyword(text: string, keyword: string, totalWords: number): string {
+    const words = text.trim().split(/\s+/);
+    const keywordIndex = words.findIndex(w => w.toLowerCase().includes(keyword.toLowerCase()));
+    
+    if (keywordIndex === -1) return this.getWordsContext(text, totalWords);
+    
+    const halfWords = Math.floor(totalWords / 2);
+    const start = Math.max(0, keywordIndex - halfWords);
+    const end = Math.min(words.length, keywordIndex + halfWords + 1);
+    
+    let result = words.slice(start, end).join(" ");
+    if (start > 0) result = "..." + result;
+    if (end < words.length) result = result + "...";
+    
+    return result;
   }
 
   /**
@@ -323,9 +413,10 @@ export class RequirementAnalyzer {
         const matches = line.matchAll(regex);
 
         for (const match of matches) {
+          const contextText = this.getWordsAroundKeyword(line, verb, 6);
           findings.push({
             type: "verb",
-            text: verb,
+            text: contextText,
             issue: `Verbo genérico y poco claro: "${verb}"`,
             suggestion: `Reemplazar con verbos más específicos: registrar, editar, eliminar, crear, visualizar (según la acción concreta)`,
             severity: "high",
@@ -340,9 +431,10 @@ export class RequirementAnalyzer {
         const matches = line.matchAll(regex);
 
         for (const match of matches) {
+          const contextText = this.getWordsAroundKeyword(line, adjective, 6);
           findings.push({
             type: "adjective",
-            text: adjective,
+            text: contextText,
             issue: `Adjetivo ambiguo: "${adjective}"`,
             suggestion: `Especificar con guías de diseño o criterios medibles: (ej: "completar cualquier acción en menos de 3 clics")`,
             severity: "high",
@@ -377,10 +469,11 @@ export class RequirementAnalyzer {
       vaguePatterns.forEach(({ pattern, suggestion }) => {
         const matches = line.matchAll(pattern);
         for (const match of matches) {
-          if (!findings.some(f => f.lineNumber === lineIndex + 1 && f.text === match[0])) {
+          const contextText = this.getWordsAroundKeyword(line, match[0], 6);
+          if (!findings.some(f => f.lineNumber === lineIndex + 1 && f.issue.includes(match[0]))) {
             findings.push({
               type: "adjective",
-              text: match[0],
+              text: contextText,
               issue: `Término vago sin especificación: "${match[0]}"`,
               suggestion: suggestion,
               severity: "medium",

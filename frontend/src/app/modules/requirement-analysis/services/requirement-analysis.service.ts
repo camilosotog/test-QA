@@ -81,4 +81,22 @@ export class RequirementAnalysisService {
       analysisData,
     });
   }
+
+  /**
+   * Publica el análisis como comentario formateado directamente en Jira
+   */
+  commentOnJira(
+    jiraUrl: string,
+    analysisData: AnalysisResult
+  ): Observable<{
+    success: boolean;
+    data: { issueKey: string; commentId?: string; simulated?: boolean };
+    message: string;
+  }> {
+    return this.http.post<{
+      success: boolean;
+      data: { issueKey: string; commentId?: string; simulated?: boolean };
+      message: string;
+    }>(`${this.apiUrl}/comment-on-jira`, { jiraUrl, analysisData });
+  }
 }
