@@ -18,6 +18,7 @@ import testomatRoutes from "./routes/testomat.routes";
 import drawingRoutes from "./routes/drawing.routes";
 import returnRoutes from "./routes/return.routes";
 import requirementAnalysisRoutes from "./routes/requirementAnalysis.routes";
+import avalRoutes from "./routes/aval.routes";
 
 const app = express();
 
@@ -54,5 +55,6 @@ app.use("/api/testomat", testomatRoutes);
 app.use("/api/drawing", drawingRoutes);
 app.use("/api/returns", returnRoutes);
 app.use("/api/requirement-analysis", requirementAnalysisRoutes);
+app.use("/api/avales", avalRoutes);
 
 export default app;

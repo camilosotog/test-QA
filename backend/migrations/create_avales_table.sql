@@ -1,0 +1,22 @@
+CREATE TABLE IF NOT EXISTS avales (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  title VARCHAR(255) NOT NULL,
+  project_name VARCHAR(255) NOT NULL,
+  request_date DATE NOT NULL,
+  requester VARCHAR(255) NOT NULL,
+  responsible_team VARCHAR(255) NOT NULL,
+  current_env VARCHAR(100) NOT NULL DEFAULT 'Preproduccion',
+  target_env VARCHAR(100) NOT NULL DEFAULT 'Produccion',
+  qa_responsible VARCHAR(255) NOT NULL,
+  observations TEXT,
+  deploy_tasks JSON NOT NULL DEFAULT ('[]'),
+  required_inputs JSON NOT NULL DEFAULT ('[]'),
+  qa_role VARCHAR(100) DEFAULT 'Lider de QA',
+  po_name VARCHAR(255),
+  po_role VARCHAR(100) DEFAULT 'Cargo del PO',
+  confluence_page_id VARCHAR(100),
+  confluence_page_url VARCHAR(1000),
+  created_by INT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);

@@ -125,6 +125,9 @@
 					<li class="nav-item mb-2" *ngIf="userRole === 'ADMIN'">
 						<a class="nav-link" routerLink="/analisis-requerimientos" routerLinkActive="active"><i class="bi bi-arrow-counterclockwise me-1"></i>MCP Historias de Usuario</a>
 				</li>
+				<li class="nav-item mb-2" *ngIf="userRole === 'ADMIN' || userRole === 'QA'">
+					<a class="nav-link" routerLink="/avales" routerLinkActive="active"><i class="bi bi-patch-check me-1"></i>Avales QA</a>
+				</li>
 			</ul>
 		</nav>
 		<button *ngIf="!sidebarOpen" class="btn btn-sm btn-outline-secondary position-fixed m-2" style="z-index:1000;" (click)="toggleSidebar()" title="Mostrar menú">

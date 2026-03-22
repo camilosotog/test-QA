@@ -1,0 +1,383 @@
+<div class="container-fluid py-3">
+
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+      <h2 class="mb-0 fw-bold"><i class="bi bi-patch-check me-2 text-primary"></i>Avales de QA</h2>
+      <small class="text-muted">Genera y publica avales de salida a producción en Confluence</small>
+    </div>
+    <div class="d-flex gap-2">
+      <button class="btn btn-outline-secondary btn-sm" (click)="showConfigPanel = !showConfigPanel" title="Configuración Confluence">
+        <i class="bi bi-gear me-1"></i> Config Confluence
+      </button>
+      <button class="btn btn-primary" (click)="openNew()">
+        <i class="bi bi-plus-circle me-1"></i> Nuevo Aval
+      </button>
+    </div>
+  </div>
+
+  <!-- Panel de diagnóstico / configuración Confluence -->
+  <div *ngIf="showConfigPanel" class="card border-warning mb-4">
+    <div class="card-header bg-warning-subtle d-flex justify-content-between align-items-center">
+      <span class="fw-semibold"><i class="bi bi-gear me-2"></i>Configuración de Confluence</span>
+      <button class="btn btn-sm btn-outline-secondary" (click)="showConfigPanel = false"><i class="bi bi-x"></i></button>
+    </div>
+    <div class="card-body">
+      <p class="text-muted small mb-3">
+        La integración usa las variables <code>JIRA_API_TOKEN</code> y <code>JIRA_EMAIL</code> del backend (misma cuenta Atlassian).
+        Usa el botón "Probar conexión" para verificar el acceso y ver los espacios disponibles, luego copia la clave del espacio correcto al <code>.env</code>.
+      </p>
+      <div class="d-flex gap-2 mb-3">
+        <button class="btn btn-outline-primary" (click)="testConfluenceConnection()" [disabled]="testingConfluence">
+          <span *ngIf="testingConfluence" class="spinner-border spinner-border-sm me-1"></span>
+          <i *ngIf="!testingConfluence" class="bi bi-wifi me-1"></i>
+          {{ testingConfluence ? 'Probando...' : 'Probar conexión con Confluence' }}
+        </button>
+      </div>
+
+      <!-- Resultado del test -->
+      <div *ngIf="confluenceTestResult">
+
+        <!-- Éxito -->
+        <div *ngIf="confluenceTestResult.success" class="alert alert-success mb-2">
+          <i class="bi bi-check-circle me-2"></i>
+          <strong>Conexión exitosa</strong> — Usuario: {{ confluenceTestResult.data?.user }}<br>
+          <small>Espacio configurado en .env: <code>{{ confluenceTestResult.data?.configured_space_key }}</code></small>
+        </div>
+
+        <!-- Error -->
+        <div *ngIf="!confluenceTestResult.success" class="alert alert-danger mb-2">
+          <i class="bi bi-exclamation-triangle me-2"></i>
+          <strong>Error:</strong> {{ confluenceTestResult.error }}<br>
+          <small *ngIf="confluenceTestResult.hint" class="d-block mt-1">
+            <i class="bi bi-lightbulb me-1"></i>{{ confluenceTestResult.hint }}
+          </small>
+        </div>
+
+        <!-- Lista de espacios disponibles -->
+        <div *ngIf="confluenceTestResult.data?.spaces?.length">
+          <p class="fw-semibold small mb-1">Espacios disponibles — copia la <strong>Clave</strong> al <code>CONFLUENCE_SPACE_KEY</code> en el <code>.env</code>:</p>
+          <div class="table-responsive">
+            <table class="table table-sm table-bordered mb-0">
+              <thead class="table-light">
+                <tr><th>Clave</th><th>Nombre</th><th>Tipo</th></tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let space of confluenceTestResult.data.spaces">
+                  <td><code class="text-primary">{{ space.key }}</code></td>
+                  <td>{{ space.name }}</td>
+                  <td><span class="badge bg-secondary">{{ space.type }}</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Instrucciones de configuración -->
+      <div class="alert alert-info mt-3 mb-0 small">
+        <strong>Variables requeridas en <code>backend/.env</code>:</strong>
+        <pre class="mb-0 mt-1 bg-light p-2 rounded" style="font-size:0.8rem">CONFLUENCE_SPACE_KEY=CLAVE_DEL_ESPACIO
+CONFLUENCE_PARENT_PAGE_ID=ID_PAGINA_PADRE  (opcional)</pre>
+        <small class="d-block mt-1 text-muted">El ID de página padre se encuentra en la URL de Confluence: <code>.../pages/<strong>123456789</strong>/...</code></small>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mensajes de estado -->
+  <div *ngIf="successMsg" class="alert alert-success alert-dismissible fade show" role="alert">
+    <i class="bi bi-check-circle me-2"></i>{{ successMsg }}
+    <button type="button" class="btn-close" (click)="successMsg = ''"></button>
+  </div>
+  <div *ngIf="errorMsg" class="alert alert-danger alert-dismissible fade show" role="alert">
+    <i class="bi bi-exclamation-triangle me-2"></i>{{ errorMsg }}
+    <button type="button" class="btn-close" (click)="errorMsg = ''"></button>
+  </div>
+
+  <!-- ──────────── FORMULARIO ──────────── -->
+  <div *ngIf="showForm" class="card border-primary shadow mb-4">
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+      <span><i class="bi bi-file-earmark-text me-2"></i>{{ editingId ? 'Editar Aval' : 'Nuevo Aval' }}</span>
+      <button class="btn btn-sm btn-light" (click)="cancelForm()"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div class="card-body">
+      <form [formGroup]="form">
+
+        <!-- ── Título ── -->
+        <div class="row g-3 mb-3">
+          <div class="col-12">
+            <label class="form-label fw-semibold">Título del Aval <span class="text-danger">*</span></label>
+            <div class="input-group">
+              <input type="text" class="form-control" formControlName="title"
+                placeholder="Ej: Aval Confenalco - 20/03/2026"
+                [class.is-invalid]="form.get('title')?.invalid && form.get('title')?.touched" />
+              <button class="btn btn-outline-secondary" type="button" (click)="autoTitle()" title="Generar título automáticamente">
+                <i class="bi bi-magic"></i> Auto
+              </button>
+            </div>
+            <div class="invalid-feedback">El título es requerido.</div>
+          </div>
+        </div>
+
+        <!-- ── Información General ── -->
+        <div class="section-title">
+          <i class="bi bi-info-circle me-1 text-primary"></i> Información General
+        </div>
+        <div class="row g-3 mb-4">
+          <div class="col-md-4">
+            <label class="form-label">Proyecto <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" formControlName="project_name"
+              placeholder="Ej: Confenalco"
+              [class.is-invalid]="form.get('project_name')?.invalid && form.get('project_name')?.touched" />
+            <div class="invalid-feedback">El proyecto es requerido.</div>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Fecha de solicitud <span class="text-danger">*</span></label>
+            <input type="date" class="form-control" formControlName="request_date"
+              [class.is-invalid]="form.get('request_date')?.invalid && form.get('request_date')?.touched" />
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Solicitante <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" formControlName="requester"
+              placeholder="Nombre del solicitante"
+              [class.is-invalid]="form.get('requester')?.invalid && form.get('requester')?.touched" />
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Equipo responsable <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" formControlName="responsible_team"
+              placeholder="Ej: Desarrollo"
+              [class.is-invalid]="form.get('responsible_team')?.invalid && form.get('responsible_team')?.touched" />
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Ambiente actual</label>
+            <select class="form-select" formControlName="current_env">
+              <option value="Desarrollo">Desarrollo</option>
+              <option value="QA">QA</option>
+              <option value="Preproduccion">Preproduccion</option>
+              <option value="Staging">Staging</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Ambiente destino</label>
+            <select class="form-select" formControlName="target_env">
+              <option value="QA">QA</option>
+              <option value="Preproduccion">Preproduccion</option>
+              <option value="Staging">Staging</option>
+              <option value="Produccion">Produccion</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- ── Responsables / QA ── -->
+        <div class="section-title">
+          <i class="bi bi-person-check me-1 text-primary"></i> Responsables
+        </div>
+        <div class="row g-3 mb-4">
+          <div class="col-md-6">
+            <label class="form-label">Responsable QA <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" formControlName="qa_responsible"
+              placeholder="Nombre completo del QA"
+              [class.is-invalid]="form.get('qa_responsible')?.invalid && form.get('qa_responsible')?.touched" />
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Rol QA</label>
+            <input type="text" class="form-control" formControlName="qa_role" placeholder="Lider de QA" />
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Nombre PO/Recibe</label>
+            <input type="text" class="form-control" formControlName="po_name" placeholder="Nombre PO" />
+          </div>
+          <div class="col-md-3 offset-md-6">
+            <label class="form-label">Rol PO</label>
+            <input type="text" class="form-control" formControlName="po_role" placeholder="Cargo del PO" />
+          </div>
+        </div>
+
+        <!-- ── Observaciones ── -->
+        <div class="section-title d-flex justify-content-between align-items-center">
+          <span><i class="bi bi-eye me-1 text-primary"></i> Observaciones</span>
+          <button type="button" class="btn btn-sm btn-outline-primary" (click)="mejorarConIA()" [disabled]="mejorando">
+            <span *ngIf="mejorando" class="spinner-border spinner-border-sm me-1" role="status"></span>
+            <i *ngIf="!mejorando" class="bi bi-stars me-1"></i>
+            {{ mejorando ? 'Mejorando...' : 'Mejorar con IA' }}
+          </button>
+        </div>
+        <div class="mb-4">
+          <textarea class="form-control" formControlName="observations" rows="3"
+            placeholder="Escribe palabras clave (ej: 'pruebas API regresion') y presiona 'Mejorar con IA' para generar un párrafo profesional."></textarea>
+        </div>
+
+        <!-- ── Lista de despliegue ── -->
+        <div class="section-title d-flex justify-content-between align-items-center">
+          <span><i class="bi bi-list-check me-1 text-primary"></i> Lista de Despliegue</span>
+          <button type="button" class="btn btn-sm btn-outline-primary" (click)="addTask()">
+            <i class="bi bi-plus"></i> Agregar tarea
+          </button>
+        </div>
+        <div class="table-responsive mb-4">
+          <table class="table table-bordered table-sm">
+            <thead class="table-light">
+              <tr>
+                <th style="width:15%">Clave Jira</th>
+                <th style="width:55%">Descripción</th>
+                <th style="width:25%">Notas</th>
+                <th style="width:5%"></th>
+              </tr>
+            </thead>
+            <tbody formArrayName="deploy_tasks">
+              <tr *ngFor="let task of deployTasks.controls; let i = index" [formGroupName]="i">
+                <td>
+                  <input type="text" class="form-control form-control-sm" formControlName="jira_key"
+                    placeholder="CM-XX"
+                    [class.is-invalid]="task.get('jira_key')?.invalid && task.get('jira_key')?.touched" />
+                </td>
+                <td>
+                  <input type="text" class="form-control form-control-sm" formControlName="description"
+                    placeholder="Descripción de la tarea" />
+                </td>
+                <td>
+                  <input type="text" class="form-control form-control-sm" formControlName="notes"
+                    placeholder="Notas opcionales" />
+                </td>
+                <td class="text-center">
+                  <button type="button" class="btn btn-sm btn-outline-danger" (click)="removeTask(i)"
+                    [disabled]="deployTasks.length === 1">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- ── Insumos requeridos ── -->
+        <div class="section-title d-flex justify-content-between align-items-center">
+          <span><i class="bi bi-clipboard-check me-1 text-primary"></i> Insumos requeridos para validación en producción</span>
+          <button type="button" class="btn btn-sm btn-outline-secondary" (click)="addInput()">
+            <i class="bi bi-plus"></i> Agregar insumo
+          </button>
+        </div>
+        <div class="alert alert-warning d-flex gap-2 mb-3 py-2 px-3" role="alert">
+          <i class="bi bi-exclamation-triangle-fill flex-shrink-0 mt-1"></i>
+          <span style="font-size: 0.875rem;">
+            Los insumos listados a continuación son <strong>requisitos indispensables</strong> para dar inicio a las pruebas en el ambiente de producción.
+            La disponibilidad oportuna de estos elementos es responsabilidad conjunta de los equipos de desarrollo, infraestructura y negocio.
+            <strong>De no contar con la totalidad de los insumos marcados, las pruebas en producción no podrán iniciar</strong>,
+            lo que podría generar retrasos en el despliegue y comprometer los tiempos de entrega acordados.
+          </span>
+        </div>
+        <div class="row mb-4" formArrayName="required_inputs">
+          <div class="col-md-6" *ngFor="let input of requiredInputs.controls; let i = index" [formGroupName]="i">
+            <div class="d-flex align-items-center gap-2 mb-2">
+              <div class="form-check form-check-inline mb-0">
+                <input class="form-check-input" type="checkbox" formControlName="checked" [id]="'input_' + i" />
+              </div>
+              <input type="text" class="form-control form-control-sm" formControlName="label"
+                placeholder="Nombre del insumo" />
+              <button type="button" class="btn btn-sm btn-outline-danger flex-shrink-0" (click)="removeInput(i)"
+                [disabled]="requiredInputs.length === 1">
+                <i class="bi bi-x"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Acciones ── -->
+        <div class="d-flex gap-2 justify-content-end border-top pt-3">
+          <button type="button" class="btn btn-outline-secondary" (click)="cancelForm()">Cancelar</button>
+          <button type="button" class="btn btn-primary" (click)="saveAval()" [disabled]="saving">
+            <span *ngIf="saving" class="spinner-border spinner-border-sm me-1"></span>
+            <i *ngIf="!saving" class="bi bi-save me-1"></i>
+            {{ saving ? 'Guardando...' : (editingId ? 'Actualizar Aval' : 'Guardar Aval') }}
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+
+  <!-- ──────────── LISTA DE AVALES ──────────── -->
+  <div *ngIf="!showForm">
+    <div *ngIf="loadingList" class="text-center py-5">
+      <div class="spinner-border text-primary"></div>
+      <p class="mt-2 text-muted">Cargando avales...</p>
+    </div>
+
+    <div *ngIf="!loadingList && avalesList.length === 0" class="text-center py-5 text-muted">
+      <i class="bi bi-patch-check display-3 d-block mb-3"></i>
+      <p class="fs-5">No hay avales registrados aún.</p>
+      <button class="btn btn-primary mt-2" (click)="openNew()">
+        <i class="bi bi-plus-circle me-1"></i> Crear primer Aval
+      </button>
+    </div>
+
+    <div class="row g-2" *ngIf="!loadingList && avalesList.length > 0">
+      <div class="col-12" *ngFor="let aval of avalesList">
+        <div class="card shadow-sm aval-card">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+
+              <!-- Info principal -->
+              <div class="flex-grow-1">
+                <h5 class="fw-bold mb-1">
+                  <i class="bi bi-patch-check-fill text-primary me-2"></i>{{ aval.title }}
+                </h5>
+                <div class="d-flex flex-wrap gap-3 text-muted small mb-2">
+                  <span><i class="bi bi-folder me-1"></i>{{ aval.project_name }}</span>
+                  <span><i class="bi bi-calendar me-1"></i>{{ formatDate(aval.request_date) }}</span>
+                  <span><i class="bi bi-person me-1"></i>{{ aval.qa_responsible }}</span>
+                  <span>
+                    <span class="badge bg-warning text-dark me-1">{{ aval.current_env }}</span>
+                    <i class="bi bi-arrow-right me-1"></i>
+                    <span class="badge bg-success">{{ aval.target_env }}</span>
+                  </span>
+                </div>
+                <!-- Tareas de despliegue -->
+                <div class="d-flex flex-wrap gap-1">
+                  <span *ngFor="let task of aval.deploy_tasks"
+                    class="badge bg-primary-subtle text-primary border border-primary rounded-pill px-2">
+                    {{ task.jira_key }}
+                  </span>
+                </div>
+              </div>
+
+              <!-- Acciones -->
+              <div class="d-flex flex-column gap-2 align-items-end">
+
+                <!-- Botón Generar en Confluence -->
+                <button class="btn btn-confluence btn-sm"
+                  (click)="publish(aval)"
+                  [disabled]="publishing && publishingId === aval.id">
+                  <span *ngIf="publishing && publishingId === aval.id" class="spinner-border spinner-border-sm me-1"></span>
+                  <ng-container *ngIf="!(publishing && publishingId === aval.id)">
+                    <img src="assets/confluence-icon.svg" alt="C" width="16" height="16" class="me-1"
+                      onerror="this.style.display='none'" />
+                    <i class="bi bi-cloud-upload me-1"></i>
+                  </ng-container>
+                  {{ (publishing && publishingId === aval.id) ? 'Publicando...' : (aval.confluence_page_id ? 'Actualizar en Confluence' : 'Generar en Confluence') }}
+                </button>
+
+                <!-- Ver en Confluence si ya fue publicado -->
+                <a *ngIf="aval.confluence_page_url"
+                  [href]="aval.confluence_page_url" target="_blank"
+                  class="btn btn-sm btn-outline-info">
+                  <i class="bi bi-box-arrow-up-right me-1"></i> Ver en Confluence
+                </a>
+
+                <div class="d-flex gap-1">
+                  <button class="btn btn-sm btn-outline-secondary" (click)="openEdit(aval)" title="Editar">
+                    <i class="bi bi-pencil"></i>
+                  </button>
+                  <button class="btn btn-sm btn-outline-danger" (click)="deleteAval(aval)" title="Eliminar">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>

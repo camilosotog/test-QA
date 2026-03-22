@@ -23,6 +23,7 @@ import { TestomatModule } from './modules/testomat/testomat.module';
 import { DibujoColaborativoComponent } from './pages/dibujo-colaborativo/dibujo-colaborativo.component';
 import { ReturnsComponent } from './pages/returns/returns.component';
 import { RequirementAnalysisModule } from './modules/requirement-analysis/requirement-analysis.module';
+import { AvalesComponent } from './pages/avales/avales.component';
 
 @NgModule({
   declarations: [
@@ -37,7 +38,8 @@ import { RequirementAnalysisModule } from './modules/requirement-analysis/requir
     EstadisticasComponent,
     AutomatedTasksComponent,
     TimerPipe,
-    ReturnsComponent
+    ReturnsComponent,
+    AvalesComponent
   ],
   imports: [
     BrowserModule,

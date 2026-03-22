@@ -22,6 +22,7 @@ import { DibujoColaborativoComponent } from './pages/dibujo-colaborativo/dibujo-
 import { DibujoGameGuard } from './core/dibujo-game.guard';
 import { ReturnsComponent } from './pages/returns/returns.component';
 import { RequirementAnalysisComponent } from './modules/requirement-analysis/components/requirement-analysis.component';
+import { AvalesComponent } from './pages/avales/avales.component';
 
 const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -40,6 +41,7 @@ const routes: Routes = [
   { path: 'testomat/ejecuciones', component: TestExecutionsComponent, canActivate: [QaAdminGuard] },
   { path: 'testomat/ejecucion/:executionId', component: TestExecutionRunnerComponent, canActivate: [QaAdminGuard] },
   { path: 'analisis-requerimientos', component: RequirementAnalysisComponent, canActivate: [AuthGuard] },
+  { path: 'avales', component: AvalesComponent, canActivate: [AuthGuard] },
   { path: '', redirectTo: '/qa-items', pathMatch: 'full' }
 ];
 
