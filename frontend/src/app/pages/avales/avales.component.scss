@@ -1,9 +1,13 @@
+// ── Colores corporativos OnCredit ────────────────────────────────────────────────
+$oc-navy: #0B1D45;
+$oc-red:  #E8192C;
+
 .aval-card {
   transition: box-shadow 0.2s;
-  border-left: 4px solid #0d6efd;
+  border-left: 4px solid $oc-navy;
 
   &:hover {
-    box-shadow: 0 4px 16px rgba(13, 110, 253, 0.15) !important;
+    box-shadow: 0 4px 16px rgba(11, 29, 69, 0.15) !important;
   }
 
   .card-body {
@@ -45,6 +49,34 @@
   }
 }
 
-.bg-primary-subtle {
-  background-color: rgba(13, 110, 253, 0.1);
+// ── Bootstrap overrides: colores corporativos OnCredit ─────────────────────────
+.btn-primary {
+  --bs-btn-color: #fff;
+  --bs-btn-bg: #{$oc-navy};
+  --bs-btn-border-color: #{$oc-navy};
+  --bs-btn-hover-bg: #{$oc-red};
+  --bs-btn-hover-border-color: #{$oc-red};
+  --bs-btn-active-bg: #c11525;
+  --bs-btn-active-border-color: #c11525;
+  --bs-btn-focus-shadow-rgb: 11, 29, 69;
+  --bs-btn-disabled-bg: #{$oc-navy};
+  --bs-btn-disabled-border-color: #{$oc-navy};
 }
+
+.btn-outline-primary {
+  --bs-btn-color: #{$oc-navy};
+  --bs-btn-border-color: #{$oc-navy};
+  --bs-btn-hover-color: #fff;
+  --bs-btn-hover-bg: #{$oc-navy};
+  --bs-btn-hover-border-color: #{$oc-navy};
+  --bs-btn-active-color: #fff;
+  --bs-btn-active-bg: #{$oc-navy};
+  --bs-btn-active-border-color: #{$oc-navy};
+  --bs-btn-focus-shadow-rgb: 11, 29, 69;
+}
+
+.text-primary   { color: $oc-navy !important; }
+.border-primary { border-color: $oc-navy !important; }
+.bg-primary     { background-color: $oc-navy !important; }
+.bg-primary-subtle { background-color: rgba(11, 29, 69, 0.1) !important; }
+.badge.bg-success { background-color: $oc-navy !important; }

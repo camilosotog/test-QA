@@ -258,6 +258,21 @@ export class AvalesComponent implements OnInit {
       }
     } catch { /* sin firma, se deja espacio en blanco */ }
 
+    // Cargar logo OnCredit como base64
+    let logoBase64: string | null = null;
+    try {
+      const respLogo = await fetch('/assets/oncredit-logo.png');
+      if (respLogo.ok) {
+        const blobLogo = await respLogo.blob();
+        logoBase64 = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(blobLogo);
+        });
+      }
+    } catch { /* sin logo */ }
+
     const fecha = this.formatDate(aval.request_date);
     const tasks: DeployTask[] = aval.deploy_tasks || [];
     const inputs: RequiredInput[] = aval.required_inputs || [];
@@ -276,14 +291,14 @@ export class AvalesComponent implements OnInit {
       margin: [0, 2, 0, 2]
     }));
 
-    const GREEN  = '#1B6B3A';
-    const HEADER_BG = '#1B6B3A';
-    const LIGHT_GREEN = '#E8F5E9';
+    const NAVY      = '#0B1D45';
+    const HEADER_BG = '#0B1D45';
+    const LIGHT_NAVY = '#E8EEF6';
 
-    // Helper: encabezado de sección con fondo verde
+    // Helper: encabezado de sección con fondo OnCredit
     const section = (label: string) => ({
       table: { widths: ['*'], body: [[{ text: label, bold: true, color: '#fff', fontSize: 11, margin: [4, 3, 0, 3] }]] },
-      layout: { hLineWidth: () => 0, vLineWidth: () => 0, fillColor: () => GREEN },
+      layout: { hLineWidth: () => 0, vLineWidth: () => 0, fillColor: () => NAVY },
       margin: [0, 12, 0, 6]
     });
 
@@ -300,12 +315,13 @@ export class AvalesComponent implements OnInit {
           columns: [
             {
               stack: [
-                { text: 'AVAL DE CALIDAD QA', style: 'mainTitle' },
+                { text: 'AVAL DE QA', style: 'mainTitle' },
                 { text: aval.title, style: 'subTitle' }
               ]
             },
             {
               stack: [
+                ...(logoBase64 ? [{ image: logoBase64, width: 100, height: 30, alignment: 'right', margin: [0, 0, 0, 6] }] : []),
                 { text: 'FECHA', style: 'labelSmall' },
                 { text: fecha, style: 'valueSmall' }
               ],
@@ -315,7 +331,7 @@ export class AvalesComponent implements OnInit {
           ],
           margin: [0, 0, 0, 4]
         },
-        { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 3, lineColor: GREEN }], margin: [0, 0, 0, 16] },
+        { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 3, lineColor: NAVY }], margin: [0, 0, 0, 16] },
 
         // ── Información General ──
         section('Información General'),
@@ -356,7 +372,7 @@ export class AvalesComponent implements OnInit {
               ]
             },
             { text: 'El equipo de aseguramiento de la calidad ha completado la validación funcional de los requisitos y los criterios de aceptación establecidos para las historias de usuario, garantizando que el comportamiento esperado del sistema se cumpla en el entorno de preproducción. Sin embargo, el alcance de estas pruebas no incluye la verificación de la infraestructura subyacente, por lo que aspectos como la configuración de la red, los recursos del servidor y la monitorización de la capa de plataforma no fueron objeto de cobertura. En consecuencia, la estabilidad del servicio a lo largo del tiempo, especialmente frente a variaciones en la carga y a posibles incidentes de infraestructura, queda fuera de la garantía que brinda el proceso de QA. Se recomienda complementar este aval con auditorías de arquitectura y pruebas de resiliencia para asegurar la continuidad operativa en producción.', margin: [0, 4, 0, 0] },
-            { text: aval.observations || 'Por lo tanto, las tareas descritas están listas para ser implementadas en producción.', margin: [0, 4, 0, 0] }
+            { text: aval.observations || '', margin: [0, 4, 0, 0] }
           ],
           margin: [0, 0, 0, 12]
         },
@@ -380,7 +396,7 @@ export class AvalesComponent implements OnInit {
             hLineWidth: () => 0.5,
             vLineWidth: () => 0,
             hLineColor: () => '#CCCCCC',
-            fillColor: (row: number) => row === 0 ? HEADER_BG : (row % 2 === 0 ? LIGHT_GREEN : null)
+            fillColor: (row: number) => row === 0 ? HEADER_BG : (row % 2 === 0 ? LIGHT_NAVY : null)
           },
           margin: [0, 0, 0, 12]
         } : { text: 'Sin tareas registradas.', italics: true, color: '#888', margin: [0, 0, 0, 12] },
@@ -439,7 +455,7 @@ export class AvalesComponent implements OnInit {
         }
       ],
       styles: {
-        mainTitle:     { fontSize: 18, bold: true, color: GREEN },
+        mainTitle:     { fontSize: 18, bold: true, color: NAVY },
         subTitle:      { fontSize: 11, color: '#444', margin: [0, 2, 0, 0] },
         labelSmall:    { fontSize: 8, color: '#666', bold: true },
         valueSmall:    { fontSize: 10, color: '#222' },
