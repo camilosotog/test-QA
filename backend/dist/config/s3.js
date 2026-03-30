@@ -6,7 +6,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.S3_BUCKET = exports.s3 = void 0;
 exports.uploadToS3 = uploadToS3;
 exports.deleteFromS3 = deleteFromS3;
-// s3
 const aws_sdk_1 = __importDefault(require("aws-sdk"));
 const s3Config = {
     accessKeyId: process.env.AWS_ACCESS_KEY_ID,
@@ -33,8 +32,6 @@ async function uploadToS3(fileBuffer, fileName, mimeType = 'application/octet-st
         Key: key,
         Body: fileBuffer,
         ContentType: mimeType
-        // Nota: No usamos ACL porque el bucket tiene Block Public Access habilitado
-        // Los permisos se manejan a través de la política del bucket
     };
     try {
         const result = await exports.s3.upload(params).promise();

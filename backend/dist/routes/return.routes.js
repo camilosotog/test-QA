@@ -7,11 +7,11 @@ const router = (0, express_1.Router)();
 router.get("/statistics/by-po", return_controller_1.getStatisticsByPO);
 router.get("/statistics/by-month", return_controller_1.getStatisticsByMonth);
 router.get("/date-range", return_controller_1.getReturnsByDateRange);
-// CRUD routes
+// CRUD routes - order matters! Delete/Put before Get on params
+router.post("/", return_controller_1.createReturn);
+router.delete("/:id", return_controller_1.deleteReturn);
+router.put("/:id", return_controller_1.updateReturn);
 router.get("/", return_controller_1.listReturns);
 router.get("/:id", return_controller_1.getReturnById);
-router.post("/", return_controller_1.createReturn);
-router.put("/:id", return_controller_1.updateReturn);
-router.delete("/:id", return_controller_1.deleteReturn);
 exports.default = router;
 //# sourceMappingURL=return.routes.js.map

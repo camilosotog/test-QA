@@ -4,7 +4,7 @@ exports.ReturnModel = void 0;
 const db_1 = require("../config/db");
 class ReturnModel {
     static async create(data) {
-        const query = "INSERT INTO returns (po_name, task_code, return_reason) VALUES (?, ?, ?)";
+        const query = "INSERT INTO requirement_returns (po_name, task_code, return_reason) VALUES (?, ?, ?)";
         const [result] = await db_1.pool.query(query, [
             data.po_name,
             data.task_code,
@@ -13,12 +13,12 @@ class ReturnModel {
         return result.insertId;
     }
     static async getById(id) {
-        const query = "SELECT * FROM returns WHERE id = ? AND is_active = 1";
+        const query = "SELECT * FROM requirement_returns WHERE id = ? AND is_active = 1";
         const [rows] = await db_1.pool.query(query, [id]);
         return rows[0] || null;
     }
     static async list(filters, limit = 1000) {
-        let query = "SELECT * FROM returns WHERE is_active = 1";
+        let query = "SELECT * FROM requirement_returns WHERE 1=1";
         const params = [];
         if (filters?.po_name) {
             query += " AND po_name = ?";
@@ -34,7 +34,7 @@ class ReturnModel {
         return rows;
     }
     static async listByDateRange(startDate, endDate) {
-        const query = "SELECT * FROM returns WHERE DATE(created_at) BETWEEN ? AND ? AND is_active = 1 ORDER BY created_at DESC";
+        const query = "SELECT * FROM requirement_returns WHERE DATE(created_at) BETWEEN ? AND ? ORDER BY created_at DESC";
         const [rows] = await db_1.pool.query(query, [startDate, endDate]);
         return rows;
     }
@@ -45,8 +45,7 @@ class ReturnModel {
         COUNT(*) as total_returns,
         MONTH(created_at) as month,
         YEAR(created_at) as year
-      FROM returns 
-      WHERE is_active = 1
+      FROM requirement_returns 
       GROUP BY po_name, MONTH(created_at), YEAR(created_at)
       ORDER BY year DESC, month DESC, po_name ASC
     `;
@@ -60,8 +59,8 @@ class ReturnModel {
         COUNT(*) as total_returns,
         MONTH(created_at) as month,
         YEAR(created_at) as year
-      FROM returns 
-      WHERE is_active = 1
+      FROM requirement_returns 
+      WHERE 1=1
     `;
         const params = [];
         if (year && month) {
@@ -89,12 +88,12 @@ class ReturnModel {
         if (fields.length === 0)
             return false;
         values.push(id);
-        const query = `UPDATE returns SET ${fields.join(", ")} WHERE id = ? AND is_active = 1`;
+        const query = `UPDATE requirement_returns SET ${fields.join(", ")} WHERE id = ?`;
         const [result] = await db_1.pool.query(query, values);
         return result.affectedRows > 0;
     }
     static async delete(id) {
-        const query = "UPDATE returns SET is_active = 0 WHERE id = ? AND is_active = 1";
+        const query = "UPDATE requirement_returns SET is_active = 0 WHERE id = ?";
         const [result] = await db_1.pool.query(query, [id]);
         return result.affectedRows > 0;
     }

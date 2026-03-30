@@ -39,7 +39,6 @@ const AMBIGUOUS_VERBS = [
   "realizar",
   "efectuar",
   "llevar a cabo",
-  "ejecutar",
   "conseguir",
   "obtener",
 ];

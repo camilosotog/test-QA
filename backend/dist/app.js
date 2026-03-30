@@ -20,13 +20,17 @@ const postman_routes_1 = __importDefault(require("./routes/postman.routes"));
 const testomat_routes_1 = __importDefault(require("./routes/testomat.routes"));
 const drawing_routes_1 = __importDefault(require("./routes/drawing.routes"));
 const return_routes_1 = __importDefault(require("./routes/return.routes"));
+const requirementAnalysis_routes_1 = __importDefault(require("./routes/requirementAnalysis.routes"));
+const aval_routes_1 = __importDefault(require("./routes/aval.routes"));
 const app = (0, express_1.default)();
-// Configuración de CORS para permitir ngrok y localhost
+// Configuración de CORS para permitir ngrok, localhost e IPs locales
 app.use((0, cors_1.default)({
     origin: [
         'http://localhost:4300',
         'http://localhost:4100',
         'https://flying-pleasing-stag.ngrok-free.app',
+        /^http:\/\/192\.168\.\d+\.\d+:4300$/, // Permite cualquier IP 192.168.x.x:4300
+        /^http:\/\/10\.\d+\.\d+\.\d+:4300$/, // Permite cualquier IP 10.x.x.x:4300
         /\.ngrok-free\.app$/, // Permite cualquier subdominio de ngrok-free.app
         /\.ngrok\.io$/ // Permite cualquier subdominio de ngrok.io
     ],
@@ -48,5 +52,7 @@ app.use("/api/postman", postman_routes_1.default);
 app.use("/api/testomat", testomat_routes_1.default);
 app.use("/api/drawing", drawing_routes_1.default);
 app.use("/api/returns", return_routes_1.default);
+app.use("/api/requirement-analysis", requirementAnalysis_routes_1.default);
+app.use("/api/avales", aval_routes_1.default);
 exports.default = app;
 //# sourceMappingURL=app.js.map

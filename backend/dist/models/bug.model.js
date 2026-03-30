@@ -4,8 +4,8 @@ const db_1 = require("../config/db");
 class BugModel {
     static async create(bug) {
         const sql = `INSERT INTO bugs
-      (title, description, type, reporter_id, assignee_id, status, priority, severity, steps_to_reproduce, environment, attachments, sprint_id)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+      (title, description, type, reporter_id, assignee_id, status, priority, severity, steps_to_reproduce, environment, attachments, sprint_id, is_active, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, NOW(), NOW())`;
         const params = [
             bug.title,
             bug.description || null,
@@ -38,26 +38,29 @@ class BugModel {
         return row;
     }
     static async list(filters = {}) {
-        const conditions = ['is_active = 1'];
+        const conditions = ['b.is_active = 1'];
         const params = [];
         if (filters.reporter_id) {
-            conditions.push('reporter_id = ?');
+            conditions.push('b.reporter_id = ?');
             params.push(filters.reporter_id);
         }
         if (filters.assignee_id) {
-            conditions.push('assignee_id = ?');
+            conditions.push('b.assignee_id = ?');
             params.push(filters.assignee_id);
         }
         if (filters.status) {
-            conditions.push('status = ?');
+            conditions.push('b.status = ?');
             params.push(filters.status);
         }
         if (filters.sprint_id) {
-            conditions.push('sprint_id = ?');
+            conditions.push('b.sprint_id = ?');
             params.push(filters.sprint_id);
         }
         const where = conditions.length ? 'WHERE ' + conditions.join(' AND ') : '';
-        const sql = `SELECT * FROM bugs ${where} ORDER BY created_at DESC LIMIT 1000`;
+        const sql = `SELECT b.*, u.name as reporter_name, u.email as reporter_email 
+                 FROM bugs b 
+                 LEFT JOIN users u ON b.reporter_id = u.id 
+                 ${where} ORDER BY b.created_at DESC LIMIT 1000`;
         const [rows] = await db_1.pool.query(sql, params);
         return rows.map((r) => {
             if (r.attachments) {

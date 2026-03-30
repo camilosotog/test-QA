@@ -25,7 +25,6 @@ async function runMigrations() {
             'add_response_body_to_postman_results.sql',
             'add_project_id_to_playwright.sql',
             'add_last_active_to_users.sql',
-            'create_returns_table.sql',
             'create_requirement_returns_table.sql',
             // Agregar más migraciones aquí si es necesario
         ];

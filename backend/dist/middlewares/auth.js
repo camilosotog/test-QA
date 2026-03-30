@@ -3,6 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.authMiddleware = void 0;
 exports.auth = auth;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 function auth(req, res, next) {
@@ -19,4 +20,6 @@ function auth(req, res, next) {
         return res.status(401).json({ error: "Invalid token" });
     }
 }
+// Backwards-compatible export name used across routes
+exports.authMiddleware = auth;
 //# sourceMappingURL=auth.js.map

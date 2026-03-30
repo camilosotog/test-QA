@@ -152,6 +152,17 @@ router.put('/suites/:suiteId', auth_1.auth, async (req, res) => {
         res.status(500).json({ message: 'Error al actualizar la suite' });
     }
 });
+/**
+ * DELETE /api/testomat/suites/:suiteId
+ * Eliminar una suite y todos sus casos asociados
+ */
+router.delete('/suites/:suiteId', auth_1.auth, testomat_controller_1.deleteTestSuite);
+/**
+ * POST /api/testomat/suites/:sourceSuiteId/duplicate
+ * Duplicar todos los casos de una suite a otra suite destino
+ * Body: { targetSuiteId: number }
+ */
+router.post('/suites/:sourceSuiteId/duplicate', auth_1.auth, testomat_controller_1.duplicateSuiteCases);
 // ========== TEST CASES ==========
 /**
  * GET /api/test-suites/:suiteId/cases
@@ -187,6 +198,11 @@ router.delete('/cases/:caseId', auth_1.auth, testomat_controller_1.deleteTestCas
  * Obtener todas las ejecuciones
  */
 router.get('/executions', auth_1.auth, testExecution_controller_1.getTestExecutions);
+/**
+ * GET /api/testomat/executions/months
+ * Obtener meses con conteo de ejecuciones
+ */
+router.get('/executions/months', auth_1.auth, testExecution_controller_1.getTestExecutionMonths);
 /**
  * GET /api/testomat/executions/:executionId
  * Obtener ejecución específica con resultados
@@ -269,6 +285,17 @@ router.post('/results', auth_1.auth, upload.array('evidence'), testExecution_con
  * Obtener resultado de un caso específico
  */
 router.get('/results/:test_case_id/:execution_id', auth_1.auth, testExecution_controller_1.getTestResult);
+/**
+ * DELETE /api/testomat/executions/:executionId/cases/:caseId/evidence
+ * Eliminar una evidencia específica de un resultado
+ * Body: { evidenceUrl: string }
+ */
+router.delete('/executions/:executionId/cases/:caseId/evidence', auth_1.auth, testExecution_controller_1.deleteEvidence);
+/**
+ * DELETE /api/testomat/executions/:executionId
+ * Eliminar una ejecución completa con todos sus resultados y evidencias
+ */
+router.delete('/executions/:executionId', auth_1.auth, testExecution_controller_1.deleteTestExecution);
 // ========== ANALYTICS ==========
 /**
  * GET /api/test-projects/:projectId/analytics
@@ -282,5 +309,12 @@ router.get('/projects/:projectId/analytics', auth_1.auth, testomat_controller_1.
  * Body: { projectName, apiKey, workspaceId, suiteIds? }
  */
 router.post('/import/testomat', auth_1.auth, testomat_controller_1.importFromTestomat);
+// ========== FILE UPLOAD ==========
+/**
+ * POST /api/testomat/upload
+ * Subir archivos adjuntos a S3
+ * Form-data: file (required)
+ */
+router.post('/upload', auth_1.auth, upload.single('file'), testomat_controller_1.uploadAttachment);
 exports.default = router;
 //# sourceMappingURL=testomat.routes.js.map

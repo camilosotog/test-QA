@@ -8,6 +8,10 @@ export declare const createTestExecution: (req: Request, res: Response) => Promi
  */
 export declare const getTestExecutions: (req: Request, res: Response) => Promise<void>;
 /**
+ * Obtiene los meses disponibles con conteo de ejecuciones
+ */
+export declare const getTestExecutionMonths: (req: Request, res: Response) => Promise<void>;
+/**
  * Obtiene una ejecución específica con sus resultados
  */
 export declare const getTestExecution: (req: Request, res: Response) => Promise<Response<any, Record<string, any>> | undefined>;
@@ -28,5 +32,13 @@ export declare const reopenTestExecution: (req: Request, res: Response) => Promi
  * Útil para actualizar ejecuciones anteriores que pudieron haber sido guardadas con estado incorrecto
  */
 export declare const recalculateAllExecutionStatuses: (req: Request, res: Response) => Promise<void>;
+/**
+ * Elimina una evidencia específica de un resultado de prueba
+ */
+export declare const deleteEvidence: (req: Request, res: Response) => Promise<Response<any, Record<string, any>> | undefined>;
+/**
+ * Elimina una ejecución de prueba y todos sus resultados asociados
+ */
+export declare const deleteTestExecution: (req: Request, res: Response) => Promise<Response<any, Record<string, any>> | undefined>;
 export declare const getTestResult: (req: Request, res: Response) => Promise<Response<any, Record<string, any>> | undefined>;
 //# sourceMappingURL=testExecution.controller.d.ts.map

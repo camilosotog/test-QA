@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getTestResult = exports.recalculateAllExecutionStatuses = exports.reopenTestExecution = exports.completeTestExecution = exports.saveTestResult = exports.getTestExecution = exports.getTestExecutions = exports.createTestExecution = void 0;
+exports.getTestResult = exports.deleteTestExecution = exports.deleteEvidence = exports.recalculateAllExecutionStatuses = exports.reopenTestExecution = exports.completeTestExecution = exports.saveTestResult = exports.getTestExecution = exports.getTestExecutionMonths = exports.getTestExecutions = exports.createTestExecution = void 0;
 const db_1 = require("../config/db");
 const s3_1 = require("../config/s3");
 // ============================================
@@ -205,6 +205,13 @@ exports.createTestExecution = createTestExecution;
  */
 const getTestExecutions = async (req, res) => {
     try {
+        const { year, month } = req.query;
+        let whereClause = '';
+        const params = [];
+        if (year && month) {
+            whereClause = 'WHERE YEAR(COALESCE(te.start_date, te.created_at)) = ? AND MONTH(COALESCE(te.start_date, te.created_at)) = ?';
+            params.push(parseInt(year, 10), parseInt(month, 10));
+        }
         const [executions] = await db_1.db.query(`
       SELECT 
         te.*,
@@ -213,8 +220,9 @@ const getTestExecutions = async (req, res) => {
       FROM test_executions te
       LEFT JOIN test_suites ts ON te.test_suite_id = ts.id
       LEFT JOIN users u ON te.executed_by = u.id
+      ${whereClause}
       ORDER BY te.created_at DESC
-    `);
+      `, params);
         res.json(Array.isArray(executions) ? executions : []);
     }
     catch (error) {
@@ -223,6 +231,28 @@ const getTestExecutions = async (req, res) => {
     }
 };
 exports.getTestExecutions = getTestExecutions;
+/**
+ * Obtiene los meses disponibles con conteo de ejecuciones
+ */
+const getTestExecutionMonths = async (req, res) => {
+    try {
+        const [rows] = await db_1.db.query(`
+      SELECT 
+        YEAR(COALESCE(te.start_date, te.created_at)) as year,
+        MONTH(COALESCE(te.start_date, te.created_at)) as month,
+        COUNT(*) as total
+      FROM test_executions te
+      GROUP BY year, month
+      ORDER BY year DESC, month DESC
+    `);
+        res.json(Array.isArray(rows) ? rows : []);
+    }
+    catch (error) {
+        console.error('Error fetching execution months:', error);
+        res.status(500).json({ error: 'Error fetching execution months' });
+    }
+};
+exports.getTestExecutionMonths = getTestExecutionMonths;
 /**
  * Obtiene una ejecución específica con sus resultados
  */
@@ -549,6 +579,147 @@ const recalculateAllExecutionStatuses = async (req, res) => {
     }
 };
 exports.recalculateAllExecutionStatuses = recalculateAllExecutionStatuses;
+/**
+ * Elimina una evidencia específica de un resultado de prueba
+ */
+const deleteEvidence = async (req, res) => {
+    const { executionId, caseId } = req.params;
+    const { evidenceUrl } = req.body;
+    if (!executionId || !caseId || !evidenceUrl) {
+        return res.status(400).json({
+            error: 'executionId, caseId and evidenceUrl are required'
+        });
+    }
+    try {
+        // Obtener el resultado actual
+        const [results] = await db_1.db.query('SELECT id, evidence_urls FROM test_results WHERE test_execution_id = ? AND test_case_id = ?', [executionId, caseId]);
+        if (!results || results.length === 0) {
+            return res.status(404).json({ error: 'Test result not found' });
+        }
+        const result = results[0];
+        let evidenceUrls = [];
+        // Parsear las URLs existentes
+        if (result.evidence_urls) {
+            try {
+                if (typeof result.evidence_urls === 'string') {
+                    evidenceUrls = JSON.parse(result.evidence_urls);
+                }
+                else if (Array.isArray(result.evidence_urls)) {
+                    evidenceUrls = result.evidence_urls;
+                }
+            }
+            catch (e) {
+                console.error('Error parsing evidence URLs:', e);
+                evidenceUrls = [];
+            }
+        }
+        // Filtrar la URL a eliminar
+        const updatedUrls = evidenceUrls.filter(url => url !== evidenceUrl);
+        // Eliminar el archivo de S3
+        try {
+            await (0, s3_1.deleteFromS3)(evidenceUrl);
+            console.log(`🗑️ Archivo eliminado de S3: ${evidenceUrl}`);
+        }
+        catch (s3Error) {
+            console.warn('⚠️ No se pudo eliminar de S3 (continuando con BD):', s3Error);
+            // Continuamos con la eliminación de la BD aunque falle S3
+        }
+        // Actualizar en la base de datos
+        await db_1.db.query('UPDATE test_results SET evidence_urls = ? WHERE test_execution_id = ? AND test_case_id = ?', [updatedUrls.length > 0 ? JSON.stringify(updatedUrls) : null, executionId, caseId]);
+        console.log(`✅ Evidencia eliminada: ${evidenceUrl}`);
+        res.json({
+            success: true,
+            message: 'Evidencia eliminada correctamente',
+            remaining_urls: updatedUrls
+        });
+    }
+    catch (error) {
+        console.error('❌ Error deleting evidence:', error);
+        res.status(500).json({
+            error: 'Error deleting evidence',
+            details: error.message
+        });
+    }
+};
+exports.deleteEvidence = deleteEvidence;
+/**
+ * Elimina una ejecución de prueba y todos sus resultados asociados
+ */
+const deleteTestExecution = async (req, res) => {
+    const { executionId } = req.params;
+    if (!executionId) {
+        return res.status(400).json({ error: 'executionId is required' });
+    }
+    try {
+        // Verificar que la ejecución existe
+        const [executions] = await db_1.db.query('SELECT id, test_suite_id FROM test_executions WHERE id = ?', [executionId]);
+        if (!executions || executions.length === 0) {
+            return res.status(404).json({ error: 'Execution not found' });
+        }
+        const execution = executions[0];
+        // Obtener todas las evidencias para eliminarlas de S3
+        const [results] = await db_1.db.query('SELECT evidence_urls FROM test_results WHERE test_execution_id = ?', [executionId]);
+        // Eliminar evidencias de S3
+        if (results && results.length > 0) {
+            for (const result of results) {
+                if (result.evidence_urls) {
+                    try {
+                        let urls = [];
+                        if (typeof result.evidence_urls === 'string') {
+                            urls = JSON.parse(result.evidence_urls);
+                        }
+                        else if (Array.isArray(result.evidence_urls)) {
+                            urls = result.evidence_urls;
+                        }
+                        for (const url of urls) {
+                            try {
+                                await (0, s3_1.deleteFromS3)(url);
+                                console.log(`🗑️ Evidencia eliminada de S3: ${url}`);
+                            }
+                            catch (s3Error) {
+                                console.warn(`⚠️ No se pudo eliminar de S3: ${url}`, s3Error);
+                            }
+                        }
+                    }
+                    catch (parseError) {
+                        console.warn('⚠️ Error parsing evidence URLs:', parseError);
+                    }
+                }
+            }
+        }
+        // Eliminar resultados asociados
+        await db_1.db.query('DELETE FROM test_results WHERE test_execution_id = ?', [executionId]);
+        console.log(`✅ Resultados eliminados para ejecución ${executionId}`);
+        // Eliminar la ejecución
+        await db_1.db.query('DELETE FROM test_executions WHERE id = ?', [executionId]);
+        console.log(`✅ Ejecución ${executionId} eliminada`);
+        // Intentar eliminar el board asociado (si existe)
+        try {
+            const [suiteInfo] = await db_1.db.query('SELECT name FROM test_suites WHERE id = ?', [execution.test_suite_id]);
+            if (suiteInfo && suiteInfo.length > 0) {
+                const suiteName = suiteInfo[0].name;
+                await db_1.db.query('DELETE FROM boards WHERE name = ? ORDER BY created_at DESC LIMIT 1', [suiteName]);
+                console.log(`✅ Board asociado eliminado: ${suiteName}`);
+            }
+        }
+        catch (boardError) {
+            console.warn('⚠️ No se pudo eliminar el board asociado:', boardError);
+        }
+        res.json({
+            success: true,
+            message: 'Ejecución eliminada correctamente',
+            deletedId: executionId
+        });
+    }
+    catch (error) {
+        console.error('❌ Error deleting test execution:', error);
+        res.status(500).json({
+            error: 'Error deleting test execution',
+            details: error.message
+        });
+    }
+};
+exports.deleteTestExecution = deleteTestExecution;
 const getTestResult = async (req, res) => {
     const { test_case_id, execution_id } = req.params;
     try {

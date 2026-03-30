@@ -1,7 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.importFromTestomat = exports.getProjectAnalytics = exports.createTestResult = exports.createTestExecution = exports.getTestExecutionById = exports.getTestExecutions = exports.deleteTestCase = exports.updateTestCase = exports.createTestCase = exports.getTestCaseById = exports.getTestCases = exports.createTestSuite = exports.getTestSuites = exports.updateTestProject = exports.createTestProject = exports.getTestProjectById = exports.getTestProjects = void 0;
+exports.duplicateSuiteCases = exports.uploadAttachment = exports.importFromTestomat = exports.getProjectAnalytics = exports.createTestResult = exports.createTestExecution = exports.getTestExecutionById = exports.getTestExecutions = exports.deleteTestCase = exports.updateTestCase = exports.createTestCase = exports.getTestCaseById = exports.getTestCases = exports.deleteTestSuite = exports.createTestSuite = exports.getTestSuites = exports.updateTestProject = exports.createTestProject = exports.getTestProjectById = exports.getTestProjects = void 0;
 const db_1 = require("../config/db");
+const s3_1 = require("../config/s3");
 // ============================================
 // 🧪 TESTOMAT CONTROLLER
 // ============================================
@@ -154,6 +155,29 @@ const createTestSuite = async (req, res) => {
     }
 };
 exports.createTestSuite = createTestSuite;
+const deleteTestSuite = async (req, res) => {
+    const suiteId = parseInt(req.params.suiteId || '0');
+    if (!suiteId || isNaN(suiteId)) {
+        return res.status(400).json({ error: 'Invalid suite ID' });
+    }
+    try {
+        // Primero eliminar todos los resultados de los casos de esta suite
+        await db_1.db.query('DELETE FROM test_results WHERE test_case_id IN (SELECT id FROM test_cases WHERE test_suite_id = ?)', [suiteId]);
+        // Luego eliminar todos los casos de prueba de esta suite
+        await db_1.db.query('DELETE FROM test_cases WHERE test_suite_id = ?', [suiteId]);
+        // Finalmente eliminar la suite
+        const [result] = await db_1.db.query('DELETE FROM test_suites WHERE id = ?', [suiteId]);
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Test suite not found' });
+        }
+        res.json({ message: 'Test suite deleted successfully' });
+    }
+    catch (error) {
+        console.error('Error:', error);
+        res.status(500).json({ error: 'Error deleting test suite' });
+    }
+};
+exports.deleteTestSuite = deleteTestSuite;
 // ========== TEST CASES ==========
 const getTestCases = async (req, res) => {
     const { suiteId } = req.params;
@@ -204,7 +228,7 @@ const getTestCaseById = async (req, res) => {
 };
 exports.getTestCaseById = getTestCaseById;
 const createTestCase = async (req, res) => {
-    const { test_suite_id, test_project_id, name, description, preconditions, input_data, steps, expected_result, priority, status, automation_status, automation_tool, test_type, requirement_id, tags, created_by, } = req.body;
+    const { test_suite_id, test_project_id, name, description, preconditions, input_data, steps, expected_result, priority, status, automation_status, automation_tool, test_type, requirement_id, tags, attachments, created_by, } = req.body;
     if (!test_suite_id || !test_project_id || !name) {
         return res.status(400).json({ error: 'Required: test_suite_id, test_project_id, name' });
     }
@@ -221,13 +245,15 @@ const createTestCase = async (req, res) => {
         const [result] = await db_1.db.query(`INSERT INTO test_cases (
         test_suite_id, test_project_id, name, description, preconditions, input_data, steps, 
         expected_result, priority, status, automation_status, automation_tool, 
-        test_type, requirement_id, tags, created_by
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, [
+        test_type, requirement_id, tags, attachments, created_by
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, [
             test_suite_id, test_project_id, name, description || null, preconditions || null,
             input_data || null, steps ? JSON.stringify(steps) : null, expected_result || null,
             priority || 'medium', status || 'draft', automation_status || 'manual',
             automation_tool || null, test_type || 'functional', requirement_id || null,
-            tags ? JSON.stringify(tags) : null, created_by || null,
+            tags ? JSON.stringify(tags) : null,
+            attachments ? JSON.stringify(attachments) : null,
+            created_by || null,
         ]);
         res.status(201).json({
             id: result.insertId,
@@ -236,6 +262,7 @@ const createTestCase = async (req, res) => {
             name,
             description,
             status: status || 'draft',
+            attachments: attachments || [],
         });
     }
     catch (error) {
@@ -246,7 +273,7 @@ const createTestCase = async (req, res) => {
 exports.createTestCase = createTestCase;
 const updateTestCase = async (req, res) => {
     const caseId = parseInt(req.params.caseId || '0');
-    const { name, description, preconditions, input_data, steps, expected_result, status, priority, automation_status, automation_tool, test_type, tags, updated_by } = req.body;
+    const { name, description, preconditions, input_data, steps, expected_result, status, priority, automation_status, automation_tool, test_type, tags, attachments, updated_by } = req.body;
     if (!caseId || isNaN(caseId)) {
         return res.status(400).json({ error: 'Invalid case ID' });
     }
@@ -301,6 +328,10 @@ const updateTestCase = async (req, res) => {
         if (tags !== undefined) {
             updates.push('tags = ?');
             params.push(tags ? JSON.stringify(tags) : null);
+        }
+        if (attachments !== undefined) {
+            updates.push('attachments = ?');
+            params.push(attachments ? JSON.stringify(attachments) : null);
         }
         if (updates.length === 0) {
             return res.status(400).json({ error: 'No fields to update' });
@@ -373,6 +404,7 @@ const getTestExecutionById = async (req, res) => {
         tc.input_data,
         tc.steps,
         tc.expected_result,
+        tc.attachments,
         tc.priority,
         tc.test_type,
         tc.automation_status,
@@ -421,6 +453,7 @@ const getTestExecutionById = async (req, res) => {
             input_data: row.input_data,
             steps: row.steps,
             expected_result: row.expected_result,
+            attachments: row.attachments,
             priority: row.priority,
             test_type: row.test_type,
             automation_status: row.automation_status,
@@ -555,12 +588,136 @@ const importFromTestomat = async (req, res) => {
     }
 };
 exports.importFromTestomat = importFromTestomat;
+/**
+ * Sube un archivo adjunto a S3
+ */
+const uploadAttachment = async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ error: 'No se ha proporcionado ningún archivo' });
+        }
+        const file = req.file;
+        const fileName = `${Date.now()}-${file.originalname}`;
+        // Subir archivo a S3
+        const fileUrl = await (0, s3_1.uploadToS3)(file.buffer, fileName, file.mimetype);
+        res.status(200).json({
+            success: true,
+            url: fileUrl,
+            fileName: file.originalname,
+            message: 'Archivo subido correctamente'
+        });
+    }
+    catch (error) {
+        console.error('Error al subir archivo:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Error al subir el archivo',
+            details: error.message
+        });
+    }
+};
+exports.uploadAttachment = uploadAttachment;
+/**
+ * 📋 Duplica todos los casos de una suite a otra suite destino
+ * Los casos se copian sin evidencias ni resultados (ejecución limpia)
+ */
+const duplicateSuiteCases = async (req, res) => {
+    const { sourceSuiteId } = req.params;
+    const { targetSuiteId } = req.body;
+    if (!sourceSuiteId || !targetSuiteId) {
+        return res.status(400).json({
+            error: 'sourceSuiteId y targetSuiteId son requeridos'
+        });
+    }
+    try {
+        // 1. Verificar que la suite origen existe
+        const [sourceSuite] = await db_1.db.query('SELECT id, name, test_project_id FROM test_suites WHERE id = ?', [sourceSuiteId]);
+        if (!sourceSuite || sourceSuite.length === 0) {
+            return res.status(404).json({ error: 'Suite origen no encontrada' });
+        }
+        // 2. Verificar que la suite destino existe
+        const [targetSuite] = await db_1.db.query('SELECT id, name, test_project_id FROM test_suites WHERE id = ?', [targetSuiteId]);
+        if (!targetSuite || targetSuite.length === 0) {
+            return res.status(404).json({ error: 'Suite destino no encontrada' });
+        }
+        const targetProjectId = targetSuite[0].test_project_id;
+        // 3. Obtener todos los casos de la suite origen
+        const [sourceCases] = await db_1.db.query('SELECT * FROM test_cases WHERE test_suite_id = ?', [sourceSuiteId]);
+        if (!sourceCases || sourceCases.length === 0) {
+            return res.status(400).json({
+                error: 'La suite origen no tiene casos de prueba para duplicar'
+            });
+        }
+        console.log(`📋 Duplicando ${sourceCases.length} casos de "${sourceSuite[0].name}" a "${targetSuite[0].name}"`);
+        // Helper para serializar campos JSON (mysql2 los parsea automáticamente al leer)
+        const toJsonString = (value) => {
+            if (value === null || value === undefined)
+                return null;
+            if (typeof value === 'string')
+                return value;
+            return JSON.stringify(value);
+        };
+        // 4. Copiar cada caso de prueba a la suite destino
+        const copiedCaseIds = [];
+        for (const sourceCase of sourceCases) {
+            const [result] = await db_1.db.query(`INSERT INTO test_cases (
+          test_suite_id, test_project_id, name, description, preconditions, 
+          input_data, steps, expected_result, priority, status, 
+          automation_status, automation_tool, test_type, requirement_id, 
+          tags, attachments, created_by, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`, [
+                targetSuiteId,
+                targetProjectId,
+                sourceCase.name,
+                sourceCase.description,
+                sourceCase.preconditions,
+                toJsonString(sourceCase.input_data),
+                toJsonString(sourceCase.steps),
+                sourceCase.expected_result,
+                sourceCase.priority || 'medium',
+                'draft', // Siempre draft para la copia
+                sourceCase.automation_status || 'manual',
+                sourceCase.automation_tool,
+                sourceCase.test_type || 'functional',
+                sourceCase.requirement_id,
+                toJsonString(sourceCase.tags),
+                toJsonString(sourceCase.attachments), // Mantener adjuntos del caso (no evidencias de ejecución)
+                null // Sin usuario asignado
+            ]);
+            copiedCaseIds.push(result.insertId);
+        }
+        console.log(`✅ ${copiedCaseIds.length} casos copiados exitosamente`);
+        res.status(201).json({
+            success: true,
+            message: `${copiedCaseIds.length} casos de prueba duplicados exitosamente`,
+            source: {
+                suiteId: parseInt(sourceSuiteId),
+                suiteName: sourceSuite[0].name
+            },
+            target: {
+                suiteId: parseInt(targetSuiteId),
+                suiteName: targetSuite[0].name
+            },
+            copiedCases: copiedCaseIds.length,
+            copiedCaseIds
+        });
+    }
+    catch (error) {
+        console.error('❌ Error duplicando casos de suite:', error);
+        res.status(500).json({
+            error: 'Error al duplicar los casos de prueba',
+            details: error.message
+        });
+    }
+};
+exports.duplicateSuiteCases = duplicateSuiteCases;
 exports.default = {
     getTestProjects: exports.getTestProjects,
     getTestProjectById: exports.getTestProjectById,
     createTestProject: exports.createTestProject,
     getTestSuites: exports.getTestSuites,
     createTestSuite: exports.createTestSuite,
+    deleteTestSuite: exports.deleteTestSuite,
     getTestCases: exports.getTestCases,
     getTestCaseById: exports.getTestCaseById,
     createTestCase: exports.createTestCase,
@@ -571,5 +728,7 @@ exports.default = {
     createTestResult: exports.createTestResult,
     getProjectAnalytics: exports.getProjectAnalytics,
     importFromTestomat: exports.importFromTestomat,
+    uploadAttachment: exports.uploadAttachment,
+    duplicateSuiteCases: exports.duplicateSuiteCases,
 };
 //# sourceMappingURL=testomat.controller.js.map
