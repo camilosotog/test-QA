@@ -230,7 +230,7 @@ export const getTestCases = async (req: Request, res: Response) => {
       params.push(automation_status);
     }
 
-    query += ' ORDER BY created_at DESC';
+    query += ' ORDER BY id ASC';
     const [cases] = await db.query(query, params) as any;
     res.json(Array.isArray(cases) ? cases : []);
   } catch (error) {

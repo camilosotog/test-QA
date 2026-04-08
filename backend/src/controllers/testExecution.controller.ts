@@ -360,7 +360,7 @@ export const getTestExecution = async (req: Request, res: Response) => {
       FROM test_cases tc
       LEFT JOIN test_results tr ON tc.id = tr.test_case_id AND tr.test_execution_id = ?
       WHERE tc.test_suite_id = ?
-      ORDER BY tc.created_at ASC
+      ORDER BY tc.id ASC
     `, [executionId, execution.test_suite_id]) as any;
 
     res.json({
